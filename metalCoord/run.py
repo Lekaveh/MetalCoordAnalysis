@@ -1,12 +1,13 @@
 from gemmi import cif
 import json
-from analysis.stats import find_classes, get_structures
+from .analysis.stats import find_classes, get_structures
 import os
 import gemmi
-import os
+import sys
 from pathlib import Path
 import argparse
 import json
+
 
 
 def decompose(values, n):
@@ -17,7 +18,8 @@ def decompose(values, n):
 def pack(values):
     return [list(x) for x in zip(*values)]  
 
-mons = json.load(open("./data/mons.json"))
+d = os.path.dirname(sys.modules["metalCoord"].__file__)
+mons = json.load(open(os.path.join(d, "data/mons.json")))
 
 
 def get_stats(results, metal_name, ligand_name):
@@ -175,16 +177,40 @@ def adjust(output_path, path):
         print(path)
 
 
-if __name__ == '__main__':
+def create_parser():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--ligand', required=True, help='ligand path')
-    parser.add_argument('--output', required=True, help='output file path')
 
+    # Define the subparsers for the two apps
+    subparsers = parser.add_subparsers(dest='command')
+
+    # App1
+    update_parser = subparsers.add_parser('update', help='Update a cif file.')
+    update_parser.add_argument('-i', '--input', type=str, required=True, help='Path to the input CIF file.')
+    update_parser.add_argument('-o', '--output', type=str, required=True, help='Updated CIF file path.')
+
+    # App2
+    stats_parser = subparsers.add_parser('stats', help='Distance statistics.')
+    stats_parser.add_argument('-l', '--ligand', type=str, required=True, help='Ligand namr.')
+    stats_parser.add_argument('-p', '--pdb', type=str, required=True, help='PDB name.')
+    stats_parser.add_argument('-o', '--output', type=str, required=True, help='Output file path.')
+
+    return parser
+
+
+def main_func():
+    parser = create_parser()
     args = parser.parse_args()
 
-    ligand = args.ligand
-    output = args.output
+    if args.command == 'update':
+        adjust(args.output, args.input)
+
+    elif args.command == 'stats':
+        results = find_classes(args.ligand, args.pdb)
+        with open(args.output, 'w') as json_file:
+            json.dump(results, json_file, 
+                                indent=4,  
+                                separators=(',',': '))
 
 
-    adjust(output, ligand)
-    
+if __name__ == '__main__':
+    main_func()    

@@ -1,14 +1,22 @@
 
 import pandas as pd
-from correspondense.procrustes import fit
+from ..correspondense.procrustes import fit
 import numpy as np
-from load.rcsb import load_pdb
-from analysis.structures import get_ligands
+from ..load.rcsb import load_pdb
+from .structures import get_ligands
 import gemmi
+import os
+import sys
+import json
 
+d = os.path.dirname(sys.modules["metalCoord"].__file__)
 
-data = pd.read_csv("./data/classes.zip")
+data = pd.read_csv(os.path.join(d, "data/classes.zip"))
+
 distances = data.groupby(["Metal", "Ligand", "Class", "Coordination"]).Distance.agg(["mean", "std"]).reset_index()
+
+
+
 
 def get_distance_std(metal, ligand, cl):
     return distances[(distances.Metal == metal) & (distances.Ligand == ligand) & (distances.Class == cl)][["mean", "std"]].values[0]
