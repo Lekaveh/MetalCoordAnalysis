@@ -1,6 +1,6 @@
 from gemmi import cif
 import json
-from .analysis.stats import find_classes, get_structures
+from metalCoord.analysis.stats import find_classes, get_structures
 import os
 import gemmi
 import sys
@@ -22,7 +22,7 @@ d = os.path.dirname(sys.modules["metalCoord"].__file__)
 mons = json.load(open(os.path.join(d, "data/mons.json")))
 
 
-def get_stats(results, metal_name, ligand_name):
+def get_distance(results, metal_name, ligand_name):
     coordination = 0
     cl = ""
     procrustes = 1
@@ -53,58 +53,37 @@ def get_stats(results, metal_name, ligand_name):
                         break
     return distance, std, cl, procrustes, coordination
 
+def get_angles(results, metal_name, ligand_name1, ligand_name2):
+    coordination = 0
+    cl = ""
+    procrustes = 1
+    angle = -1
+    std = -1
 
-def contains_metal(block):
-    loop = block.find_loop ('_chem_comp_atom.comp_id').get_loop()
-    rows = decompose(loop.values, len(loop.tags))
-    for row in rows:
-        if gemmi.Element(row[2]).is_metal:
-            return True
-    return False
+    for metal in results:
+        if metal["metal"] == metal_name:
+            for clazz in metal["ligands"]:
+                if clazz["coordination"] < coordination:
+                        continue
+                for ligand in clazz["angles"]:
+                    if ((ligand["ligand1"] == ligand_name1) and (ligand["ligand2"] == ligand_name2)) or ((ligand["ligand2"] == ligand_name1) and (ligand["ligand1"] == ligand_name2)):
+                        if clazz["coordination"] == coordination and  clazz["procrustes"] < procrustes:
+                            coordination =  clazz["coordination"]
+                            procrustes   =  clazz["procrustes"]
+                            angle = ligand["angle"]
+                            std = ligand["std"]
+                            cl = clazz["class"]
 
-def get_element_name_dict(block):
-    result = dict()
-    loop = block.find_loop ('_chem_comp_atom.comp_id').get_loop()
-    rows = decompose(loop.values, len(loop.tags))
-    for row in rows:
-        result[row[1]] =  row[2]
-    return result
+                        if clazz["coordination"] > coordination:
+                            coordination =  clazz["coordination"]
+                            procrustes   =  clazz["procrustes"]
+                            angle = ligand["angle"]
+                            std = ligand["std"]
+                            cl = clazz["class"]
+                        
+                        break
+    return angle, std, cl, procrustes, coordination
 
-def adjust(output_path, path):
-    try:
-        folder, name = os.path.split(path)
-        name = name[:-4]
-        folder = os.path.split(folder)[1]
-        doc = cif.read_file(path)
-        block = doc.find_block(f"comp_{name}")
-        loop = block.find_loop ('_chem_comp_bond.value_dist').get_loop()
-        rows = decompose(loop.values, len(loop.tags))
-        if name in mons and contains_metal(block):
-            el_name = get_element_name_dict(block)
-            pdb = mons[name][0][0]
-            results = find_classes(name, pdb)
-            for row in rows:
-                
-                metal_name = row[1]
-                ligand_name = row[2]
-                if not gemmi.Element(el_name[row[2]]).is_metal and not gemmi.Element(el_name[row[1]]).is_metal:
-                    continue
-
-                if gemmi.Element(row[2]).is_metal:
-                    metal_name = row[2]
-                    ligand_name = row[1]
-                distance, std, cl, procrustes, coordination = get_stats(results, metal_name, ligand_name)
-                if coordination > 0:
-                    row[4] = row[6] = str(round(distance, 3))
-                    row[5] = row[7] = str(round(std, 3))
-            
-            loop.set_all_values(pack(rows))
-            out = os.path.join(output_path, folder)
-            Path(out).mkdir(exist_ok=True, parents=True)
-            doc.write_file(os.path.join(out, f"{name}.cif"))
-    except Exception as e:
-        print(e)
-        print(path)
 
 def differ(path):
     try:
@@ -141,6 +120,7 @@ def get_element_name_dict(block):
         result[row[1]] =  row[2]
     return result
 
+
 def adjust(output_path, path):
     try:
         folder, name = os.path.split(path)
@@ -148,9 +128,11 @@ def adjust(output_path, path):
         folder = os.path.split(folder)[1]
         doc = cif.read_file(path)
         block = doc.find_block(f"comp_{name}")
-        loop = block.find_loop ('_chem_comp_bond.value_dist').get_loop()
-        rows = decompose(loop.values, len(loop.tags))
+        
+        
         if name in mons and contains_metal(block):
+            loop = block.find_loop ('_chem_comp_bond.value_dist').get_loop()
+            rows = decompose(loop.values, len(loop.tags))
             el_name = get_element_name_dict(block)
             pdb = mons[name][0][0]
             results = find_classes(name, pdb)
@@ -164,12 +146,38 @@ def adjust(output_path, path):
                 if gemmi.Element(row[2]).is_metal:
                     metal_name = row[2]
                     ligand_name = row[1]
-                distance, std, cl, procrustes, coordination = get_stats(results, metal_name, ligand_name)
+
+
+                distance, std, cl, procrustes, coordination = get_distance(results, metal_name, ligand_name)
                 if coordination > 0:
                     row[4] = row[6] = str(round(distance, 3))
                     row[5] = row[7] = str(round(std, 3))
             
             loop.set_all_values(pack(rows))
+
+
+
+            loop = block.find_loop ('_chem_comp_angle.value_angle').get_loop()
+            rows = decompose(loop.values, len(loop.tags))
+            if name in mons and contains_metal(block):
+                el_name = get_element_name_dict(block)
+                pdb = mons[name][0][0]
+                results = find_classes(name, pdb)
+                for row in rows:
+                    
+                    ligand1_name = row[1]
+                    metal_name = row[2]
+                    ligand2_name = row[3]
+                    if not gemmi.Element(el_name[row[2]]).is_metal:
+                        continue
+
+                    angle, std, cl, procrustes, coordination = get_angles(results, metal_name, ligand1_name, ligand2_name)
+                    if coordination > 0:
+                        row[4]  = str(round(angle, 3))
+                        row[5]  = str(round(std, 3))
+                
+            loop.set_all_values(pack(rows))
+
             Path(os.path.split(output_path)[0]).mkdir(exist_ok=True, parents=True)
             doc.write_file(output_path)
     except Exception as e:

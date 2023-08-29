@@ -17,6 +17,8 @@ class Ligand:
         self.extra_ligands = []
     def elements(self):
         return sorted([ligand.element.name for ligand in self.ligands] + [ligand.atom.element.name for ligand in self.extra_ligands])
+    def atoms(self):
+        return [ligand.element.name for ligand in self.ligands] + [ligand.atom.element.name for ligand in self.extra_ligands]
     def code(self):
         return "".join([self.metal.element.name] + self.elements())
     def get_coord(self):

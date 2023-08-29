@@ -34,30 +34,40 @@ def procrustes_fit(A, B):
     approx = c*A@R
     return (distance(approx, B), approx, c, R)
 
-def fit(coords, ideal_coords, n=1, core_vectors_num = 4):
-    n1 = ideal_coords.shape[0]
-    n2 = ideal_coords.shape[1]
-    x = tf.broadcast_to(tf.convert_to_tensor(coords, dtype='float32'), (1, n1, n2))
+def get_combinations(n1, groups=None):
 
-    y = tf.broadcast_to(tf.convert_to_tensor(ideal_coords, dtype='float32'), (n, n1, n2))
-    
-    indices = np.apply_along_axis(np.random.permutation, 1,  np.broadcast_to(np.arange(1, n1), (n, n1 - 1)))
-    indices = np.insert(indices, 0, 0, axis=1)
-    indices = indices.reshape(-1, indices.shape[1], 1)
+    c_list = []
+    ranges = [0] + np.cumsum(groups).tolist()
+    for  i in range(len(ranges) - 1):
+        c_list.append(np.fromiter(itertools.chain.from_iterable(itertools.permutations(range(ranges[i], ranges[i + 1]))), dtype=np.int32).reshape(-1, ranges[i + 1] - ranges[i]))
 
-    perm_y = tf.gather_nd(y, indices=indices, batch_dims=1)
-
-    combinations = np.fromiter(itertools.chain.from_iterable(itertools.combinations(range(1, n1), core_vectors_num - 1)), dtype=np.int32)
-    
-    combinations = combinations.reshape(-1, core_vectors_num - 1)
-    combinations = np.apply_along_axis(np.random.permutation, 1,  np.repeat(combinations, np.math.factorial(core_vectors_num - 1), axis = 0))
+    combinations = np.vstack([np.concatenate(x) for x in itertools.product(*c_list)])  
     k = len(combinations)
-    combinations = np.insert(combinations, 0, 0, axis=1)
-    combinations = np.broadcast_to(combinations, (n, combinations.shape[0], combinations.shape[1]))
+    combinations = np.broadcast_to(combinations, (1, combinations.shape[0], combinations.shape[1]))
     
-    s_y = tf.gather_nd(perm_y, indices=combinations.reshape(-1, combinations.shape[1], combinations.shape[2], 1), batch_dims=1)
-    s_y = tf.reshape(s_y, (k*n, core_vectors_num, 3))
-    s_x = tf.broadcast_to(tf.convert_to_tensor(coords[:core_vectors_num], dtype='float32'), (1, core_vectors_num, coords.shape[1]))
+    return combinations,k
+
+
+def fit(coords, ideal_coords, groups=None, all = False):
+
+    
+    n1 = coords.shape[0]
+    n2 = ideal_coords.shape[1]
+    if groups is None:
+        correspondense = [list(range(n1)), list(range(n1))]
+        lengths = [n1]
+    else:
+        correspondense = [np.hstack(groups[0]).tolist(), np.hstack(groups[1]).tolist()]
+        lengths = [len(gr) for gr in  groups[0]]
+
+    x = tf.broadcast_to(tf.convert_to_tensor(coords[correspondense[0]], dtype='float32'), (1, n1, n2))    
+    y = tf.broadcast_to(tf.convert_to_tensor(ideal_coords[correspondense[1]], dtype='float32'), (1, n1, n2))
+    
+    combinations, k = get_combinations(n1, groups=lengths)
+    
+    s_y = tf.gather_nd(y, indices=combinations.reshape(-1, combinations.shape[1], combinations.shape[2], 1), batch_dims=1)
+    s_y = tf.reshape(s_y, (k*1, n1, coords.shape[1]))
+    s_x = tf.broadcast_to(tf.convert_to_tensor(coords, dtype='float32'), (1, n1, coords.shape[1]))
 
     distances, approxs, c, R = procrustes_fit(s_y, s_x)
     distances = distances.numpy()
@@ -71,7 +81,7 @@ def fit(coords, ideal_coords, n=1, core_vectors_num = 4):
 
 
     approxs = c*tf.broadcast_to(tf.convert_to_tensor(
-        ideal_coords, dtype='float32'), (1, n1, n2))@R
+        ideal_coords[correspondense[1]], dtype='float32'), (1, n1, n2))@R
     
     approxs_numpy = approxs.numpy()
     
@@ -81,7 +91,7 @@ def fit(coords, ideal_coords, n=1, core_vectors_num = 4):
         mask[...] = 1
         mask[0] = 0
         for i in np.arange(1, approx.shape[0]):
-            min_arg = np.argmax(np.exp(-np.sum((approx[i] - coords)**2,  axis=1).T)*mask)
+            min_arg = np.argmax(np.exp(-np.sum((approx[i] - coords[correspondense[0]])**2,  axis=1).T)*mask)
             indices[k, min_arg] = i
             mask[min_arg] = 0
    
@@ -89,6 +99,9 @@ def fit(coords, ideal_coords, n=1, core_vectors_num = 4):
     perm_y = tf.gather_nd(approxs, indices=indices, batch_dims=1)
 
     distances = distance(x, perm_y).numpy()
-
     min_arg = np.argmin(distances) 
-    return (distances[min_arg].squeeze(), approxs_numpy[min_arg][indices[min_arg].ravel()].squeeze(),  c[min_arg].numpy().ravel()[0], R[min_arg].numpy().squeeze(), indices[min_arg].ravel())
+
+    back_index = np.arange(n1)[np.argsort(correspondense[1])]
+    if all:
+        return (distances, back_index[indices].reshape(len(indices), n1), distances[min_arg].squeeze())
+    return (distances[min_arg].squeeze(), approxs_numpy[min_arg][indices[min_arg].ravel()].squeeze(),  c[min_arg].numpy().ravel()[0], R[min_arg].numpy().squeeze(), np.arange(n1)[np.argsort(correspondense[1])][indices[min_arg].ravel()])
