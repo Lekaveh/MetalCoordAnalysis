@@ -25,6 +25,7 @@ class Ligand:
         return np.array([self.metal.pos.tolist()] + [ligand.pos.tolist() for ligand in self.ligands] + [ligand.atom.pos.tolist() for ligand in self.extra_ligands])
     def coordination(self):
         return len(self.ligands) + len(self.extra_ligands)
+        
 
 def distance(atom1, atom2):
     return np.sqrt((atom1.pos - atom2.pos).dot(atom1.pos - atom2.pos))

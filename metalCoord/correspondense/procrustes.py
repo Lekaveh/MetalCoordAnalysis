@@ -73,8 +73,9 @@ def fit(coords, ideal_coords, groups=None, all = False):
     distances = distances.numpy()
     min_distance = np.min(distances)
     mask = distances <= min_distance + 0.1
-    min_arg = np.argmin(distances)
     
+    distances = distances[mask]
+    min_arg = np.argmin(distances)
     R = tf.boolean_mask(R, mask)
     c = tf.boolean_mask(c, mask)
     indices = tf.boolean_mask(combinations, mask).numpy()
@@ -90,4 +91,5 @@ def fit(coords, ideal_coords, groups=None, all = False):
   
     if all:
         return (distances, indices, distances[min_arg].squeeze())
+    
     return (distances[min_arg].squeeze(), approxs[min_arg][indices[min_arg]].squeeze(),  c[min_arg].numpy().ravel()[0], R[min_arg].numpy().squeeze(), indices[min_arg].ravel())
