@@ -16,13 +16,13 @@ class Ligand:
         self.ligands = []
         self.extra_ligands = []
     def elements(self):
-        return sorted([ligand.element.name for ligand in self.ligands] + [ligand.atom.element.name for ligand in self.extra_ligands])
+        return sorted([ligand.atom.element.name for ligand in self.ligands + self.extra_ligands])
     def atoms(self):
-        return [ligand.element.name for ligand in self.ligands] + [ligand.atom.element.name for ligand in self.extra_ligands]
+        return [ligand.atom.element.name for ligand in self.ligands + self.extra_ligands]
     def code(self):
         return "".join([self.metal.element.name] + self.elements())
     def get_coord(self):
-        return np.array([self.metal.pos.tolist()] + [ligand.pos.tolist() for ligand in self.ligands] + [ligand.atom.pos.tolist() for ligand in self.extra_ligands])
+        return np.array([self.metal.pos.tolist()] + [ligand.atom.pos.tolist() for ligand in self.ligands + self.extra_ligands])
     def coordination(self):
         return len(self.ligands) + len(self.extra_ligands)
         
@@ -52,7 +52,7 @@ def get_ligands(st, ligand, scale = 1.2, max_dist = 5):
                             continue
  
                         if cra.residue.name == ligand:
-                            structures[-1].ligands.append(cra.atom)
+                            structures[-1].ligands.append(Atom(cra.atom, cra.residue, cra.chain))
                         else:
                             structures[-1].extra_ligands.append(Atom(cra.atom, cra.residue, cra.chain))
 

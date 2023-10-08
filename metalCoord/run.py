@@ -35,7 +35,7 @@ def get_distance(results, metal_name, ligand_name):
                 if clazz["coordination"] < coordination:
                         continue
                 for ligand in clazz["base"]:
-                    if ligand["ligand"] == ligand_name:
+                    if ligand["ligand"]["name"]  == ligand_name:
                         if clazz["coordination"] == coordination and  clazz["procrustes"] < procrustes:
                             coordination =  clazz["coordination"]
                             procrustes   =  clazz["procrustes"]
@@ -66,7 +66,7 @@ def get_angles(results, metal_name, ligand_name1, ligand_name2):
                 if clazz["coordination"] < coordination:
                         continue
                 for ligand in clazz["angles"]:
-                    if ((ligand["ligand1"] == ligand_name1) and (ligand["ligand2"] == ligand_name2)) or ((ligand["ligand2"] == ligand_name1) and (ligand["ligand1"] == ligand_name2)):
+                    if ((ligand["ligand1"]["name"] == ligand_name1) and (ligand["ligand2"]["name"]  == ligand_name2)) or ((ligand["ligand2"]["name"]  == ligand_name1) and (ligand["ligand1"]["name"]  == ligand_name2)):
                         if clazz["coordination"] == coordination and  clazz["procrustes"] < procrustes:
                             coordination =  clazz["coordination"]
                             procrustes   =  clazz["procrustes"]
@@ -218,7 +218,6 @@ def main_func():
             json.dump(results, json_file, 
                                 indent=4,  
                                 separators=(',',': '))
-
 
 if __name__ == '__main__':
     main_func()    
