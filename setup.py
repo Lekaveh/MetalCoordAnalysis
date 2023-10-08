@@ -15,7 +15,7 @@ setup(name='MetalCoordAnalysis',
           "console_scripts": [
               "metalCoord = metalCoord.run:main_func",
           ]},
-      package_data={'metalCoord': ['data/classes.zip', 'data/ideal_cova_rad_for_all_elememt.list',
+      package_data={'metalCoord': ['data/classes.zip', 'data/ideal.csv', 'data/ideal_cova_rad_for_all_elememt.list',
                                  'data/mons.json']},
       python_requires='>=3',
       )
