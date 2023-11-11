@@ -8,12 +8,13 @@ import gemmi
 from metalCoord.analysis.data import DB
 from metalCoord.analysis.data import StrictCandidateFinder, ElementCandidateFinder, ElementInCandidateFinder, AnyElementCandidateFinder, NoCoordinationCandidateFinder
 from metalCoord.analysis.data import StrictCorrespondenceStatsFinder, WeekCorrespondenceStatsFinder, OnlyDistanceStatsFinder
-
+from metalCoord.logging import Logger
 
 def ligandJSON(ligand):
     return {"name": ligand.name, "element": ligand.element, "chain": ligand.chain, "residue": ligand.residue, "sequence ": ligand.sequence}
 
 def generateJson(stats):
+    Logger().info(f"Generating json")
     results = []
     for s in stats:
         if s.isEmpty():
@@ -35,16 +36,20 @@ def generateJson(stats):
                                     "std": p.std })
             metal["ligands"].append(clazz)
         results.append(metal)
+    Logger().info(f"Json generation completed")
     return results
 
 
 
 
 def get_structures(ligand, pdb_name):
-    pdb, type = load_pdb(pdb_name)
-    if type == 'cif':
-        print("Unsupported data format cif")
-    st = gemmi.read_pdb_string(pdb)
+    if pdb_name.endswith(".pdb"):
+        st = gemmi.read_pdb(pdb_name)   
+    else:    
+        pdb, type = load_pdb(pdb_name)
+        if type == 'cif':
+            Logger().error("Unsupported data format cif")
+        st = gemmi.read_pdb_string(pdb)
 
     return get_ligands(st, ligand)
 
@@ -58,12 +63,15 @@ strategies = [StrictCorrespondenceStatsFinder(StrictCandidateFinder()),
 
 
 def find_classes(ligand, pdb_name):
+    Logger().info(f"Analysing structres in  {pdb_name} for patterns")
     structures = get_structures(ligand, pdb_name)
+    Logger().info(f"{len(structures)} structures found.")
     results = []
-    for structure in tqdm(structures):
-        for strategy in strategies:
+    for structure in tqdm(structures, desc="Structures", position=0):
+        for strategy in tqdm(strategies, desc="Strategies", position=1, leave=False):
             stats = strategy.get_stats(structure, DB.data())
             if not stats.isEmpty():
                 results.append(stats)
                 break
+    Logger().info(f"Analysis completed. {len(results)} results found.")
     return generateJson(results)

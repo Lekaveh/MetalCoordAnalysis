@@ -1,6 +1,7 @@
 from gemmi import cif
 import json
 from metalCoord.analysis.stats import find_classes, get_structures
+from metalCoord.logging import Logger
 import os
 import gemmi
 import sys
@@ -122,6 +123,7 @@ def get_element_name_dict(block):
 
 
 def adjust(output_path, path):
+    Logger().info(f"Start processing {path}")
     try:
         folder, name = os.path.split(path)
         name = name[:-4]
@@ -134,8 +136,12 @@ def adjust(output_path, path):
             loop = block.find_loop ('_chem_comp_bond.value_dist').get_loop()
             rows = decompose(loop.values, len(loop.tags))
             el_name = get_element_name_dict(block)
+            Logger().info(f"Choosing best pdb file")
             pdb = mons[name][0][0]
+            Logger().info(f"Best pdb file is {pdb}")
+
             results = find_classes(name, pdb)
+            Logger().info(f"Ligand updating started")
             for row in rows:
                 
                 metal_name = row[1]
@@ -152,8 +158,10 @@ def adjust(output_path, path):
                 if coordination > 0:
                     row[4] = row[6] = str(round(distance, 3))
                     row[5] = row[7] = str(round(std, 3))
+                
             
             loop.set_all_values(pack(rows))
+            Logger().info(f"Distances updated")
 
 
 
@@ -177,12 +185,26 @@ def adjust(output_path, path):
                         row[5]  = str(round(std, 3))
                 
             loop.set_all_values(pack(rows))
+            Logger().info(f"Angles updated")
+            Logger().info(f"Ligand update completed")
 
             Path(os.path.split(output_path)[0]).mkdir(exist_ok=True, parents=True)
             doc.write_file(output_path)
+            report_path = output_path + ".json"
+            Logger().info(f"Update written to {output_path}")
+            with open(report_path, 'w') as json_file:
+                json.dump(results, json_file, 
+                                    indent=4,  
+                                    separators=(',',': '))
+            Logger().info(f"Report written to {report_path}")
+        else:
+            if name not in mons :
+                Logger().info(f"{name} is not in Ligand - PDB database")
+            if not contains_metal(block):
+                Logger().info(f"No metal found in {name}")
+
     except Exception as e:
-        print(e)
-        print(path)
+        Logger().error(f"Error in {path}. {e}")
 
 
 def create_parser():
@@ -199,7 +221,7 @@ def create_parser():
     # App2
     stats_parser = subparsers.add_parser('stats', help='Distance statistics.')
     stats_parser.add_argument('-l', '--ligand', type=str, required=True, help='Ligand namr.')
-    stats_parser.add_argument('-p', '--pdb', type=str, required=True, help='PDB name.')
+    stats_parser.add_argument('-p', '--pdb', type=str, required=True, help='PDB name or path to the pdb.')
     stats_parser.add_argument('-o', '--output', type=str, required=True, help='Output file path.')
 
     return parser
@@ -218,6 +240,7 @@ def main_func():
             json.dump(results, json_file, 
                                 indent=4,  
                                 separators=(',',': '))
+        Logger().info(f"Report written to {args.output}")
 
 if __name__ == '__main__':
     main_func()    
