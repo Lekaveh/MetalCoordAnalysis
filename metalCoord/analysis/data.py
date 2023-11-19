@@ -424,7 +424,7 @@ class OnlyDistanceStatsFinder(StatsFinder):
         clazzStats = LigandStats("", -1, 0, -1)
         for l in structure.ligands:
             dist, std, count = DB.getDistanceStats(
-                structure.metal.element.name, l.element.name)
+                structure.metal.element.name, l.atom.element.name)
             if count > 0:
                 clazzStats.base.append(DistanceStats(Ligand(l), dist, std))
 
