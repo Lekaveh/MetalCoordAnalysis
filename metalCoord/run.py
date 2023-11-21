@@ -37,16 +37,16 @@ def get_distance(results, metal_name, ligand_name):
                         continue
                 for ligand in clazz["base"]:
                     if ligand["ligand"]["name"]  == ligand_name:
-                        if clazz["coordination"] == coordination and  clazz["procrustes"] < procrustes:
+                        if clazz["coordination"] == coordination and  float(clazz["procrustes"]) < procrustes:
                             coordination =  clazz["coordination"]
-                            procrustes   =  clazz["procrustes"]
+                            procrustes   =  float(clazz["procrustes"])
                             distance = ligand["distance"]
                             std = ligand["std"]
                             cl = clazz["class"]
 
                         if clazz["coordination"] > coordination:
                             coordination =  clazz["coordination"]
-                            procrustes   =  clazz["procrustes"]
+                            procrustes   =  float(clazz["procrustes"])
                             distance = ligand["distance"]
                             std = ligand["std"]
                             cl = clazz["class"]
@@ -68,16 +68,16 @@ def get_angles(results, metal_name, ligand_name1, ligand_name2):
                         continue
                 for ligand in clazz["angles"]:
                     if ((ligand["ligand1"]["name"] == ligand_name1) and (ligand["ligand2"]["name"]  == ligand_name2)) or ((ligand["ligand2"]["name"]  == ligand_name1) and (ligand["ligand1"]["name"]  == ligand_name2)):
-                        if clazz["coordination"] == coordination and  clazz["procrustes"] < procrustes:
+                        if clazz["coordination"] == coordination and  float(clazz["procrustes"]) < procrustes:
                             coordination =  clazz["coordination"]
-                            procrustes   =  clazz["procrustes"]
+                            procrustes   =  float(clazz["procrustes"])
                             angle = ligand["angle"]
                             std = ligand["std"]
                             cl = clazz["class"]
 
                         if clazz["coordination"] > coordination:
                             coordination =  clazz["coordination"]
-                            procrustes   =  clazz["procrustes"]
+                            procrustes   =  float(clazz["procrustes"])
                             angle = ligand["angle"]
                             std = ligand["std"]
                             cl = clazz["class"]
