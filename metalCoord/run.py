@@ -122,7 +122,7 @@ def get_element_name_dict(block):
     return result
 
 
-def adjust(output_path, path):
+def adjust(output_path, path, pdb):
     Logger().info(f"Start processing {path}")
     try:
         folder, name = os.path.split(path)
@@ -136,9 +136,10 @@ def adjust(output_path, path):
             loop = block.find_loop ('_chem_comp_bond.value_dist').get_loop()
             rows = decompose(loop.values, len(loop.tags))
             el_name = get_element_name_dict(block)
-            Logger().info(f"Choosing best pdb file")
-            pdb = mons[name][0][0]
-            Logger().info(f"Best pdb file is {pdb}")
+            if pdb is None:
+                Logger().info(f"Choosing best pdb file")
+                pdb = mons[name][0][0]
+                Logger().info(f"Best pdb file is {pdb}")
 
             results = find_classes(name, pdb)
             Logger().info(f"Ligand updating started")
@@ -217,6 +218,7 @@ def create_parser():
     update_parser = subparsers.add_parser('update', help='Update a cif file.')
     update_parser.add_argument('-i', '--input', type=str, required=True, help='Path to the input CIF file.')
     update_parser.add_argument('-o', '--output', type=str, required=True, help='Updated CIF file path.')
+    update_parser.add_argument('-p', '--pdb', type=str, required=False, help='PDB name or path to the pdb.')
 
     # App2
     stats_parser = subparsers.add_parser('stats', help='Distance statistics.')
@@ -228,19 +230,23 @@ def create_parser():
 
 
 def main_func():
-    parser = create_parser()
-    args = parser.parse_args()
 
-    if args.command == 'update':
-        adjust(args.output, args.input)
+    try:
+        parser = create_parser()
+        args = parser.parse_args()
 
-    elif args.command == 'stats':
-        results = find_classes(args.ligand, args.pdb)
-        with open(args.output, 'w') as json_file:
-            json.dump(results, json_file, 
-                                indent=4,  
-                                separators=(',',': '))
-        Logger().info(f"Report written to {args.output}")
+        if args.command == 'update':
+            adjust(args.output, args.input, args.pdb)
+
+        elif args.command == 'stats':
+            results = find_classes(args.ligand, args.pdb)
+            with open(args.output, 'w') as json_file:
+                json.dump(results, json_file, 
+                                    indent=4,  
+                                    separators=(',',': '))
+            Logger().info(f"Report written to {args.output}")
+    except Exception as e:
+        Logger().error(f"Error: {e}")
 
 if __name__ == '__main__':
     main_func()    
