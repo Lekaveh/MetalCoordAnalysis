@@ -124,92 +124,87 @@ def get_element_name_dict(block):
 
 def adjust(output_path, path, pdb):
     Logger().info(f"Start processing {path}")
-    try:
-        folder, name = os.path.split(path)
-        name = name[:-4]
-        folder = os.path.split(folder)[1]
-        doc = cif.read_file(path)
-        block = doc.find_block(f"comp_{name}")
-        
-        
-        if name in mons and contains_metal(block):
-            loop = block.find_loop ('_chem_comp_bond.value_dist').get_loop()
-            rows = decompose(loop.values, len(loop.tags))
-            el_name = get_element_name_dict(block)
-            if pdb is None:
-                Logger().info(f"Choosing best pdb file")
-                pdb = mons[name][0][0]
-                Logger().info(f"Best pdb file is {pdb}")
+    folder, name = os.path.split(path)
+    name = name[:-4]
+    folder = os.path.split(folder)[1]
+    doc = cif.read_file(path)
+    block = doc.find_block(f"comp_{name}")
+    
+    
+    if name in mons and contains_metal(block):
+        loop = block.find_loop ('_chem_comp_bond.value_dist').get_loop()
+        rows = decompose(loop.values, len(loop.tags))
+        el_name = get_element_name_dict(block)
+        if pdb is None:
+            Logger().info(f"Choosing best pdb file")
+            pdb = mons[name][0][0]
+            Logger().info(f"Best pdb file is {pdb}")
 
-            results = find_classes(name, pdb)
-            Logger().info(f"Ligand updating started")
+        results = find_classes(name, pdb)
+        Logger().info(f"Ligand updating started")
+        for row in rows:
+            
+            metal_name = row[1]
+            ligand_name = row[2]
+            if not gemmi.Element(el_name[row[2]]).is_metal and not gemmi.Element(el_name[row[1]]).is_metal:
+                continue
+
+            if gemmi.Element(row[2]).is_metal:
+                metal_name = row[2]
+                ligand_name = row[1]
+
+
+            distance, std, cl, procrustes, coordination = get_distance(results, metal_name, ligand_name)
+            if coordination > 0:
+                row[4] = row[6] = str(round(distance, 3))
+                row[5] = row[7] = str(round(std, 3))
+            
+        
+        loop.set_all_values(pack(rows))
+        Logger().info(f"Distances updated")
+
+
+
+        loop = block.find_loop ('_chem_comp_angle.value_angle').get_loop()
+        rows = decompose(loop.values, len(loop.tags))
+        if name in mons and contains_metal(block):
+            el_name = get_element_name_dict(block)
             for row in rows:
                 
-                metal_name = row[1]
-                ligand_name = row[2]
-                if not gemmi.Element(el_name[row[2]]).is_metal and not gemmi.Element(el_name[row[1]]).is_metal:
+                ligand1_name = row[1]
+                metal_name = row[2]
+                ligand2_name = row[3]
+                if not gemmi.Element(el_name[row[2]]).is_metal:
                     continue
 
-                if gemmi.Element(row[2]).is_metal:
-                    metal_name = row[2]
-                    ligand_name = row[1]
-
-
-                distance, std, cl, procrustes, coordination = get_distance(results, metal_name, ligand_name)
+                angle, std, cl, procrustes, coordination = get_angles(results, metal_name, ligand1_name, ligand2_name)
                 if coordination > 0:
-                    row[4] = row[6] = str(round(distance, 3))
-                    row[5] = row[7] = str(round(std, 3))
-                
+                    row[4]  = str(round(angle, 3))
+                    row[5]  = str(round(std, 3))
             
-            loop.set_all_values(pack(rows))
-            Logger().info(f"Distances updated")
+        loop.set_all_values(pack(rows))
+        Logger().info(f"Angles updated")
+        Logger().info(f"Ligand update completed")
 
+        Path(os.path.split(output_path)[0]).mkdir(exist_ok=True, parents=True)
+        doc.write_file(output_path)
+        report_path = output_path + ".json"
+        Logger().info(f"Update written to {output_path}")
+        with open(report_path, 'w') as json_file:
+            json.dump(results, json_file, 
+                                indent=4,  
+                                separators=(',',': '))
+        Logger().info(f"Report written to {report_path}")
+    else:
+        if name not in mons :
+            Logger().info(f"{name} is not in Ligand - PDB database")
+        if not contains_metal(block):
+            Logger().info(f"No metal found in {name}")
 
-
-            loop = block.find_loop ('_chem_comp_angle.value_angle').get_loop()
-            rows = decompose(loop.values, len(loop.tags))
-            if name in mons and contains_metal(block):
-                el_name = get_element_name_dict(block)
-                pdb = mons[name][0][0]
-                results = find_classes(name, pdb)
-                for row in rows:
-                    
-                    ligand1_name = row[1]
-                    metal_name = row[2]
-                    ligand2_name = row[3]
-                    if not gemmi.Element(el_name[row[2]]).is_metal:
-                        continue
-
-                    angle, std, cl, procrustes, coordination = get_angles(results, metal_name, ligand1_name, ligand2_name)
-                    if coordination > 0:
-                        row[4]  = str(round(angle, 3))
-                        row[5]  = str(round(std, 3))
-                
-            loop.set_all_values(pack(rows))
-            Logger().info(f"Angles updated")
-            Logger().info(f"Ligand update completed")
-
-            Path(os.path.split(output_path)[0]).mkdir(exist_ok=True, parents=True)
-            doc.write_file(output_path)
-            report_path = output_path + ".json"
-            Logger().info(f"Update written to {output_path}")
-            with open(report_path, 'w') as json_file:
-                json.dump(results, json_file, 
-                                    indent=4,  
-                                    separators=(',',': '))
-            Logger().info(f"Report written to {report_path}")
-        else:
-            if name not in mons :
-                Logger().info(f"{name} is not in Ligand - PDB database")
-            if not contains_metal(block):
-                Logger().info(f"No metal found in {name}")
-
-    except Exception as e:
-        Logger().error(f"Error in {path}. {e}")
 
 def create_parser():
     parser = argparse.ArgumentParser(prog='metalCoord', description='MetalCoord: Metal coordination analysis.')
-    parser.add_argument('--version', action='version', version='%(prog)s 0.1.1')
+    parser.add_argument('--version', action='version', version='%(prog)s 0.1.2')
 
     # Define the subparsers for the two apps    
     subparsers = parser.add_subparsers(dest='command')
@@ -234,7 +229,7 @@ def main_func():
     try:
         parser = create_parser()
         args = parser.parse_args()
-        parser.print_help()
+        
 
         if args.command == 'update':
             adjust(args.output, args.input, args.pdb)
@@ -246,6 +241,8 @@ def main_func():
                                     indent=4,  
                                     separators=(',',': '))
             Logger().info(f"Report written to {args.output}")
+        else:
+            parser.print_help()
     except Exception as e:
         Logger().error(f"Error: {e}")
 

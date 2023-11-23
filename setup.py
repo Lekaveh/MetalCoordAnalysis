@@ -5,7 +5,7 @@ Author: "Kaveh Babai, Garib N. Murshudov, Keitaro Yamashita"
 from setuptools import setup, find_packages
 
 setup(name='MetalCoordAnalysis',
-      version='0.1.1',
+      version='0.1.2',
       author='Kaveh Babai, Garib N. Murshudov, Keitaro Yamashita',
       author_email='lekaveh@gmail.com, garib@mrc-lmb.cam.ac.uk',
       
