@@ -141,6 +141,11 @@ def adjust(output_path, path, pdb):
             Logger().info(f"Best pdb file is {pdb}")
 
         results = find_classes(name, pdb)
+
+        if len(results) == 0:
+            Logger().info(f"No {name} found in {pdb}. Please check the pdb file")
+            return
+        
         Logger().info(f"Ligand updating started")
         for row in rows:
             
