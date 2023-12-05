@@ -25,7 +25,7 @@ def create_parser():
 
 
 def main_func():
-    # try:
+    try:
         parser = create_parser()
         args = parser.parse_args()
         
@@ -37,8 +37,8 @@ def main_func():
             get_stats(args.ligand, args.pdb, args.output)
         else:
             parser.print_help()
-    # except Exception as e:
-    #     Logger().error(f"{repr(e)}")
+    except Exception as e:
+        Logger().error(f"{repr(e)}")
 
 if __name__ == '__main__':
     main_func()    
