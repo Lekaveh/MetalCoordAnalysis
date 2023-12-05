@@ -1,13 +1,12 @@
-
+import os
+import gemmi
 import numpy as np
 from tqdm import tqdm
-from metalCoord.load.rcsb import load_pdb
-from metalCoord.analysis.structures import get_ligands
-import gemmi
-import os
 from metalCoord.analysis.data import DB
 from metalCoord.analysis.data import StrictCandidateFinder, ElementCandidateFinder, ElementInCandidateFinder, AnyElementCandidateFinder, NoCoordinationCandidateFinder
 from metalCoord.analysis.data import StrictCorrespondenceStatsFinder, WeekCorrespondenceStatsFinder, OnlyDistanceStatsFinder
+from metalCoord.analysis.structures import get_ligands
+from metalCoord.load.rcsb import load_pdb
 from metalCoord.logging import Logger
 
 def ligandJSON(ligand):

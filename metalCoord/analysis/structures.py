@@ -1,6 +1,7 @@
-import numpy as np
-from .chemistry import radiuses
 import gemmi
+import numpy as np
+from metalCoord.analysis.chemistry import radiuses
+
 
 class Atom:
     def __init__(self, atom, residue, chain):

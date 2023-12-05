@@ -1,11 +1,12 @@
-
-from metalCoord.correspondense.procrustes import fit
-from metalCoord.analysis.classes import idealClasses
 from abc import ABC, abstractmethod
 import os
 import sys
-import pandas as pd
 import numpy as np
+from metalCoord.analysis.classes import idealClasses
+import pandas as pd
+from metalCoord.correspondense.procrustes import fit
+
+
 
 
 def elementCode(code):
@@ -129,22 +130,28 @@ class CandidateFinder(ABC):
 
     def __init__(self) -> None:
         self._description = ""
+        self._classes = None
+        self._files =  None
+        self._selection = None
 
     def load(self, structure, data):
         self._structure = structure
         self._data = data
+        self._load()
 
     @abstractmethod
+    def _load(self):
+        pass
+
+
     def classes(self):
-        pass
+        return self._classes
 
-    @abstractmethod
     def files(self):
-        pass
+        return self._files
 
-    @abstractmethod
     def data(self, file):
-        pass
+        return self._selection[self._selection.File == file] if self._selection is not None else None
 
     def description(self):
         return self._description
@@ -155,24 +162,13 @@ class StrictCandidateFinder(CandidateFinder):
     def __init__(self) -> None:
         super().__init__()
         self._description = "Strict correspondence"
-
-    def load(self, structure, data):
-        super().load(structure, data)
-        self.__selection = self._data[self._data.Code ==
+  
+    def _load(self):
+        self._selection = self._data[self._data.Code ==
                                       self._structure.code()]
-        self.__classes = self.__selection.Class.unique()
-        self.__files = [self.__selection[self.__selection.Class ==
-                                         cl].File.unique() for cl in self.__classes]
-
-    def classes(self):
-        return self.__classes
-
-    def files(self):
-        return self.__files
-
-    def data(self, file):
-        return self.__selection[self.__selection.File == file]
-
+        self._classes = self._selection.Class.unique()
+        self._files = [self._selection[self._selection.Class ==
+                                         cl].File.unique() for cl in self._classes]
 
 class ElementCandidateFinder(CandidateFinder):
 
@@ -180,72 +176,40 @@ class ElementCandidateFinder(CandidateFinder):
         super().__init__()
         self._description = "Based on cooordination, atom availability and count"
 
-    def load(self, structure, data):
-        super().load(structure, data)
+    def _load(self):
         code = elementCode(self._structure.code())
-        self.__selection = self._data[(self._data.ElementCode == code) & (
+        self._selection = self._data[(self._data.ElementCode == code) & (
             self._data.Coordination == self._structure.coordination())]
-        self.__classes = self.__selection.Class.unique()
-        self.__files = [self.__selection[self.__selection.Class ==
-                                         cl].File.unique() for cl in self.__classes]
-
-    def classes(self):
-        return self.__classes
-
-    def files(self):
-        return self.__files
-
-    def data(self, file):
-        return self.__selection[self.__selection.File == file]
-
+        self._classes = self._selection.Class.unique()
+        self._files = [self._selection[self._selection.Class ==
+                                         cl].File.unique() for cl in self._classes]
 
 class ElementInCandidateFinder(CandidateFinder):
-    def load(self, structure, data):
-        super().load(structure, data)
+    
+    def _load(self):
         code = elements(self._structure.code())
         coordinationData = self._data[(
             self._data.Coordination == self._structure.coordination())]
-        self.__selection = coordinationData[np.all(
+        self._selection = coordinationData[np.all(
             [coordinationData.ElementCode.str.contains(x) for x in code], axis=0)]
-        self.__classes = self.__selection.Class.unique()
-        self.__files = [self.__selection[self.__selection.Class ==
-                                         cl].File.unique() for cl in self.__classes]
-
-    def classes(self):
-        return self.__classes
-
-    def files(self):
-        return self.__files
-
-    def data(self, file):
-        return self.__selection[self.__selection.File == file]
-
+        self._classes = self._selection.Class.unique()
+        self._files = [self._selection[self._selection.Class ==
+                                         cl].File.unique() for cl in self._classes]
 
 class AnyElementCandidateFinder(CandidateFinder):
     def __init__(self) -> None:
         super().__init__()
         self._description = "Based on cooordination and atom availability only"
 
-    def load(self, structure, data):
-        super().load(structure, data)
+    def _load(self):
         code = elements(self._structure.code())[1:]
         coordinationData = self._data[(self._data.Coordination == self._structure.coordination()) & (
             self._data.Metal == self._structure.metal.element.name)]
-        self.__selection = coordinationData[np.any(
+        self._selection = coordinationData[np.any(
             [coordinationData.ElementCode.str.contains(x) for x in code], axis=0)]
-        self.__classes = self.__selection.Class.unique()
-        self.__files = [self.__selection[self.__selection.Class ==
-                                         cl].File.unique() for cl in self.__classes]
-
-    def classes(self):
-        return self.__classes
-
-    def files(self):
-        return self.__files
-
-    def data(self, file):
-        return self.__selection[self.__selection.File == file]
-
+        self._classes = self._selection.Class.unique()
+        self._files = [self._selection[self._selection.Class ==
+                                         cl].File.unique() for cl in self._classes]
 
 class NoCoordinationCandidateFinder(CandidateFinder):
 
@@ -253,22 +217,12 @@ class NoCoordinationCandidateFinder(CandidateFinder):
         super().__init__()
         self._description = "Based on atom availability only"
 
-    def load(self, structure, data):
-        super().load(structure, data)
-        self.__selection = self._data[(
+    def _load(self):
+        self._selection = self._data[(
             self._data.Metal == self._structure.metal.element.name)]
-        self.__classes = self.__selection.Class.unique()
-        self.__files = [self.__selection[self.__selection.Class ==
-                                         cl].File.unique() for cl in self.__classes]
-
-    def classes(self):
-        return self.__classes
-
-    def files(self):
-        return self.__files
-
-    def data(self, file):
-        return self.__selection
+        self._classes = self._selection.Class.unique()
+        self._files = [self._selection[self._selection.Class ==
+                                         cl].File.unique() for cl in self._classes]
 
 
 class StatsFinder(ABC):

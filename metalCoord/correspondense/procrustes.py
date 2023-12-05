@@ -1,6 +1,6 @@
+import itertools
 import numpy as np
 from scipy.linalg import helmert
-import itertools
 import tensorflow as tf
 
 core_vectors_num = 4
