@@ -3,9 +3,6 @@ import numpy as np
 from scipy.linalg import helmert
 import tensorflow as tf
 
-gpus = tf.config.list_physical_devices(device_type = 'GPU')
-if gpus:
-    tf.config.experimental.set_memory_growth(gpus[0], True)
 
 core_vectors_num = 4
 def norm(x, hm):

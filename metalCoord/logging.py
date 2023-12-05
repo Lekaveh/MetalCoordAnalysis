@@ -9,12 +9,25 @@ class Logger:
             cls._instance[name] = super().__new__(cls)
             cls._instance[name].logger = logging.getLogger(name)
             cls._instance[name].logger.setLevel(level)
-            formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-            ch = logging.StreamHandler()
-            ch.setFormatter(formatter)
-            cls._instance[name].logger.addHandler(ch)
-        return cls._instance[name]
+            cls._instance[name].__enabled = False
 
+        return cls._instance[name]
+    
+    @property
+    def enabled(self):
+        return self.__enabled
+    
+    @property
+    def disabled(self):
+        return not self.__enabled
+
+    def addHandler(self):
+        formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+        ch = logging.StreamHandler()
+        ch.setFormatter(formatter)
+        self.logger.addHandler(ch)
+        self.__enabled = True
+        
     def debug(self, message):
         self.logger.debug(message)
 
@@ -29,3 +42,5 @@ class Logger:
 
     def critical(self, message):
         self.logger.critical(message)
+
+     

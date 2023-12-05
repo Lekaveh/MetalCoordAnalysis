@@ -1,4 +1,5 @@
 import argparse
+import tensorflow as tf
 from metalCoord.logging import Logger
 from metalCoord.services import update_cif, get_stats
 
@@ -26,6 +27,9 @@ def create_parser():
 
 def main_func():
     try:
+        Logger().addHandler()
+        Logger().info(f"Logging started. Logging level: {Logger().logger.level}")
+        tf.config.set_visible_devices([], 'GPU')
         parser = create_parser()
         args = parser.parse_args()
         

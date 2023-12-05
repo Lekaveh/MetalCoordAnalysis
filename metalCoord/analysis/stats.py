@@ -74,8 +74,8 @@ def find_classes(ligand, pdb_name):
     structures = get_structures(ligand, pdb_name)
     Logger().info(f"{len(structures)} structures found.")
     results = []
-    for structure in tqdm(structures, desc="Structures", position=0):
-        for strategy in tqdm(strategies, desc="Strategies", position=1, leave=False):
+    for structure in tqdm(structures, desc="Structures", position=0, disable=Logger().disabled):
+        for strategy in tqdm(strategies, desc="Strategies", position=1, leave=False, disable=Logger().disabled):
             stats = strategy.get_stats(structure, DB.data())
             if not stats.isEmpty():
                 results.append(stats)
