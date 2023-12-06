@@ -11,9 +11,11 @@ from metalCoord.logging import Logger
 _angle_category = "_chem_comp_angle"
 _bond_category = "_chem_comp_bond"
 _atom_category = "_chem_comp_atom"
+_comp_category = "_chem_comp"
 _comp_id = "comp_id"
 _atom_id = "atom_id"
 _type_symbol = "type_symbol"
+_energy = "type_energy"
 _atom_id_1 = "atom_id_1"
 _atom_id_2 = "atom_id_2"
 _atom_id_3 = "atom_id_3"
@@ -23,6 +25,14 @@ _value_dist = "value_dist"
 _value_dist_esd = "value_dist_esd"
 _value_angle = "value_angle"
 _value_angle_esd = "value_angle_esd"
+_id = "id"
+_name = "name"
+_group = "group"
+_number_atoms_all = "number_atoms_all"
+_number_atoms_nh = "number_atoms_nh"
+_desc_level = "desc_level"
+_three_letter_code = "three_letter_code"
+
 
 def decompose(values, n):
     result = []
@@ -128,8 +138,16 @@ def update_cif(output_path, path, pdb):
     name = name[:-4]
     folder = os.path.split(folder)[1]
     doc = gemmi.cif.read_file(path)
-    block = doc.find_block(f"comp_{name}") if doc.find_block(f"comp_{name}") is not None else doc.find_block(f"{name}")
 
+
+    if not doc.find_block(f"comp_list"):
+        list_block = doc.add_new_block("comp_list", 0)
+        x="."
+        list_block.set_mmcif_category(_comp_category, {_comp_id: [name], _three_letter_code: [name], _name: [name.lower()], 
+            _group: ["."], _number_atoms_all: ["1"], _number_atoms_nh: ["1"], _desc_level: ["."]})
+
+    block = doc.find_block(f"comp_{name}") if doc.find_block(f"comp_{name}") is not None else doc.find_block(f"{name}")
+    block.name = f"comp_{name}"
 
     if block is None:
         Logger().error(f"No block found for {name}|comp_{name}. Please check the cif file.")
@@ -143,6 +161,16 @@ def update_cif(output_path, path, pdb):
         Logger().error(f"mmcif category {_atom_category} not found. Please check the cif file.")
         return
     
+    new_atoms = dict()
+    if _energy not in atoms:
+        for key, value in atoms.items():
+            new_atoms[key] = value
+            if key == _type_symbol:
+                new_atoms[_energy] = value
+        block.set_mmcif_category(_atom_category, new_atoms)
+
+    
+
     if not bonds:
         Logger().error(f"mmcif category {_bond_category} not found. Please check the cif file.")
         return
@@ -163,9 +191,7 @@ def update_cif(output_path, path, pdb):
             return
         
 
-     
-
-
+    
         best_results = dict()
         for atom_name, element in  zip(atoms[_atom_id], atoms[_type_symbol]):
             if gemmi.Element(element).is_metal:
@@ -178,6 +204,8 @@ def update_cif(output_path, path, pdb):
             bonds[_value_dist_esd] = ["0.00"] * len(bonds[_atom_id_1])
             bonds[_value_dist_nucleus] = ["0.00"] * len(bonds[_atom_id_1])
             bonds[_value_dist_nucleus_esd] = ["0.00"] * len(bonds[_atom_id_1])
+        
+        
 
         for i, _atoms in enumerate(zip(bonds[_atom_id_1], bonds[_atom_id_2])):
             metal_name, ligand_name = _atoms
