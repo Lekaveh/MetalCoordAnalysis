@@ -143,7 +143,7 @@ def update_cif(output_path, path, pdb):
     if not doc.find_block(f"comp_list"):
         list_block = doc.add_new_block("comp_list", 0)
         x="."
-        list_block.set_mmcif_category(_comp_category, {_comp_id: [name], _three_letter_code: [name], _name: [name.lower()], 
+        list_block.set_mmcif_category(_comp_category, {_id: [name], _three_letter_code: [name], _name: [name.lower()], 
             _group: ["."], _number_atoms_all: ["1"], _number_atoms_nh: ["1"], _desc_level: ["."]})
 
     block = doc.find_block(f"comp_{name}") if doc.find_block(f"comp_{name}") is not None else doc.find_block(f"{name}")
