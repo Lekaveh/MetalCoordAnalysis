@@ -9,7 +9,7 @@ setup(name='MetalCoordAnalysis',
       author='Kaveh Babai, Garib N. Murshudov, Keitaro Yamashita',
       author_email='lekaveh@gmail.com, garib@mrc-lmb.cam.ac.uk',
       
-      packages=find_packages(include=['metalCoord']),
+      packages=find_packages(include=['metalCoord', 'metalCoord.*']),
       install_requires=['gemmi>=0.6.2', 'pandas>=2.0.0', 'numpy>=1.20', 'tensorflow>=2.9.1', 'tqdm>=4.0.0', 'scipy>=1.0.0'],
       entry_points={
           "console_scripts": [
