@@ -92,6 +92,7 @@ def get_angles(clazz, ligand_name1, ligand_name2):
                         
     return angle, std, cl, procrustes, coordination
 
+
 def get_best(results, metal_name):
     coordination = 0
     procrustes = 1
@@ -119,7 +120,8 @@ def get_best(results, metal_name):
         Logger().info(f"Best class for {metal_name} is {result['class']} with coordination {coordination} and procrustes {procrustes}")
     return result
 
-   
+def code(ligand1_name, metal_name, ligand2_name):
+    return ''.join(sorted([ligand1_name, metal_name, ligand2_name]))  
 
 def get_element_name(mmcif_atom_category, name):
     for i, _ in enumerate(mmcif_atom_category[_atom_id]):
@@ -266,6 +268,7 @@ def update_cif(output_path, path, pdb):
                         angles[_value_angle_esd].append(str(round(ligand["std"], 3)))
 
         else:
+            update_angles = []
             for i, _atoms in enumerate(zip(angles[_atom_id_1], angles[_atom_id_2], angles[_atom_id_3])):
                 ligand1_name, metal_name, ligand2_name = _atoms
 
@@ -276,6 +279,22 @@ def update_cif(output_path, path, pdb):
                 if coordination > 0:
                     angles[_value_angle][i] = str(round(angle, 3))
                     angles[_value_angle_esd][i] = str(round(std, 3))
+                    update_angles.append(code(ligand1_name, metal_name, ligand2_name))
+            
+            
+            for metal_name, clazz in best_results.items():
+                if clazz is None:
+                    continue
+                for ligand in clazz["angles"]:
+                    if ligand["ligand1"]["residue"] == name and ligand["ligand2"]["residue"] == name:
+                        if code(ligand["ligand1"]["name"], metal_name, ligand["ligand2"]["name"]) in update_angles:
+                            continue
+                        angles[_comp_id].append(name)
+                        angles[_atom_id_1].append(ligand["ligand1"]["name"])
+                        angles[_atom_id_2].append(metal_name)
+                        angles[_atom_id_3].append(ligand["ligand2"]["name"])
+                        angles[_value_angle].append(str(round(ligand["angle"], 3)))
+                        angles[_value_angle_esd].append(str(round(ligand["std"], 3)))    
             
             
         block.set_mmcif_category(_angle_category, angles)
