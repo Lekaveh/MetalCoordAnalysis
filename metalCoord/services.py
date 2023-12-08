@@ -1,3 +1,4 @@
+import re
 import json
 import os
 from pathlib import Path
@@ -5,6 +6,7 @@ import sys
 import gemmi
 from metalCoord.analysis.stats import find_classes
 from metalCoord.logging import Logger
+
 
 
 
@@ -135,10 +137,22 @@ def contains_metal(mmcif_atom_category):
 def update_cif(output_path, path, pdb):
     Logger().info(f"Start processing {path}")
     folder, name = os.path.split(path)
-    name = name[:-4]
     folder = os.path.split(folder)[1]
     doc = gemmi.cif.read_file(path)
 
+    
+
+    name = None    
+    for block in doc:
+        matches = re.findall(r"^(?:comp_)?([A-Za-z0-9]{3}$)", block.name)
+        if matches:
+            name = matches[0]
+            Logger().info(f"Ligand {name} found")
+            break
+
+    if not name:
+        Logger().error(f"No block found for <name>|comp_<name>. Please check the cif file.")
+        return
 
     if not doc.find_block(f"comp_list"):
         list_block = doc.add_new_block("comp_list", 0)
@@ -146,12 +160,15 @@ def update_cif(output_path, path, pdb):
         list_block.set_mmcif_category(_comp_category, {_id: [name], _three_letter_code: [name], _name: [name.lower()], 
             _group: ["."], _number_atoms_all: ["1"], _number_atoms_nh: ["1"], _desc_level: ["."]})
 
+
     block = doc.find_block(f"comp_{name}") if doc.find_block(f"comp_{name}") is not None else doc.find_block(f"{name}")
-    block.name = f"comp_{name}"
+    
 
     if block is None:
         Logger().error(f"No block found for {name}|comp_{name}. Please check the cif file.")
         return
+    
+    block.name = f"comp_{name}"
     
     atoms = block.get_mmcif_category(_atom_category)
     bonds = block.get_mmcif_category(_bond_category)
