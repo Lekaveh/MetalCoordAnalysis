@@ -6,7 +6,7 @@ import sys
 import gemmi
 from metalCoord.analysis.stats import find_classes
 from metalCoord.logging import Logger
-
+import networkx as nx
 
 
 
@@ -92,34 +92,6 @@ def get_angles(clazz, ligand_name1, ligand_name2):
                         
     return angle, std, cl, procrustes, coordination
 
-
-def get_best(results, metal_name):
-    coordination = 0
-    procrustes = 1
-
-    result = None
-    for metal in results:
-        if metal["metal"] == metal_name:
-            for clazz in metal["ligands"]:
-                if clazz["coordination"] < coordination:
-                        continue
-
-                if clazz["coordination"] == coordination and  float(clazz["procrustes"]) < procrustes:
-                    coordination =  clazz["coordination"]
-                    procrustes   =  float(clazz["procrustes"])
-                    result = clazz
-
-                if clazz["coordination"] > coordination:
-                    coordination =  clazz["coordination"]
-                    procrustes   =  float(clazz["procrustes"])
-                    result = clazz
-
-    if result is None:
-        Logger().info(f"No class for {metal_name} found. Please check the pdb file")
-    else:
-        Logger().info(f"Best class for {metal_name} is {result['class']} with coordination {coordination} and procrustes {procrustes}")
-    return result
-
 def code(ligand1_name, metal_name, ligand2_name):
     return ''.join(sorted([ligand1_name, metal_name, ligand2_name]))  
 
@@ -136,13 +108,30 @@ def contains_metal(mmcif_atom_category):
     return False
 
 
+
+def find_minimal_cycles(bonds):
+    graph = nx.Graph()
+    graph.add_edges_from ([[a1, a2] for a1, a2 in zip(bonds[_atom_id_1], bonds[_atom_id_2])])    
+    # Find the cycle basis of the graph
+    cycle_basis = nx.minimum_cycle_basis(graph)
+
+    # Convert the cycle basis to a set of minimal cycles
+    minimal_cycles = set()
+    for cycle in cycle_basis:
+        minimal_cycles.add(tuple(sorted(cycle)))
+
+    return minimal_cycles
+
+def generateJson(stats):
+    return stats.json()
+
+
 def update_cif(output_path, path, pdb):
     Logger().info(f"Start processing {path}")
     folder, name = os.path.split(path)
     folder = os.path.split(folder)[1]
     doc = gemmi.cif.read_file(path)
 
-    
 
     name = None    
     for block in doc:
@@ -194,6 +183,7 @@ def update_cif(output_path, path, pdb):
         Logger().error(f"mmcif category {_bond_category} not found. Please check the cif file.")
         return
     
+    
     if name in mons and contains_metal(atoms):
 
 
@@ -202,7 +192,8 @@ def update_cif(output_path, path, pdb):
             pdb = mons[name][0][0]
             Logger().info(f"Best pdb file is {pdb}")
 
-        results = find_classes(name, pdb)
+        pdbStats = find_classes(name, pdb)
+        results = generateJson(pdbStats)
 
 
         if len(results) == 0:
@@ -210,13 +201,6 @@ def update_cif(output_path, path, pdb):
             return
         
 
-    
-        best_results = dict()
-        for atom_name, element in  zip(atoms[_atom_id], atoms[_type_symbol]):
-            if gemmi.Element(element).is_metal:
-                best_results[atom_name] = get_best(results, atom_name)
-
-        
         Logger().info(f"Ligand updating started")
         if _value_dist not in bonds:
             bonds[_value_dist] = ["0.00"] * len(bonds[_atom_id_1])
@@ -236,10 +220,10 @@ def update_cif(output_path, path, pdb):
                 metal_name, ligand_name = ligand_name, metal_name
 
 
-            distance, std, _, _, coordination = get_distance(best_results.get(metal_name, None), ligand_name)
-            if coordination > 0:
-                bonds[_value_dist][i] = bonds[_value_dist_nucleus][i] = str(round(distance, 3))
-                bonds[_value_dist_esd][i] = bonds[_value_dist_nucleus_esd][i] = str(round(std, 3))
+            bondStat = pdbStats.getLigandDistance(metal_name, ligand_name)
+            if  bondStat:
+                bonds[_value_dist][i] = bonds[_value_dist_nucleus][i] = str(round(bondStat.distance, 3))
+                bonds[_value_dist_esd][i] = bonds[_value_dist_nucleus_esd][i] = str(round(bondStat.std, 3))
             
 
         block.set_mmcif_category(_bond_category, bonds)
@@ -255,17 +239,14 @@ def update_cif(output_path, path, pdb):
             angles[_value_angle] = list()
             angles[_value_angle_esd] = list()
 
-            for metal_name, clazz in best_results.items():
-                if clazz is None:
-                    continue
-                for ligand in clazz["angles"]:
-                    if ligand["ligand1"]["residue"] == name and ligand["ligand2"]["residue"] == name:
-                        angles[_comp_id].append(name)
-                        angles[_atom_id_1].append(ligand["ligand1"]["name"])
-                        angles[_atom_id_2].append(metal_name)
-                        angles[_atom_id_3].append(ligand["ligand2"]["name"])
-                        angles[_value_angle].append(str(round(ligand["angle"], 3)))
-                        angles[_value_angle_esd].append(str(round(ligand["std"], 3)))
+            for metal_name in pdbStats.metalNames():
+                for angle in pdbStats.getLigandAngles(metal_name):
+                    angles[_comp_id].append(name)
+                    angles[_atom_id_1].append(angle.ligand1.name)
+                    angles[_atom_id_2].append(metal_name)
+                    angles[_atom_id_3].append(angle.ligand2.name)
+                    angles[_value_angle].append(str(round(angle.angle, 3)))
+                    angles[_value_angle_esd].append(str(round(angle.std, 3)))
 
         else:
             update_angles = []
@@ -275,26 +256,23 @@ def update_cif(output_path, path, pdb):
                 if not gemmi.Element(get_element_name(atoms, metal_name)).is_metal:
                     continue
 
-                angle, std, _, _, coordination = get_angles(best_results.get(metal_name, None), ligand1_name, ligand2_name)
-                if coordination > 0:
-                    angles[_value_angle][i] = str(round(angle, 3))
-                    angles[_value_angle_esd][i] = str(round(std, 3))
+                angleStat = pdbStats.getLigandAngle(metal_name, ligand1_name, ligand2_name)
+                if angleStat:
+                    angles[_value_angle][i] = str(round(angleStat.angle, 3))
+                    angles[_value_angle_esd][i] = str(round(angleStat.std, 3))
                     update_angles.append(code(ligand1_name, metal_name, ligand2_name))
             
             
-            for metal_name, clazz in best_results.items():
-                if clazz is None:
-                    continue
-                for ligand in clazz["angles"]:
-                    if ligand["ligand1"]["residue"] == name and ligand["ligand2"]["residue"] == name:
-                        if code(ligand["ligand1"]["name"], metal_name, ligand["ligand2"]["name"]) in update_angles:
-                            continue
-                        angles[_comp_id].append(name)
-                        angles[_atom_id_1].append(ligand["ligand1"]["name"])
-                        angles[_atom_id_2].append(metal_name)
-                        angles[_atom_id_3].append(ligand["ligand2"]["name"])
-                        angles[_value_angle].append(str(round(ligand["angle"], 3)))
-                        angles[_value_angle_esd].append(str(round(ligand["std"], 3)))    
+            for metal_name in pdbStats.metalNames():
+                for angle in pdbStats.getLigandAngles(metal_name):
+                    if code(angle.ligand1.name, metal_name, angle.ligand2.name) in update_angles:
+                        continue
+                    angles[_comp_id].append(name)
+                    angles[_atom_id_1].append(angle.ligand1.name)
+                    angles[_atom_id_2].append(metal_name)
+                    angles[_atom_id_3].append(angle.ligand2.name)
+                    angles[_value_angle].append(str(round(angle.angle, 3)))
+                    angles[_value_angle_esd].append(str(round(angle.std, 3)))
             
             
         block.set_mmcif_category(_angle_category, angles)
@@ -317,7 +295,7 @@ def update_cif(output_path, path, pdb):
             Logger().info(f"No metal found in {name}")
 
 def get_stats(ligand, pdb, output):
-    results = find_classes(ligand, pdb)
+    results = find_classes(ligand, pdb).json()
     with open(output, 'w') as json_file:
         json.dump(results, json_file, 
                             indent=4,  
