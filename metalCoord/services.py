@@ -111,19 +111,12 @@ def contains_metal(mmcif_atom_category):
 
 def find_minimal_cycles(bonds):
     graph = nx.Graph()
-    graph.add_edges_from ([[a1, a2] for a1, a2 in zip(bonds[_atom_id_1], bonds[_atom_id_2])])    
+    graph.add_edges_from ([[a1, a2] for a1, a2 in bonds])    
     # Find the cycle basis of the graph
-    cycle_basis = nx.minimum_cycle_basis(graph)
+    cycle_basis = nx.simple_cycles (graph)
 
-    # Convert the cycle basis to a set of minimal cycles
-    minimal_cycles = set()
-    for cycle in cycle_basis:
-        minimal_cycles.add(tuple(sorted(cycle)))
 
-    return minimal_cycles
-
-def generateJson(stats):
-    return stats.json()
+    return cycle_basis
 
 
 def update_cif(output_path, path, pdb):
@@ -184,23 +177,24 @@ def update_cif(output_path, path, pdb):
         return
     
     
-    if name in mons and contains_metal(atoms):
-
+    if  contains_metal(atoms):
 
         if pdb is None:
+            if name not in mons:
+                Logger().info(f"There is no appropriate pdb in Ligand - PDB database. Please specify the pdb file")
+                return
             Logger().info(f"Choosing best pdb file")
             pdb = mons[name][0][0]
             Logger().info(f"Best pdb file is {pdb}")
 
         pdbStats = find_classes(name, pdb)
-        results = generateJson(pdbStats)
 
 
-        if len(results) == 0:
+        if pdbStats.isEmpty():
             Logger().info(f"No {name} found in {pdb}. Please check the pdb file")
             return
         
-
+        
         Logger().info(f"Ligand updating started")
         if _value_dist not in bonds:
             bonds[_value_dist] = ["0.00"] * len(bonds[_atom_id_1])
@@ -274,7 +268,50 @@ def update_cif(output_path, path, pdb):
                     angles[_value_angle].append(str(round(angle.angle, 3)))
                     angles[_value_angle_esd].append(str(round(angle.std, 3)))
             
-            
+        v = []
+        monomer = list(pdbStats.monomers())[-1]
+        for metalStat in monomer.metals:
+            for bond in metalStat.getAllDistances():
+                v.append((metalStat.code, bond.ligand.code))
+        
+        for cycle in find_minimal_cycles(v):
+            if len(cycle) == 4:
+                if gemmi.Element(cycle[0][1]).is_metal:
+                    metal1 = cycle[0]
+                    metal2 = cycle[2]
+                    ligand1 = cycle[1]
+                    ligand2 = cycle[3]
+                else:
+                    metal1 = cycle[1]
+                    metal2 = cycle[3]
+                    ligand1 = cycle[0]
+                    ligand2 = cycle[2]
+                
+                
+                angle1 = monomer.getAngle(metal1[0], ligand1, ligand2)
+                angle2 = monomer.getAngle(metal2[0], ligand1, ligand2)
+
+                val = (360 - angle1.angle - angle2.angle)/2
+                std = 5.0
+
+                for ligand in [ligand1, ligand2]:
+                    if monomer.code == ligand[2:]:
+                        found = False
+                        for i, _atoms in enumerate(zip(angles[_atom_id_1], angles[_atom_id_2], angles[_atom_id_3])):
+                            metal1_name, ligand_name, metal2_name = _atoms
+                            if (metal1_name == metal1[0] and ligand_name == ligand[0] and metal2_name == metal2[0]) or (metal1_name == metal2[0] and ligand_name == ligand[0] and metal2_name == metal1[0]) :
+                                angles[_value_angle][i] = str(round(val, 3))
+                                angles[_value_angle_esd][i] = str(round(std, 3))
+                                found = True
+                                break
+                        if not found:
+                            angles[_comp_id].append(name)
+                            angles[_atom_id_1].append(metal1[0])
+                            angles[_atom_id_2].append(ligand[0])
+                            angles[_atom_id_3].append(metal2[0])
+                            angles[_value_angle].append(str(round(val, 3)))
+                            angles[_value_angle_esd].append(str(round(std, 3)))       
+
         block.set_mmcif_category(_angle_category, angles)
         Logger().info(f"Angles updated")
         Logger().info(f"Ligand update completed")
@@ -284,15 +321,12 @@ def update_cif(output_path, path, pdb):
         report_path = output_path + ".json"
         Logger().info(f"Update written to {output_path}")
         with open(report_path, 'w') as json_file:
-            json.dump(results, json_file, 
+            json.dump(pdbStats.json(), json_file, 
                                 indent=4,  
                                 separators=(',',': '))
         Logger().info(f"Report written to {report_path}")
     else:
-        if name not in mons :
-            Logger().info(f"{name} is not in Ligand - PDB database")
-        if not contains_metal(block):
-            Logger().info(f"No metal found in {name}")
+        Logger().info(f"No metal found in {name}")
 
 def get_stats(ligand, pdb, output):
     results = find_classes(ligand, pdb).json()
