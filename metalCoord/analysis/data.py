@@ -193,6 +193,10 @@ class LigandStats():
     
 
     @property
+    def bondCount(self):
+        return len(self._bonds) + len(self._pdb_bonds)
+
+    @property
     def bonds(self):
         for bond in self._bonds:
             yield bond
@@ -213,7 +217,8 @@ class LigandStats():
             if angle.isLigand:
                 yield angle
             
-    
+
+
     def getLigandBond(self, ligand_name):
         for bond in self.bonds:
             if bond.ligand.name  == ligand_name:
@@ -242,8 +247,8 @@ class LigandStats():
         self._angles.append(angle)
 
     def to_dict(self):
-            clazz = {"class": self.clazz, "base": [], "angles": [], "pdb": [], "procrustes": str(
-                np.round(self.procrustes, 3)), "coordination": self.coordination,  "count": self.count}
+            clazz = {"class": self.clazz, "base": [], "angles": [], "pdb": [], "procrustes": 
+                np.round(float(self.procrustes), 3), "coordination": self.coordination,  "count": self.count}
             for b in self.bonds:
                 clazz["base"].append(
                     {"ligand": b.ligand.to_dict(), "distance": b.distance, "std": b.std})
@@ -767,7 +772,7 @@ class OnlyDistanceStatsFinder(StatsFinder):
         self._finder.load(structure, data)
         data = self._finder.data("")
         metalStats = self._createStats(structure)
-        clazzStats = LigandStats("", -1, 0, -1)
+        clazzStats = LigandStats("", -1, structure.coordination(), -1)
         for l in structure.ligands:
             dist, std, count = DB.getDistanceStats(
                 structure.metal.element.name, l.atom.element.name)
@@ -780,6 +785,6 @@ class OnlyDistanceStatsFinder(StatsFinder):
                     structure.metal.element.name, l.atom.element.name)
                 if count > 0:
                     clazzStats.addPdbBond(DistanceStats(Ligand(l), dist, std))
-        if len(clazzStats.bonds) > 0:
+        if clazzStats.bondCount > 0:
             metalStats.addLigand(clazzStats)
         return metalStats

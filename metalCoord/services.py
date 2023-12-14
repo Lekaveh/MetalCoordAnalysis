@@ -181,7 +181,7 @@ def update_cif(output_path, path, pdb):
 
         if pdb is None:
             if name not in mons:
-                Logger().info(f"There is no appropriate pdb in Ligand - PDB database. Please specify the pdb file")
+                Logger().info(f"There is no appropriate pdb in our Ligand-PDB database. Please specify the pdb file")
                 return
             Logger().info(f"Choosing best pdb file")
             pdb = mons[name][0][0]
