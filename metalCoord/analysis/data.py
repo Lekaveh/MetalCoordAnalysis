@@ -40,7 +40,8 @@ class StatsData():
             "mean", "std", "count"]).reset_index()
 
     def getDistanceStats(self, metal, ligand):
-        return self.__distances[(self.__distances.Metal == metal) & (self.__distances.Ligand == ligand)][["mean", "std", "count"]].values[0]
+        result = self.__distances[(self.__distances.Metal == metal) & (self.__distances.Ligand == ligand)][["mean", "std", "count"]].values
+        return result[0] if len(result) > 0 else (0, 0, 0)
 
     def data(self):
         return self.__data
