@@ -365,7 +365,7 @@ class MetalStats():
                  "metalElement": self.metalElement, "ligands": [], "description": self.description}
         
 
-        for l in self.ligands:
+        for l in sorted(self.ligands, key=lambda x: (-x.coordination, x.procrustes)):
             metal["ligands"].append(l.to_dict())
         
         return metal

@@ -55,5 +55,7 @@ def get_ligands(st, ligand, scale = 1.2, max_dist = 5):
                         if cra.residue.name == ligand:
                             structures[-1].ligands.append(Atom(cra.atom, cra.residue, cra.chain))
                         else:
-                            structures[-1].extra_ligands.append(Atom(cra.atom, cra.residue, cra.chain))         
+                            structures[-1].extra_ligands.append(Atom(cra.atom, cra.residue, cra.chain))
+
+
     return structures
