@@ -2,10 +2,11 @@ from abc import ABC, abstractmethod
 import os
 import sys
 import numpy as np
-from metalCoord.analysis.classes import idealClasses
 import pandas as pd
+from tqdm import tqdm
+from metalCoord.analysis.classes import idealClasses
 from metalCoord.correspondense.procrustes import fit
-
+from metalCoord.logging import Logger
 
 
 
@@ -660,7 +661,9 @@ class StrictCorrespondenceStatsFinder(FileStatsFinder):
         for cl, files in zip(self._classes, self._files):
             distances = []
             angles = []
-            for file in files:
+            if len(files) > 2000:
+                files = np.random.choice(files, 2000, replace=False)
+            for file in tqdm(files, desc=f"{cl} ligands", leave=False, disable=Logger().disabled):
                 file_data = self._finder.data(file)
                 m_ligand_coord = get_coordinate(file_data)
                 m_ligand_atoms = np.insert(
@@ -715,7 +718,9 @@ class WeekCorrespondenceStatsFinder(FileStatsFinder):
 
         for cl, files in zip(self._classes, self._files):
             distances = []
-            for file in files:
+            if len(files) > 2000:
+                files = np.random.choice(files, 2000, replace=False)
+            for file in tqdm(files, desc=f"{cl} ligands", leave=False, disable=Logger().disabled):
                 file_data = self._finder.data(file)
                 m_ligand_coord = get_coordinate(file_data)
                 proc_dist, _, _, _, index = fit(o_ligand_coord, m_ligand_coord)

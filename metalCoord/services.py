@@ -181,10 +181,27 @@ def update_cif(output_path, path, pdb):
 
         if pdb is None:
             if name not in mons:
-                Logger().info(f"There is no appropriate pdb in our Ligand-PDB database. Please specify the pdb file")
+                Logger().info(f"There is no pdb in our Ligand-PDB database. Please specify the pdb file")
                 return
             Logger().info(f"Choosing best pdb file")
-            pdb = mons[name][0][0]
+            all_candidates = sorted(mons[name], key=lambda x: x[1])
+
+            candidates = [mon for mon in all_candidates if mon[2]]
+            
+            if len(candidates) == 0:
+                mon = all_candidates[0]
+            else:
+                mon = candidates[0]
+            if mon[1] > 2:
+                if len(candidates) == 0:
+                    Logger().warning(f"There is no pdb with necesarry resolution and occupancy in our Ligand-PDB database. Please specify the pdb file")       
+                else:
+                    Logger().warning(f"There is no pdb with necesarry resolution in our Ligand-PDB database. Please specify the pdb file")   
+            else:
+                if len(candidates) == 0:
+                    Logger().warning(f"There is no pdb with necesarry occupancy in our Ligand-PDB database. Please specify the pdb file")   
+
+            pdb = mon[0]
             Logger().info(f"Best pdb file is {pdb}")
 
         pdbStats = find_classes(name, pdb)
