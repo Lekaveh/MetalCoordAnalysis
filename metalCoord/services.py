@@ -304,9 +304,17 @@ def update_cif(output_path, path, pdb):
                     ligand1 = cycle[0]
                     ligand2 = cycle[2]
                 
-                
+                              
                 angle1 = monomer.getAngle(metal1[0], ligand1, ligand2)
                 angle2 = monomer.getAngle(metal2[0], ligand1, ligand2)
+
+                if not angle1 or not angle2:
+                    if not angle1:
+                        Logger().warning(f"Angle {ligand1[0]}- {metal1[0]}-{ligand2[0]} not found in {monomer.code}")
+
+                    if not angle2:
+                        Logger().warning(f"Angle {ligand1[0]}- {metal2[0]}-{ligand2[0]} not found in {monomer.code}")
+                    continue
 
                 val = (360 - angle1.angle - angle2.angle)/2
                 std = 5.0

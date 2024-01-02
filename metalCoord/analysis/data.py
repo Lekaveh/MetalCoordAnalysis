@@ -249,8 +249,8 @@ class LigandStats():
         self._angles.append(angle)
 
     def to_dict(self):
-            clazz = {"class": self.clazz, "base": [], "angles": [], "pdb": [], "procrustes": 
-                np.round(float(self.procrustes), 3), "coordination": self.coordination,  "count": self.count}
+            clazz = {"class": self.clazz, "procrustes": np.round(float(self.procrustes), 3), "coordination": self.coordination,  "count": self.count, 
+                     "base": [], "angles": [], "pdb": []}
             for b in self.bonds:
                 clazz["base"].append(
                     {"ligand": b.ligand.to_dict(), "distance": b.distance, "std": b.std})
@@ -573,6 +573,7 @@ class ElementCandidateFinder(CandidateFinder):
         self._selection = self._data[(self._data.ElementCode == code) & (
             self._data.Coordination == self._structure.coordination())]
         self._classes = self._selection.Class.unique()
+        # Logger().info(f"Classes: {self._classes} Code: {code} Metal {self._structure.metal.name}")
         self._files = [self._selection[self._selection.Class ==
                                          cl].File.unique() for cl in self._classes]
 
@@ -717,19 +718,24 @@ class WeekCorrespondenceStatsFinder(FileStatsFinder):
         o_ligand_coord = structure.get_coord()
 
         for cl, files in zip(self._classes, self._files):
+         
             distances = []
+            ligNames = []
             if len(files) > 2000:
                 files = np.random.choice(files, 2000, replace=False)
             for file in tqdm(files, desc=f"{cl} ligands", leave=False, disable=Logger().disabled):
                 file_data = self._finder.data(file)
+     
                 m_ligand_coord = get_coordinate(file_data)
                 proc_dist, _, _, _, index = fit(o_ligand_coord, m_ligand_coord)
 
                 if proc_dist < self._thr:
                     distances.append(np.sqrt(np.sum(
-                        (m_ligand_coord[index][0] - m_ligand_coord[index])**2, axis=1))[1:].tolist())
+                        (m_ligand_coord[0] - m_ligand_coord)**2, axis=1))[1:].tolist())
+                    ligNames.append(file_data[["Ligand"]].values.ravel().tolist())
 
             distances = np.array(distances).T
+            ligNames = np.array(ligNames).T
 
             if (distances.shape[0] > 0):
 
@@ -738,12 +744,12 @@ class WeekCorrespondenceStatsFinder(FileStatsFinder):
                 ligands = structure.ligands
 
                 results = {}
-                atoms = np.array(structure.atoms())
-                for element in np.unique(atoms):
-                    elementDistances = distances[np.argwhere(
-                        atoms == element)].ravel()
+                for element in np.unique(ligNames):
+                    elementDistances = distances.ravel()[np.argwhere(
+                        ligNames.ravel() == element)]
                     results[element] = (
                         elementDistances.mean(), elementDistances.std())
+                    
 
                 for i, l in enumerate(ligands):
                     dist, std = results[l.atom.element.name]

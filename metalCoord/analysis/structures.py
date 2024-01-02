@@ -26,6 +26,17 @@ class Ligand:
         return np.array([self.metal.pos.tolist()] + [ligand.atom.pos.tolist() for ligand in self.ligands + self.extra_ligands])
     def coordination(self):
         return len(self.ligands) + len(self.extra_ligands)
+    
+    def filter(self):
+        to_delete = []
+        for i, atom1 in enumerate(self.extra_ligands):
+            for atom2 in self.ligands:
+                if distance(atom1.atom, atom2.atom) < 1:
+                    to_delete.append(i)
+                    break
+        if to_delete:
+           self.extra_ligands = [atom for i, atom in enumerate(self.extra_ligands) if i not in to_delete]
+        
         
 
 def distance(atom1, atom2):
@@ -55,7 +66,13 @@ def get_ligands(st, ligand, scale = 1.2, max_dist = 5):
                         if cra.residue.name == ligand:
                             structures[-1].ligands.append(Atom(cra.atom, cra.residue, cra.chain))
                         else:
+                            # if cra.atom.occ < 1:
+                            #     from metalCoord.logging import Logger
+                            #     Logger().warning(f"Atom {cra.atom.name} in {cra.residue.name} {cra.residue.seqid} {cra.chain.name} has occupancy {cra.atom.occ}")
+                            #     continue
                             structures[-1].extra_ligands.append(Atom(cra.atom, cra.residue, cra.chain))
+
+                        structures[-1].filter()
 
 
     return structures
