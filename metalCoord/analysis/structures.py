@@ -60,7 +60,7 @@ def get_ligands(st, ligand, scale = 1.2, max_dist = 5):
                         if cra.atom.element.is_metal:
                             continue
                         
-                        if distance(atom, cra.atom) > (radiuses[atom.element.name] + radiuses[cra.atom.element.name])*scale:
+                        if distance(atom, cra.atom) > (gemmi.Element(atom.element.name).covalent_r + gemmi.Element(cra.atom.element.name).covalent_r)*scale:
                             continue
  
                         if cra.residue.name == ligand:

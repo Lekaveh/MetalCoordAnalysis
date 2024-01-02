@@ -119,7 +119,7 @@ class DistanceStats():
     def __init__(self, ligand, distance, std) -> None:
         self._ligand = ligand
         self._distance = distance
-        self._std = std
+        self._std = std if std > 1e-02 else 0.05
     
     @property
     def ligand(self):
@@ -140,7 +140,7 @@ class AngleStats():
         self._ligand1 = ligand1
         self._ligand2 = ligand2
         self._angle = angle
-        self._std = std
+        self._std =  std if std > 1e-03 else 5
         self._isLigand = isLigand
     
     @property
