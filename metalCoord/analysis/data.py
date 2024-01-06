@@ -362,7 +362,7 @@ class MetalStats():
     
 
     def to_dict(self):
-        metal = {"chain": self.chain, "residue": self.residue, "sequence ": self.sequence, "metal": self.metal,
+        metal = {"chain": self.chain, "residue": self.residue, "sequence": self.sequence, "metal": self.metal,
                  "metalElement": self.metalElement, "ligands": [], "description": self.description}
         
 

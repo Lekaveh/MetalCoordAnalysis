@@ -5,7 +5,7 @@ from metalCoord.services import update_cif, get_stats
 
 def create_parser():
     parser = argparse.ArgumentParser(prog='metalCoord', description='MetalCoord: Metal coordination analysis.')
-    parser.add_argument('--version', action='version', version='%(prog)s 0.1.5')
+    parser.add_argument('--version', action='version', version='%(prog)s 0.1.6')
 
     # Define the subparsers for the two apps    
     subparsers = parser.add_subparsers(dest='command')
@@ -15,12 +15,14 @@ def create_parser():
     update_parser.add_argument('-i', '--input', type=str, required=True, help='CIF file.', metavar='<INPUT CIF FILE>')
     update_parser.add_argument('-o', '--output', type=str, required=True, help='Output cif file.', metavar='<OUTPUT CIF FILE>')
     update_parser.add_argument('-p', '--pdb', type=str, required=False, help='PDB code or pdb file.', metavar='<PDB CODE|PDB FILE>')
+    
 
     # App2
     stats_parser = subparsers.add_parser('stats', help='Distance and angle statistics.')
     stats_parser.add_argument('-l', '--ligand', type=str, required=True, help='Ligand code.', metavar='<LIGAND CODE>')
     stats_parser.add_argument('-p', '--pdb', type=str, required=True, help='PDB code or pdb file.', metavar='<PDB CODE|PDB FILE>')
     stats_parser.add_argument('-o', '--output', type=str, required=True, help='Output json file.', metavar='<OUTPUT JSON FILE>')
+    stats_parser.add_argument('-s', '--scale', type=str, required=False, help='Scale parameter.', metavar='<SCALE>', default=1.2)
 
     return parser
 
@@ -33,6 +35,7 @@ def main_func():
         parser = create_parser()
         args = parser.parse_args()
         
+
 
         if args.command == 'update':
             update_cif(args.output, args.input, args.pdb)

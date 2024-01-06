@@ -115,9 +115,13 @@ def find_minimal_cycles(bonds):
     # Find the cycle basis of the graph
     cycle_basis = nx.simple_cycles (graph)
 
-
     return cycle_basis
 
+def bond_exist(bonds, atom1, atom2):
+    for b1, b2 in zip(bonds[_atom_id_1], bonds[_atom_id_2]):
+        if (b1 == atom1 and b2 == atom2) or (b1 == atom2 and b2 == atom1):
+            return True
+    return False
 
 def update_cif(output_path, path, pdb):
     Logger().info(f"Start processing {path}")
@@ -252,6 +256,8 @@ def update_cif(output_path, path, pdb):
 
             for metal_name in pdbStats.metalNames():
                 for angle in pdbStats.getLigandAngles(metal_name):
+                    if not bond_exist(bonds, angle.ligand1.name, metal_name) or not bond_exist(bonds, angle.ligand2.name, metal_name):
+                        continue
                     angles[_comp_id].append(name)
                     angles[_atom_id_1].append(angle.ligand1.name)
                     angles[_atom_id_2].append(metal_name)
@@ -277,6 +283,9 @@ def update_cif(output_path, path, pdb):
             for metal_name in pdbStats.metalNames():
                 for angle in pdbStats.getLigandAngles(metal_name):
                     if code(angle.ligand1.name, metal_name, angle.ligand2.name) in update_angles:
+                        continue
+
+                    if not bond_exist(bonds, angle.ligand1.name, metal_name) or not bond_exist(bonds, angle.ligand2.name, metal_name):
                         continue
                     angles[_comp_id].append(name)
                     angles[_atom_id_1].append(angle.ligand1.name)
