@@ -1,6 +1,6 @@
 import gemmi
 import numpy as np
-from metalCoord.analysis.chemistry import radiuses
+from metalCoord.config import Config
 
 
 class Atom:
@@ -42,7 +42,9 @@ class Ligand:
 def distance(atom1, atom2):
     return np.sqrt((atom1.pos - atom2.pos).dot(atom1.pos - atom2.pos))
 
-def get_ligands(st, ligand, scale = 1.2, max_dist = 5):
+def get_ligands(st, ligand, max_dist = 5):
+    scale = Config().scale()
+
     if st is None:
         return None
     ns = gemmi.NeighborSearch(st[0], st.cell, 5).populate(include_h=False)
