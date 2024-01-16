@@ -4,6 +4,7 @@ import sys
 import numpy as np
 import pandas as pd
 from tqdm import tqdm
+from metalCoord.config import Config
 from metalCoord.analysis.classes import idealClasses
 from metalCoord.correspondense.procrustes import fit
 from metalCoord.logging import Logger
@@ -566,7 +567,7 @@ class ElementCandidateFinder(CandidateFinder):
 
     def __init__(self) -> None:
         super().__init__()
-        self._description = "Based on cooordination, atom availability and atom count"
+        self._description = "Based on coordination, atom availability and atom count"
 
     def _load(self):
         code = elementCode(self._structure.code())
@@ -659,11 +660,23 @@ class StrictCorrespondenceStatsFinder(FileStatsFinder):
         o_ligand_atoms = np.array([structure.metal.name] + structure.atoms())
         o_ligand_coord = structure.get_coord()
 
+         
         for cl, files in zip(self._classes, self._files):
+            if not idealClasses.contains(cl):
+                continue
+            m_ligand_coord = idealClasses.getCoordinates(cl)
+            n_ligands = structure.coordination()
+            main_proc_dist, _, _, _, index = fit(o_ligand_coord, m_ligand_coord)
+            
+            if main_proc_dist > self._thr:
+                continue
+            o_ligand_coord = m_ligand_coord[index]
+        
             distances = []
             angles = []
             if len(files) > 2000:
                 files = np.random.choice(files, 2000, replace=False)
+
             for file in tqdm(files, desc=f"{cl} ligands", leave=False, disable=Logger().disabled):
                 file_data = self._finder.data(file)
                 m_ligand_coord = get_coordinate(file_data)
@@ -672,18 +685,21 @@ class StrictCorrespondenceStatsFinder(FileStatsFinder):
                 groups = get_groups(o_ligand_atoms,  m_ligand_atoms)
                 proc_dists, indices, min_proc_dist = fit(
                     o_ligand_coord, m_ligand_coord, groups=groups, all=True)
-                if min_proc_dist < self._thr:
-                    for _, index in zip(proc_dists, indices):
-                        distances.append(np.sqrt(np.sum(
-                            (m_ligand_coord[index][0] - m_ligand_coord[index])**2, axis=1))[1:].tolist())
-                        angles.append([angle(m_ligand_coord[index][0], m_ligand_coord[index][i], m_ligand_coord[index][j]) for i in range(
-                            1, len(o_ligand_coord) - 1) for j in range(i + 1, len(o_ligand_coord))])
+              
+                for proc_dist, index in zip(proc_dists, indices):
+                    if proc_dist >= Config().procrustes_thr():
+                        continue
+
+                    distances.append(np.sqrt(np.sum(
+                        (m_ligand_coord[index][0] - m_ligand_coord[index])**2, axis=1))[1:].tolist())
+                    angles.append([angle(m_ligand_coord[index][0], m_ligand_coord[index][i], m_ligand_coord[index][j]) for i in range(
+                        1, len(o_ligand_coord) - 1) for j in range(i + 1, len(o_ligand_coord))])
 
             distances = np.array(distances).T
             angles = np.array(angles).T
             if (distances.shape[0] > 0):
                 clazzStats = LigandStats(
-                    cl, min_proc_dist, structure.coordination(), distances.shape[1])
+                    cl, main_proc_dist, structure.coordination(), distances.shape[1])
                 n_ligands = len(structure.ligands)
                 ligands = structure.ligands
                 for i, l in enumerate(ligands):
@@ -716,9 +732,19 @@ class WeekCorrespondenceStatsFinder(FileStatsFinder):
     def _calculate(self, structure):
         metalStats = self._createStats(structure)
         o_ligand_coord = structure.get_coord()
-
+        
         for cl, files in zip(self._classes, self._files):
-         
+            if not idealClasses.contains(cl):
+                continue
+            m_ligand_coord = idealClasses.getCoordinates(cl)
+            n_ligands = structure.coordination()
+            main_proc_dist, _, _, _, index = fit(o_ligand_coord, m_ligand_coord)
+            
+            if main_proc_dist > self._thr:
+                continue
+            o_ligand_coord = m_ligand_coord[index]
+            
+
             distances = []
             ligNames = []
             if len(files) > 2000:
@@ -729,7 +755,7 @@ class WeekCorrespondenceStatsFinder(FileStatsFinder):
                 m_ligand_coord = get_coordinate(file_data)
                 proc_dist, _, _, _, index = fit(o_ligand_coord, m_ligand_coord)
 
-                if proc_dist < self._thr:
+                if proc_dist <  Config().procrustes_thr():
                     distances.append(np.sqrt(np.sum(
                         (m_ligand_coord[0] - m_ligand_coord)**2, axis=1))[1:].tolist())
                     ligNames.append(file_data[["Ligand"]].values.ravel().tolist())
@@ -740,7 +766,7 @@ class WeekCorrespondenceStatsFinder(FileStatsFinder):
             if (distances.shape[0] > 0):
 
                 clazzStats = LigandStats(
-                    cl, proc_dist, structure.coordination(), distances.shape[1])
+                    cl, main_proc_dist, structure.coordination(), distances.shape[1])
                 ligands = structure.ligands
 
                 results = {}
@@ -750,14 +776,15 @@ class WeekCorrespondenceStatsFinder(FileStatsFinder):
                     results[element] = (
                         elementDistances.mean(), elementDistances.std())
                     
-
+               
                 for i, l in enumerate(ligands):
                     dist, std = results[l.atom.element.name]
                     clazzStats.addBond(DistanceStats(Ligand(l), dist, std))
 
                 for i, l in enumerate(structure.extra_ligands):
-                    dist, std = results[l.atom.element.name]
-                    clazzStats.addPdbBond(DistanceStats(Ligand(l), dist, std))
+                    if l.atom.element.name in results:
+                        dist, std = results[l.atom.element.name]
+                        clazzStats.addPdbBond(DistanceStats(Ligand(l), dist, std))
 
                 if idealClasses.contains(cl):
 
