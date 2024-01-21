@@ -85,12 +85,13 @@ def fit(coords, ideal_coords, groups=None, all = False):
     base_index = np.full((len(indices), n1), np.arange(n1))
     back_index = np.arange(n1)[np.argsort(correspondense[0])]
 
-    approxs = (c*tf.broadcast_to(tf.convert_to_tensor(ideal_coords, dtype='float32'), (1, n1, n2))@R).numpy()
+    rotated = tf.broadcast_to(tf.convert_to_tensor(ideal_coords, dtype='float32'), (1, n1, n2))@R
+    approxs = (c*rotated).numpy()
 
     x_index = base_index[:, correspondense[1]]
     indices = np.vstack([x[i] for x, i in zip(x_index, indices)])[:,back_index] 
   
     if all:
-        return (distances, indices, distances[min_arg].squeeze())
+        return (distances, indices, distances[min_arg].squeeze(), rotated.numpy())
     
     return (distances[min_arg].squeeze(), approxs[min_arg][indices[min_arg]].squeeze(),  c[min_arg].numpy().ravel()[0], R[min_arg].numpy().squeeze(), indices[min_arg].ravel())

@@ -67,6 +67,8 @@ def get_groups(atoms1, atoms2):
 
     return [group1, group2]
 
+def euclidean(coords1, coords2):
+    return np.sqrt(np.sum((coords1 - coords2)**2))
 
 def angle(metal, ligand1, ligand2):
     a = metal - ligand1
@@ -84,6 +86,7 @@ class Ligand():
         self._chain = ligand.chain.name
         self._residue = ligand.residue.name
         self._sequence = ligand.residue.seqid.num
+        self._altloc = ligand.atom.altloc
     
 
     @property
@@ -108,19 +111,25 @@ class Ligand():
     
     @property
     def code(self):
-        return (self._name, self._element, self._chain, self._residue, self._sequence)
+        return (self.name, self.element, self.chain, self.residue, self.sequence, self.altloc)
+    
+    @property
+    def altloc(self):
+        return ""  if self._altloc == "\u0000" else self._altloc
     
     def equals(self, other):
         return self.code == other.code
     
     def to_dict(self):
-        return {"name": self.name, "element": self.element, "chain": self.chain, "residue": self.residue, "sequence ": self.sequence}
+        return {"name": self.name, "element": self.element, "chain": self.chain, "residue": self.residue, "sequence ": self.sequence, "altloc": self.altloc}
 
 class DistanceStats():
-    def __init__(self, ligand, distance, std) -> None:
+    def __init__(self, ligand, distance, std, distances= None, procrustes_dists = None) -> None:
         self._ligand = ligand
         self._distance = distance
         self._std = std if std > 1e-02 else 0.05
+        self._distances = distances
+        self._procrustes_dists = procrustes_dists
     
     @property
     def ligand(self):
@@ -134,15 +143,25 @@ class DistanceStats():
     def std(self):
         return self._std
     
+    @property
+    def distances(self):
+        return self._distances
+    
+    @property
+    def procrustes_dists(self):
+        return self._procrustes_dists
+    
 
 
 class AngleStats():
-    def __init__(self, ligand1, ligand2, angle, std, isLigand = True) -> None:
+    def __init__(self, ligand1, ligand2, angle, std, isLigand = True, angles = None, procrustes_dists = None) -> None:
         self._ligand1 = ligand1
         self._ligand2 = ligand2
         self._angle = angle
         self._std =  std if std > 1e-03 else 5
         self._isLigand = isLigand
+        self._angles = angles
+        self._procrustes_dists = procrustes_dists
     
     @property
     def ligand1(self):
@@ -164,6 +183,14 @@ class AngleStats():
     @property
     def isLigand(self):
         return self._isLigand
+    
+    @property
+    def angles(self):
+        return self._angles
+    
+    @property
+    def procrustes_dists(self):
+        return self._procrustes_dists
 
     def equals(self, code1, code2):
         return (self.ligand1.code == code1 and self.ligand2.code == code2) or (self.ligand1.code == code2 and self.ligand2.code == code1)
@@ -673,6 +700,9 @@ class StrictCorrespondenceStatsFinder(FileStatsFinder):
             o_ligand_coord = m_ligand_coord[index]
         
             distances = []
+            procrustes_dists = []
+            sum_coords = np.zeros(m_ligand_coord.shape)
+            n = 0
             angles = []
             if len(files) > 2000:
                 files = np.random.choice(files, 2000, replace=False)
@@ -683,35 +713,46 @@ class StrictCorrespondenceStatsFinder(FileStatsFinder):
                 m_ligand_atoms = np.insert(
                     file_data[["Ligand"]].values.ravel(), 0, structure.metal.name)
                 groups = get_groups(o_ligand_atoms,  m_ligand_atoms)
-                proc_dists, indices, min_proc_dist = fit(
+                proc_dists, indices, min_proc_dist, rotateds = fit(
                     o_ligand_coord, m_ligand_coord, groups=groups, all=True)
-              
-                for proc_dist, index in zip(proc_dists, indices):
+                
+                
+                for proc_dist, index, rotated in zip(proc_dists, indices, rotateds):
                     if proc_dist >= Config().procrustes_thr():
                         continue
 
+                    sum_coords += (rotated[index] - rotated[index][0])
+                    n = n + 1
+
+                    procrustes_dists.append(proc_dist)
                     distances.append(np.sqrt(np.sum(
                         (m_ligand_coord[index][0] - m_ligand_coord[index])**2, axis=1))[1:].tolist())
                     angles.append([angle(m_ligand_coord[index][0], m_ligand_coord[index][i], m_ligand_coord[index][j]) for i in range(
                         1, len(o_ligand_coord) - 1) for j in range(i + 1, len(o_ligand_coord))])
-
+            
+            procrustes_dists = np.array(procrustes_dists)
             distances = np.array(distances).T
             angles = np.array(angles).T
+
+            
             if (distances.shape[0] > 0):
                 clazzStats = LigandStats(
                     cl, main_proc_dist, structure.coordination(), distances.shape[1])
+                
+                sum_coords = sum_coords/n
+
                 n_ligands = len(structure.ligands)
                 ligands = structure.ligands
                 for i, l in enumerate(ligands):
                     dist, std = distances[i].mean(), distances[i].std()
-                    clazzStats.addBond(DistanceStats(Ligand(l), dist, std))
+                    clazzStats.addBond(DistanceStats(Ligand(l), euclidean(sum_coords[i + 1], sum_coords[0]) , std, distances[i], procrustes_dists))
 
 
 
                 for i, l in enumerate(structure.extra_ligands):
                     dist, std = distances[i +
                                             n_ligands].mean(), distances[i + n_ligands].std()
-                    clazzStats.addPdbBond(DistanceStats(Ligand(l), dist, std,))
+                    clazzStats.addPdbBond(DistanceStats(Ligand(l), dist, std, euclidean(sum_coords[i + 1 + n_ligands], sum_coords[0])  , procrustes_dists))
                 
                 k = 0
                 n_ligands = structure.coordination()
@@ -720,7 +761,7 @@ class StrictCorrespondenceStatsFinder(FileStatsFinder):
                 for i in range(n_ligands - 1):
                     for j in range(i + 1, n_ligands):
                         a, std = angles[k].mean(), angles[k].std()
-                        clazzStats.addAngle(AngleStats(Ligand(ligands[i]), Ligand(ligands[j]), a, std, isLigand = i < n1 and j < n1))
+                        clazzStats.addAngle(AngleStats(Ligand(ligands[i]), Ligand(ligands[j]), angle(sum_coords[0], sum_coords[i + 1], sum_coords[j + 1]), std, isLigand = i < n1 and j < n1, angles = angles[k] , procrustes_dists = procrustes_dists))
                         k += 1
 
 
