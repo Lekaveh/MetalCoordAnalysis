@@ -6,6 +6,7 @@ import pandas as pd
 from tqdm import tqdm
 from metalCoord.config import Config
 from metalCoord.analysis.classes import idealClasses
+from metalCoord.analysis.cluster import modes
 from metalCoord.correspondense.procrustes import fit
 from metalCoord.logging import Logger
 
@@ -126,8 +127,8 @@ class Ligand():
 class DistanceStats():
     def __init__(self, ligand, distance, std, distances= None, procrustes_dists = None) -> None:
         self._ligand = ligand
-        self._distance = distance
-        self._std = std if std > 1e-02 else 0.05
+        self._distance = np.round(distance, 2).tolist()
+        self._std = np.round(np.where(std > 1e-02, std, 0.05), 2).tolist()
         self._distances = distances
         self._procrustes_dists = procrustes_dists
     
@@ -744,14 +745,15 @@ class StrictCorrespondenceStatsFinder(FileStatsFinder):
                 n_ligands = len(structure.ligands)
                 ligands = structure.ligands
                 for i, l in enumerate(ligands):
-                    dist, std = distances[i].mean(), distances[i].std()
-                    clazzStats.addBond(DistanceStats(Ligand(l), euclidean(sum_coords[i + 1], sum_coords[0]) , std, distances[i], procrustes_dists))
+                    # dist, std = distances[i].mean(), distances[i].std()
+                    dist, std = modes(distances[i])
+                    clazzStats.addBond(DistanceStats(Ligand(l), dist , std, distances[i], procrustes_dists))
 
 
 
                 for i, l in enumerate(structure.extra_ligands):
-                    dist, std = distances[i +
-                                            n_ligands].mean(), distances[i + n_ligands].std()
+                    # dist, std = distances[i + n_ligands].mean(), distances[i + n_ligands].std()
+                    dist, std = modes(distances[i + n_ligands])
                     clazzStats.addPdbBond(DistanceStats(Ligand(l), dist, std, euclidean(sum_coords[i + 1 + n_ligands], sum_coords[0])  , procrustes_dists))
                 
                 k = 0
@@ -814,18 +816,19 @@ class WeekCorrespondenceStatsFinder(FileStatsFinder):
                 for element in np.unique(ligNames):
                     elementDistances = distances.ravel()[np.argwhere(
                         ligNames.ravel() == element)]
-                    results[element] = (
-                        elementDistances.mean(), elementDistances.std())
+                    # results[element] = (
+                    #     elementDistances.mean(), elementDistances.std())
+                    results[element] = modes(elementDistances)
                     
                
                 for i, l in enumerate(ligands):
                     dist, std = results[l.atom.element.name]
-                    clazzStats.addBond(DistanceStats(Ligand(l), dist, std))
+                    clazzStats.addBond(DistanceStats(Ligand(l), np.array(dist), np.array(std)))
 
                 for i, l in enumerate(structure.extra_ligands):
                     if l.atom.element.name in results:
                         dist, std = results[l.atom.element.name]
-                        clazzStats.addPdbBond(DistanceStats(Ligand(l), dist, std))
+                        clazzStats.addPdbBond(DistanceStats(Ligand(l), np.array(dist), np.array(std)))
 
                 if idealClasses.contains(cl):
 
@@ -864,7 +867,7 @@ class OnlyDistanceStatsFinder(StatsFinder):
                 dist, std, count = DB.getDistanceStats(
                     structure.metal.element.name, l.atom.element.name)
                 if count > 0:
-                    clazzStats.addPdbBond(DistanceStats(Ligand(l), dist, std))
+                    clazzStats.addPdbBond(DistanceStats(Ligand(l), [dist], [std]))
         if clazzStats.bondCount > 0:
             metalStats.addLigand(clazzStats)
         return metalStats

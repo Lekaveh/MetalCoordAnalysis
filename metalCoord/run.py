@@ -19,7 +19,7 @@ class Range(object):
     
 def create_parser():
     parser = argparse.ArgumentParser(prog='metalCoord', description='MetalCoord: Metal coordination analysis.')
-    parser.add_argument('--version', action='version', version='%(prog)s 0.1.8')
+    parser.add_argument('--version', action='version', version='%(prog)s 0.1.9')
 
     # Define the subparsers for the two apps    
     subparsers = parser.add_subparsers(dest='command')

@@ -237,8 +237,8 @@ def update_cif(output_path, path, pdb):
 
             bondStat = pdbStats.getLigandDistance(metal_name, ligand_name)
             if  bondStat:
-                bonds[_value_dist][i] = bonds[_value_dist_nucleus][i] = str(round(bondStat.distance, 3))
-                bonds[_value_dist_esd][i] = bonds[_value_dist_nucleus_esd][i] = str(round(bondStat.std, 3))
+                bonds[_value_dist][i] = bonds[_value_dist_nucleus][i] = str(round(bondStat.distance[0], 3))
+                bonds[_value_dist_esd][i] = bonds[_value_dist_nucleus_esd][i] = str(round(bondStat.std[0], 3))
             
 
         block.set_mmcif_category(_bond_category, bonds)
