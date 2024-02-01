@@ -9,7 +9,7 @@ from metalCoord.analysis.classes import idealClasses
 from metalCoord.analysis.cluster import modes
 from metalCoord.correspondense.procrustes import fit
 from metalCoord.logging import Logger
-
+from metalCoord.analysis.directional import calculate_stats
 
 
 def elementCode(code):
@@ -762,8 +762,9 @@ class StrictCorrespondenceStatsFinder(FileStatsFinder):
                 ligands = ligands + structure.extra_ligands
                 for i in range(n_ligands - 1):
                     for j in range(i + 1, n_ligands):
-                        a, std = angles[k].mean(), angles[k].std()
-                        clazzStats.addAngle(AngleStats(Ligand(ligands[i]), Ligand(ligands[j]), angle(sum_coords[0], sum_coords[i + 1], sum_coords[j + 1]), std, isLigand = i < n1 and j < n1, angles = angles[k] , procrustes_dists = procrustes_dists))
+                        # a, std = angles[k].mean(), angles[k].std()
+                        a, std = calculate_stats(angles[k])
+                        clazzStats.addAngle(AngleStats(Ligand(ligands[i]), Ligand(ligands[j]), a, std, isLigand = i < n1 and j < n1, angles = angles[k] , procrustes_dists = procrustes_dists))
                         k += 1
 
 
