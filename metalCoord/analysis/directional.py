@@ -137,4 +137,4 @@ def calculate_stats(X):
     else:
         vonMises = UnsymmetrisedVonMises(X)
     vonMises.fit()
-    return vonMises.mu, vonMises.sigma   
+    return np.abs(vonMises.mu), vonMises.sigma   
