@@ -602,7 +602,7 @@ class ElementCandidateFinder(CandidateFinder):
         self._selection = self._data[(self._data.ElementCode == code) & (
             self._data.Coordination == self._structure.coordination())]
         self._classes = self._selection.Class.unique()
-        # Logger().info(f"Classes: {self._classes} Code: {code} Metal {self._structure.metal.name}")
+
         self._files = [self._selection[self._selection.Class ==
                                          cl].File.unique() for cl in self._classes]
 
@@ -735,8 +735,7 @@ class StrictCorrespondenceStatsFinder(FileStatsFinder):
             distances = np.array(distances).T
             angles = np.array(angles).T
 
-            
-            if (distances.shape[0] > 0):
+            if (distances.shape[1] >= Config().min_sample_size):
                 clazzStats = LigandStats(
                     cl, main_proc_dist, structure.coordination(), distances.shape[1])
                 
@@ -793,6 +792,7 @@ class WeekCorrespondenceStatsFinder(FileStatsFinder):
             ligNames = []
             if len(files) > 2000:
                 files = np.random.choice(files, 2000, replace=False)
+
             for file in tqdm(files, desc=f"{cl} ligands", leave=False, disable=Logger().disabled):
                 file_data = self._finder.data(file)
      
@@ -807,7 +807,8 @@ class WeekCorrespondenceStatsFinder(FileStatsFinder):
             distances = np.array(distances).T
             ligNames = np.array(ligNames).T
 
-            if (distances.shape[0] > 0):
+ 
+            if (distances.shape[1] >= Config().min_sample_size):
 
                 clazzStats = LigandStats(
                     cl, main_proc_dist, structure.coordination(), distances.shape[1])
@@ -815,21 +816,22 @@ class WeekCorrespondenceStatsFinder(FileStatsFinder):
 
                 results = {}
                 for element in np.unique(ligNames):
-                    elementDistances = distances.ravel()[np.argwhere(
-                        ligNames.ravel() == element)]
-                    # results[element] = (
-                    #     elementDistances.mean(), elementDistances.std())
-                    results[element] = modes(elementDistances)
+                    elementDistances = distances.ravel()[ligNames.ravel() == element]
+        
+                    if elementDistances.size == 1:
+                        results[element] = modes(elementDistances)
+                    elif elementDistances.size > 1:
+                        results[element] = modes(elementDistances.squeeze())
                     
                
                 for i, l in enumerate(ligands):
                     dist, std = results[l.atom.element.name]
-                    clazzStats.addBond(DistanceStats(Ligand(l), np.array(dist), np.array(std)))
+                    clazzStats.addBond(DistanceStats(Ligand(l), dist, std))
 
                 for i, l in enumerate(structure.extra_ligands):
                     if l.atom.element.name in results:
                         dist, std = results[l.atom.element.name]
-                        clazzStats.addPdbBond(DistanceStats(Ligand(l), np.array(dist), np.array(std)))
+                        clazzStats.addPdbBond(DistanceStats(Ligand(l), dist, std))
 
                 if idealClasses.contains(cl):
 
@@ -861,14 +863,15 @@ class OnlyDistanceStatsFinder(StatsFinder):
             dist, std, count = DB.getDistanceStats(
                 structure.metal.element.name, l.atom.element.name)
             if count > 0:
-                clazzStats.addBond(DistanceStats(Ligand(l), dist, std))
+                clazzStats.addBond(DistanceStats(Ligand(l), np.array([dist]), np.array([std])))
 
         if len(structure.extra_ligands) > 0:
             for l in structure.extra_ligands:
                 dist, std, count = DB.getDistanceStats(
                     structure.metal.element.name, l.atom.element.name)
                 if count > 0:
-                    clazzStats.addPdbBond(DistanceStats(Ligand(l), [dist], [std]))
+                    print(np.array([dist]))
+                    clazzStats.addPdbBond(DistanceStats(Ligand(l), np.array([dist]), np.array([std])))
         if clazzStats.bondCount > 0:
             metalStats.addLigand(clazzStats)
         return metalStats

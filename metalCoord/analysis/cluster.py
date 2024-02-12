@@ -62,7 +62,6 @@ def _kde_silverman(data, rnd=2, neighbour = 10):
 
 def modes(dists):
     common_stats = np.array([[np.mean(dists)], [np.std(dists)]])
-
     if  len(dists) < 30:
         return common_stats
     n_modes = _kde_silverman(dists, rnd=1, neighbour = 3)[0][0]  
