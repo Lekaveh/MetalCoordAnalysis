@@ -37,6 +37,9 @@ class StatsData():
     def load(self):
         d = os.path.dirname(sys.modules["metalCoord"].__file__)
         self.__data = pd.read_csv(os.path.join(d, "data/classes.zip"))
+        self.__data.loc[self.__data.index, 'Code'] = self.__data.File.map(self.__data.groupby('File').Ligand.agg(lambda x: "".join(sorted(x))))
+        self.__data.loc[self.__data.index, "Code"] = self.__data.Metal + self.__data.Code
+        self.__data = self.__data[self.__data.Metal != self.__data.Metal.str.lower()]
         self.__data["ElementCode"] = self.__data.Code.apply(
             lambda x: elementCode(x))
         self.__distances = self.__data.groupby(["Metal", "Ligand"]).Distance.agg([
