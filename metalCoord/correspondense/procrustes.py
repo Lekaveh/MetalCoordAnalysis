@@ -30,12 +30,58 @@ def is_it_plane(xyz):
     return(np.sqrt(np.sum(z*z)/l),np.max(np.abs(z)))
 
 
+def plane_from_points(P1, P2, P3):
+    """Find the plane equation coefficients from three points."""
+    # Create vectors from points
+    v1 = P2 - P1
+    v2 = P3 - P1
+    
+    # Normal vector to the plane
+    n = np.cross(v1, v2)
+    n = n / np.linalg.norm(n)
+    
+    # Plane equation coefficients
+    a, b, c = n
+    d = np.dot(n, P1)
+    
+    return a, b, c, d, n
+
+def find_intersection(A, P1, P2, P3):
+    """Finds the intersection point of the perpendicular from A to the plane."""
+    a, b, c, d, n = plane_from_points(P1, P2, P3)
+    x1, y1, z1 = A
+    # Parameter t calculation
+    t = (d - a * x1 - b * y1 - c * z1) / (a**2 + b**2 + c**2)
+    
+    # Intersection point calculation
+    x = x1 + a * t
+    y = y1 + b * t
+    z = z1 + c * t
+    
+    return np.array([x, y, z]), n
+
+def angle(center, point1, point2, n):
+    a = point1 - center
+    b = point2 - center
+    a = np.array(a)/np.linalg.norm(a)
+    b = np.array(b)/np.linalg.norm(b)
+
+    right_handed_angle = np.arctan2(np.dot(np.cross(a, b), n), np.dot(a, b))
+    return np.rad2deg(right_handed_angle)
+
+def sort_ring(coords, ring):
+    center, n = find_intersection(coords[0], coords[ring[0]], coords[ring[1]], coords[ring[2]])
+    return sorted(ring, key=lambda x: angle(center, coords[ring[0]], coords[x], n))
+
+def sort_rings(coords, rings):
+    return [sort_ring(coords, ring) for ring in rings]
+
 def find_rings(coords):
     rings = []
     others = []
     centred_coords = coords[1:] - coords[0]
     normed_coords = centred_coords/np.max(np.linalg.norm(centred_coords, axis=1))
-    clustering =  DBSCAN(eps=1, min_samples=4).fit(normed_coords)
+    clustering =  DBSCAN(eps=1, min_samples=3).fit(normed_coords)
     clusters = np.unique(clustering.labels_)
 
     for cluster in clusters:
@@ -50,7 +96,7 @@ def find_rings(coords):
             rings.append(indices)
         else:
             others.append(indices)
-    return sorted(rings, key = lambda x: len(x), reverse=True), others
+    return sort_rings(coords, sorted(rings, key = lambda x: len(x), reverse=True)), others
 
 def have_same_ring_length(rings1, rings2):
     if len(rings1) != len(rings2):
@@ -61,6 +107,14 @@ def have_same_ring_length(rings1, rings2):
             return False
     
     return True
+
+def flatten_list(l):
+    return [item for sublist in l for item in sublist]
+
+def ring_permutations(ring):
+    n = len(ring)
+    indices = list(range(n))
+    return [[ring[(idx + i)%n] for idx in indices] for i in range(n)] 
 
 core_vectors_num = 4
 def norm(x, hm):
@@ -93,12 +147,19 @@ def procrustes_fit(A, B):
     approx = c*A@R
     return (distance(approx, B), approx, c, R)
 
-def get_combinations(groups=None):
+def get_combinations(groups=None, rings=None):
 
     c_list = []
     ranges = [0] + np.cumsum(groups).tolist()
+   
+    if rings is None:
+        rings = [0]*len(groups)
+
     for  i in range(len(ranges) - 1):
-        c_list.append(np.fromiter(itertools.chain.from_iterable(itertools.permutations(range(ranges[i], ranges[i + 1]))), dtype=np.int32).reshape(-1, ranges[i + 1] - ranges[i]))
+        if rings[i]:
+            c_list.append(np.array(ring_permutations(range(ranges[i], ranges[i + 1])) + ring_permutations(list(range(ranges[i], ranges[i + 1]))[::-1])) )
+        else:
+            c_list.append(np.fromiter(itertools.chain.from_iterable(itertools.permutations(range(ranges[i], ranges[i + 1]))), dtype=np.int32).reshape(-1, ranges[i + 1] - ranges[i]))
 
     combinations = np.vstack([np.concatenate(x) for x in itertools.product(*c_list)])  
     k = len(combinations)
@@ -111,9 +172,7 @@ def create_group(rings, others):
     return [[0]] + rings
     
 
-
-
-def fit_group(coords, ideal_coords, groups=None):
+def fit_group(coords, ideal_coords, groups=None, rings = None):
     n1 = coords.shape[0]
     n2 = ideal_coords.shape[1]
     
@@ -126,7 +185,7 @@ def fit_group(coords, ideal_coords, groups=None):
 
     y = tf.broadcast_to(tf.convert_to_tensor(ideal_coords[correspondense[1]], dtype='float32'), (1, n1, n2))
     
-    combinations, k = get_combinations(groups=lengths)
+    combinations, k = get_combinations(groups=lengths, rings = rings)
 
     t_combinations = combinations.reshape(-1, combinations.shape[0], combinations.shape[1], 1)
 
@@ -139,6 +198,7 @@ def fit_group(coords, ideal_coords, groups=None):
     min_distance = np.min(distances)
     mask = distances <= min_distance + 0.1
     
+
     distances = distances[mask]
     R = tf.boolean_mask(R, mask)
     c = tf.boolean_mask(c, mask)
@@ -167,7 +227,7 @@ def fit(coords, ideal_coords, groups=None, all = False):
     rings1, others1 = find_rings(coords)
     rings2, others2 = find_rings(ideal_coords)
 
-    if len(coords) > 9 and len(rings1) > 0 and have_same_ring_length(rings1, rings2):
+    if len(rings1) > 0 and have_same_ring_length(rings1, rings2):
         ring_lengths = [len(ring) for ring in rings2]
         current_l = -1
         ring_groups = []
@@ -187,7 +247,7 @@ def fit(coords, ideal_coords, groups=None, all = False):
         results = []
         for ring2_group in ring_group_permutations:
             current_groups = [ring1_group, ring2_group]
-            results.append(fit_group(coords, ideal_coords, current_groups))
+            results.append(fit_group(coords, ideal_coords, current_groups, [0] + [1 for i, x in enumerate(rings1)] + [0]))
         
         distances, approxs, c, R, indices, rotated = [np.concatenate([r[i] for r in results], axis=0) for i in range(6)]
 
@@ -204,7 +264,7 @@ def fit(coords, ideal_coords, groups=None, all = False):
             else:
                 distances, approxs, c, R, indices, rotated  = np.ones(1) , np.expand_dims(np.zeros_like(approxs[0]), axis=0),  np.expand_dims(np.zeros_like(c[0]), axis=0),  np.expand_dims(np.zeros_like(R[0]), axis=0),  np.expand_dims(np.zeros_like(indices[0]), axis=0),  np.expand_dims(np.zeros_like(rotated[0]), axis=0)
     else:
-        distances, approxs, c, R, indices, rotated = fit_group(coords, ideal_coords, groups=groups)
+        distances, approxs, c, R, indices, rotated = fit_group(coords, ideal_coords, groups)
     
     min_arg = np.argmin(distances)
     if all:

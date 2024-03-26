@@ -716,6 +716,7 @@ class StrictCorrespondenceStatsFinder(FileStatsFinder):
                 m_ligand_coord = get_coordinate(file_data)
                 m_ligand_atoms = np.insert(
                     file_data[["Ligand"]].values.ravel(), 0, structure.metal.name)
+                
                 groups = get_groups(o_ligand_atoms,  m_ligand_atoms)
                 proc_dists, indices, min_proc_dist, rotateds = fit(
                     o_ligand_coord, m_ligand_coord, groups=groups, all=True)
