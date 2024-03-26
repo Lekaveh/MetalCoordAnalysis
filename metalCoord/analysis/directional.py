@@ -132,7 +132,7 @@ class SymmetrisedVonMises(VonMises):
 
 def calculate_stats(X):
     vonMises = None
-    if np.mean(X) > 160:
+    if np.mean(X) > 150:
         vonMises = SymmetrisedVonMises(X)
     else:
         vonMises = UnsymmetrisedVonMises(X)
