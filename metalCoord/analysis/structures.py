@@ -68,10 +68,6 @@ def get_ligands(st, ligand, max_dist = 5):
                         if cra.residue.name == ligand:
                             structures[-1].ligands.append(Atom(cra.atom, cra.residue, cra.chain))
                         else:
-                            # if cra.atom.occ < 1:
-                            #     from metalCoord.logging import Logger
-                            #     Logger().warning(f"Atom {cra.atom.name} in {cra.residue.name} {cra.residue.seqid} {cra.chain.name} has occupancy {cra.atom.occ}")
-                            #     continue
                             structures[-1].extra_ligands.append(Atom(cra.atom, cra.residue, cra.chain))
 
                         structures[-1].filter()

@@ -738,7 +738,8 @@ class StrictCorrespondenceStatsFinder(FileStatsFinder):
             distances = np.array(distances).T
             angles = np.array(angles).T
 
-            if (distances.shape[1] >= Config().min_sample_size):
+
+            if (len(distances) > 0 and distances.shape[1] >= Config().min_sample_size):
                 clazzStats = LigandStats(
                     cl, main_proc_dist, structure.coordination(), distances.shape[1])
                 
@@ -811,7 +812,7 @@ class WeekCorrespondenceStatsFinder(FileStatsFinder):
             ligNames = np.array(ligNames).T
 
  
-            if (distances.shape[1] >= Config().min_sample_size):
+            if (len(distances) > 0 and distances.shape[1] >= Config().min_sample_size):
 
                 clazzStats = LigandStats(
                     cl, main_proc_dist, structure.coordination(), distances.shape[1])
