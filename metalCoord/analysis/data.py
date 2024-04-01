@@ -200,7 +200,7 @@ class AngleStats():
         return (self.ligand1.code == code1 and self.ligand2.code == code2) or (self.ligand1.code == code2 and self.ligand2.code == code1)
 
 class LigandStats():
-    def __init__(self, clazz, procrustes, coordination, count) -> None:
+    def __init__(self, clazz, procrustes, coordination, count, description) -> None:
         self._clazz = clazz
         self._procrustes = procrustes
         self._coordination = coordination
@@ -208,6 +208,7 @@ class LigandStats():
         self._bonds = []
         self._pdb_bonds = []
         self._angles = []
+        self._description = description
     
     @property
     def clazz(self):
@@ -225,7 +226,10 @@ class LigandStats():
     def count(self):
         return self._count
     
-
+    @property
+    def description(self):
+        return self._description
+    
     @property
     def bondCount(self):
         return len(self._bonds) + len(self._pdb_bonds)
@@ -281,7 +285,7 @@ class LigandStats():
         self._angles.append(angle)
 
     def to_dict(self):
-            clazz = {"class": self.clazz, "procrustes": np.round(float(self.procrustes), 3), "coordination": self.coordination,  "count": self.count, 
+            clazz = {"class": self.clazz, "procrustes": np.round(float(self.procrustes), 3), "coordination": self.coordination,  "count": self.count, "description":self.description, 
                      "base": [], "angles": [], "pdb": []}
             for b in self.bonds:
                 clazz["base"].append(
@@ -297,14 +301,14 @@ class LigandStats():
         
 
 class MetalStats():
-    def __init__(self, metal, metalElement, chain, residue, sequence, description) -> None:
+    def __init__(self, metal, metalElement, chain, residue, sequence) -> None:
         self._metal = metal
         self._metalElement = metalElement
         self._chain = chain
         self._residue = residue
         self._sequence = sequence
         self._ligands = []
-        self._description = description
+
 
 
     @property
@@ -336,9 +340,7 @@ class MetalStats():
         for ligand in self._ligands:
             yield ligand
 
-    @property
-    def description(self):
-        return self._description
+
     
     def sameMetal(self, other):
         return (self.metal == other.metal) and (self.metalElement == other.metalElement)
@@ -395,7 +397,7 @@ class MetalStats():
 
     def to_dict(self):
         metal = {"chain": self.chain, "residue": self.residue, "sequence": self.sequence, "metal": self.metal,
-                 "metalElement": self.metalElement, "ligands": [], "description": self.description}
+                 "metalElement": self.metalElement, "ligands": []}
         
 
         for l in sorted(self.ligands, key=lambda x: (-x.coordination, x.procrustes)):
@@ -562,6 +564,10 @@ class CandidateFinder(ABC):
         self._structure = structure
         self._data = data
         self._load()
+        self._classes = self._selection.Class.unique()
+        self._files = {cl:self._selection[self._selection.Class ==
+                                         cl].File.unique() for cl in self._classes}
+        
 
     @abstractmethod
     def _load(self):
@@ -590,9 +596,6 @@ class StrictCandidateFinder(CandidateFinder):
     def _load(self):
         self._selection = self._data[self._data.Code ==
                                       self._structure.code()]
-        self._classes = self._selection.Class.unique()
-        self._files = [self._selection[self._selection.Class ==
-                                         cl].File.unique() for cl in self._classes]
 
 class ElementCandidateFinder(CandidateFinder):
 
@@ -604,10 +607,7 @@ class ElementCandidateFinder(CandidateFinder):
         code = elementCode(self._structure.code())
         self._selection = self._data[(self._data.ElementCode == code) & (
             self._data.Coordination == self._structure.coordination())]
-        self._classes = self._selection.Class.unique()
 
-        self._files = [self._selection[self._selection.Class ==
-                                         cl].File.unique() for cl in self._classes]
 
 class ElementInCandidateFinder(CandidateFinder):
     
@@ -621,9 +621,6 @@ class ElementInCandidateFinder(CandidateFinder):
             self._data.Coordination == self._structure.coordination())]
         self._selection = coordinationData[np.all(
             [coordinationData.ElementCode.str.contains(x) for x in code], axis=0)]
-        self._classes = self._selection.Class.unique()
-        self._files = [self._selection[self._selection.Class ==
-                                         cl].File.unique() for cl in self._classes]
 
 class AnyElementCandidateFinder(CandidateFinder):
     def __init__(self) -> None:
@@ -636,9 +633,6 @@ class AnyElementCandidateFinder(CandidateFinder):
             self._data.Metal == self._structure.metal.element.name)]
         self._selection = coordinationData[np.any(
             [coordinationData.ElementCode.str.contains(x) for x in code], axis=0)]
-        self._classes = self._selection.Class.unique()
-        self._files = [self._selection[self._selection.Class ==
-                                         cl].File.unique() for cl in self._classes]
 
 class NoCoordinationCandidateFinder(CandidateFinder):
 
@@ -649,31 +643,68 @@ class NoCoordinationCandidateFinder(CandidateFinder):
     def _load(self):
         self._selection = self._data[(
             self._data.Metal == self._structure.metal.element.name)]
-        self._classes = self._selection.Class.unique()
-        self._files = [self._selection[self._selection.Class ==
-                                         cl].File.unique() for cl in self._classes]
 
 
+class ClassificationResult():
+    def __init__(self, clazz, coord, index, proc) -> None:
+        self._clazz = clazz
+        self._coord = coord
+        self._index = index
+        self._proc = proc
+
+    @property
+    def clazz(self):
+        return self._clazz
+    
+    @property
+    def coord(self):
+        return self._coord
+    
+    @property
+    def index(self):
+        return self._index
+    
+    @property
+    def proc(self):
+        return self._proc
+    
+    def __str__(self) -> str:
+        return f"Class: {self.clazz}, Procrustes: {self.proc}, Coordination: {len(self.coord)}"    
+    
+class Classificator():
+    def __init__(self, thr = 0.3) -> None:
+        self._thr = thr
+
+    def classify(self, structure):
+        for clazz in idealClasses.getIdealClasses():
+            if idealClasses.getCoordination(clazz) != structure.coordination():
+                continue
+            m_ligand_coord = idealClasses.getCoordinates(clazz)
+            main_proc_dist, _, _, _, index = fit(structure.get_coord(), m_ligand_coord)
+            if main_proc_dist < self._thr:
+                yield ClassificationResult(clazz, structure.get_coord(), index, main_proc_dist)
+
+
+    
 class StatsFinder(ABC):
     def __init__(self, candidateFinder) -> None:
         self._finder = candidateFinder
         self._thr = 0.3
 
     @abstractmethod
-    def get_stats(self, structure, data):
+    def get_stats(self, structure, data, class_result):
         pass
 
-    def _createStats(self, structure):
-        return MetalStats(structure.metal.name, structure.metal.element.name, structure.chain.name, structure.residue.name, structure.residue.seqid.num, self._finder.description())
+
 
 
 class FileStatsFinder(StatsFinder):
     def __init__(self, candidateFinder) -> None:
         super().__init__(candidateFinder)
 
-    def get_stats(self, structure, data):
+    def get_stats(self, structure, data, class_result):
         self._prepare(structure, data)
-        return self._calculate(structure)
+        return self._calculate(structure, class_result)
 
     def _prepare(self, structure, data):
         self._finder.load(structure, data)
@@ -681,45 +712,38 @@ class FileStatsFinder(StatsFinder):
         self._files = self._finder.files()
 
     @abstractmethod
-    def _calculate(self, stucture):
+    def _calculate(self, stucture, clazz, main_proc_dist):
         pass
 
 
 class StrictCorrespondenceStatsFinder(FileStatsFinder):
-    def _calculate(self, structure):
-        metalStats = self._createStats(structure)
+    def _calculate(self, structure, class_result):
         o_ligand_atoms = np.array([structure.metal.name] + structure.atoms())
-        o_ligand_coord = structure.get_coord()
+  
 
          
-        for cl, files in zip(self._classes, self._files):
-            if not idealClasses.contains(cl):
-                continue
-            m_ligand_coord = idealClasses.getCoordinates(cl)
-            n_ligands = structure.coordination()
-            main_proc_dist, _, _, _, index = fit(o_ligand_coord, m_ligand_coord)
-            
-            if main_proc_dist > self._thr:
-                continue
-            ideal_ligand_coord = m_ligand_coord[index]
+        if class_result.clazz in self._classes:
+            files = self._files[class_result.clazz]
+
+            ideal_ligand_coord = class_result.coord[class_result.index]
             
         
             distances = []
             procrustes_dists = []
-            sum_coords = np.zeros(m_ligand_coord.shape)
+            sum_coords = np.zeros(ideal_ligand_coord.shape)
             n = 0
             angles = []
             if len(files) > 2000:
                 files = np.random.choice(files, 2000, replace=False)
 
-            for file in tqdm(files, desc=f"{cl} ligands", leave=False, disable=Logger().disabled):
+            for file in tqdm(files, desc=f"{class_result.clazz} ligands", leave=False, disable=Logger().disabled):
                 file_data = self._finder.data(file)
                 m_ligand_coord = get_coordinate(file_data)
                 m_ligand_atoms = np.insert(
                     file_data[["Ligand"]].values.ravel(), 0, structure.metal.name)
                 
                 groups = get_groups(o_ligand_atoms,  m_ligand_atoms)
-                proc_dists, indices, min_proc_dist, rotateds = fit(
+                proc_dists, indices, _, rotateds = fit(
                     ideal_ligand_coord, m_ligand_coord, groups=groups, all=True)
                 
                 
@@ -743,7 +767,7 @@ class StrictCorrespondenceStatsFinder(FileStatsFinder):
 
             if (len(distances) > 0 and distances.shape[1] >= Config().min_sample_size):
                 clazzStats = LigandStats(
-                    cl, main_proc_dist, structure.coordination(), distances.shape[1])
+                    class_result.clazz, class_result.proc, structure.coordination(), distances.shape[1], self._finder.description())
                 
                 sum_coords = sum_coords/n
 
@@ -773,25 +797,16 @@ class StrictCorrespondenceStatsFinder(FileStatsFinder):
                         k += 1
 
 
-                metalStats.addLigand(clazzStats)
-        return metalStats
-
+                return clazzStats
+        return None
 
 class WeekCorrespondenceStatsFinder(FileStatsFinder):
-    def _calculate(self, structure):
-        metalStats = self._createStats(structure)
-        o_ligand_coord = structure.get_coord()
-        
-        for cl, files in zip(self._classes, self._files):
-            if not idealClasses.contains(cl):
-                continue
-            m_ligand_coord = idealClasses.getCoordinates(cl)
+    def _calculate(self, structure, class_result):
 
-            main_proc_dist, _, _, _, index = fit(o_ligand_coord, m_ligand_coord)
-            if main_proc_dist > self._thr:
-                continue
-            
-            ideal_ligand_coord = m_ligand_coord[index]
+        if class_result.clazz in self._classes:
+            files = self._files[class_result.clazz]
+
+            ideal_ligand_coord = class_result.coord[class_result.index]
             
 
             distances = []
@@ -799,7 +814,7 @@ class WeekCorrespondenceStatsFinder(FileStatsFinder):
             if len(files) > 2000:
                 files = np.random.choice(files, 2000, replace=False)
 
-            for file in tqdm(files, desc=f"{cl} ligands", leave=False, disable=Logger().disabled):
+            for file in tqdm(files, desc=f"{class_result.clazz} ligands", leave=False, disable=Logger().disabled):
                 file_data = self._finder.data(file)
      
                 m_ligand_coord = get_coordinate(file_data)
@@ -817,7 +832,7 @@ class WeekCorrespondenceStatsFinder(FileStatsFinder):
             if (len(distances) > 0 and distances.shape[1] >= Config().min_sample_size):
 
                 clazzStats = LigandStats(
-                    cl, main_proc_dist, structure.coordination(), distances.shape[1])
+                    class_result.clazz, class_result.proc, structure.coordination(), distances.shape[1], self._finder.description())
                 ligands = structure.ligands
 
                 results = {}
@@ -839,10 +854,10 @@ class WeekCorrespondenceStatsFinder(FileStatsFinder):
                         dist, std = results[l.atom.element.name]
                         clazzStats.addPdbBond(DistanceStats(Ligand(l), dist, std))
 
-                if idealClasses.contains(cl):
+                if idealClasses.contains(class_result.clazz):
 
                     ligands = structure.ligands + structure.extra_ligands
-                    m_ligand_coord = idealClasses.getCoordinates(cl)
+                    m_ligand_coord = idealClasses.getCoordinates(class_result.clazz)
                     n_ligands = structure.coordination()
                     proc_dist, _, _, _, index = fit(ideal_ligand_coord, m_ligand_coord)
                     n1 = len(structure.ligands)
@@ -852,19 +867,19 @@ class WeekCorrespondenceStatsFinder(FileStatsFinder):
                             std = 5.000
                             clazzStats.addAngle(AngleStats(Ligand(ligands[i - 1]), Ligand(ligands[j - 1]), a, std, isLigand = i <= n1 and j <= n1))
 
-                metalStats.addLigand(clazzStats)
-        return metalStats
+                return clazzStats
+        return None
 
 
 class OnlyDistanceStatsFinder(StatsFinder):
     def __init__(self, candidateFinder) -> None:
         super().__init__(candidateFinder)
 
-    def get_stats(self, structure, data):
+    def get_stats(self, structure, data, class_result):
         self._finder.load(structure, data)
         data = self._finder.data("")
-        metalStats = self._createStats(structure)
-        clazzStats = LigandStats("", -1, structure.coordination(), -1)
+        ideal_ligand_coord = class_result.coord[class_result.index]
+        clazzStats = LigandStats(class_result.clazz, class_result.proc, structure.coordination(), -1, self._finder.description())
         for l in structure.ligands:
             dist, std, count = DB.getDistanceStats(
                 structure.metal.element.name, l.atom.element.name)
@@ -877,6 +892,19 @@ class OnlyDistanceStatsFinder(StatsFinder):
                     structure.metal.element.name, l.atom.element.name)
                 if count > 0:
                     clazzStats.addPdbBond(DistanceStats(Ligand(l), np.array([dist]), np.array([std])))
+        
+        if idealClasses.contains(class_result.clazz):
+            ligands = structure.ligands + structure.extra_ligands
+            m_ligand_coord = idealClasses.getCoordinates(class_result.clazz)
+            n_ligands = structure.coordination()
+            proc_dist, _, _, _, index = fit(ideal_ligand_coord, m_ligand_coord)
+            n1 = len(structure.ligands)
+            for i in range(1, n_ligands):
+                for j in range(i + 1, n_ligands + 1):
+                    a = angle( m_ligand_coord[index][0], m_ligand_coord[index][i], m_ligand_coord[index][j])
+                    std = 5.000
+                    clazzStats.addAngle(AngleStats(Ligand(ligands[i - 1]), Ligand(ligands[j - 1]), a, std, isLigand = i <= n1 and j <= n1))
+
         if clazzStats.bondCount > 0:
-            metalStats.addLigand(clazzStats)
-        return metalStats
+            return clazzStats
+        return None

@@ -2,9 +2,9 @@ import os
 import gemmi
 import numpy as np
 from tqdm import tqdm
-from metalCoord.analysis.data import DB, PdbStats
+from metalCoord.analysis.data import DB, PdbStats, MetalStats
 from metalCoord.analysis.data import StrictCandidateFinder, ElementCandidateFinder, ElementInCandidateFinder, AnyElementCandidateFinder, NoCoordinationCandidateFinder
-from metalCoord.analysis.data import StrictCorrespondenceStatsFinder, WeekCorrespondenceStatsFinder, OnlyDistanceStatsFinder
+from metalCoord.analysis.data import StrictCorrespondenceStatsFinder, WeekCorrespondenceStatsFinder, OnlyDistanceStatsFinder, Classificator
 from metalCoord.analysis.structures import get_ligands
 from metalCoord.load.rcsb import load_pdb
 from metalCoord.logging import Logger
@@ -47,11 +47,17 @@ def find_classes(ligand, pdb_name):
     structures = get_structures(ligand, pdb_name)
     Logger().info(f"{len(structures)} structures found.")
     results = PdbStats()
+    classificator = Classificator()
     for structure in tqdm(structures, desc="Structures", position=0, disable=Logger().disabled):
-        for strategy in tqdm(strategies, desc="Strategies", position=1, leave=False, disable=Logger().disabled):
-            stats = strategy.get_stats(structure, DB.data())
-            if not stats.isEmpty():
-                results.addMetal(stats)
-                break
+        metalStats = MetalStats(structure.metal.name, structure.metal.element.name, structure.chain.name, structure.residue.name, structure.residue.seqid.num)
+        for class_result in classificator.classify(structure):
+
+            for strategy in tqdm(strategies, desc="Strategies", position=1, leave=False, disable=Logger().disabled):
+                ligandStats = strategy.get_stats(structure, DB.data(), class_result)
+                if ligandStats:
+                    metalStats.addLigand(ligandStats)
+                    break
+        if not metalStats.isEmpty():
+            results.addMetal(metalStats)
     Logger().info(f"Analysis completed. Statistics for {results.len()} ligands(metals) found.")
     return results
