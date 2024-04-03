@@ -9,7 +9,6 @@ class Class():
         d = os.path.dirname(sys.modules["metalCoord"].__file__)
         self.__data = pd.read_csv(os.path.join(d, "data/ideal.csv"))
         self.__classes = self.__data.groupby("Class").size().to_dict()
-        
     
     def contains(self, className):
         return className in self.__data["Class"].values

@@ -45,9 +45,12 @@ strategies = [StrictCorrespondenceStatsFinder(StrictCandidateFinder()),
 def find_classes(ligand, pdb_name):
     Logger().info(f"Analysing structres in  {pdb_name} for patterns")
     structures = get_structures(ligand, pdb_name)
+    for structure in tqdm(structures):
+        Logger().info(f"Structure for {structure.metal.name} - {structure.chain.name} - {structure.residue.name}- {structure.residue.seqid.num} found. Coordination number: {structure.coordination()}")
     Logger().info(f"{len(structures)} structures found.")
     results = PdbStats()
     classificator = Classificator()
+
     for structure in tqdm(structures, desc="Structures", position=0, disable=Logger().disabled):
         metalStats = MetalStats(structure.metal.name, structure.metal.element.name, structure.chain.name, structure.residue.name, structure.residue.seqid.num)
         for class_result in classificator.classify(structure):

@@ -669,7 +669,7 @@ class ClassificationResult():
         return self._proc
     
     def __str__(self) -> str:
-        return f"Class: {self.clazz}, Procrustes: {self.proc}, Coordination: {len(self.coord)}"    
+        return f"Class: {self.clazz}, Procrustes: {self.proc}, Coordination: {len(self.coord) - 1}"    
     
 class Classificator():
     def __init__(self, thr = 0.3) -> None:
