@@ -682,7 +682,7 @@ class Classificator():
             m_ligand_coord = idealClasses.getCoordinates(clazz)
             main_proc_dist, _, _, _, index = fit(structure.get_coord(), m_ligand_coord)
             if main_proc_dist < self._thr:
-                yield ClassificationResult(clazz, structure.get_coord(), index, main_proc_dist)
+                yield ClassificationResult(clazz, m_ligand_coord, index, main_proc_dist)
 
 
     
@@ -857,13 +857,11 @@ class WeekCorrespondenceStatsFinder(FileStatsFinder):
                 if idealClasses.contains(class_result.clazz):
 
                     ligands = structure.ligands + structure.extra_ligands
-                    m_ligand_coord = idealClasses.getCoordinates(class_result.clazz)
                     n_ligands = structure.coordination()
-                    proc_dist, _, _, _, index = fit(ideal_ligand_coord, m_ligand_coord)
                     n1 = len(structure.ligands)
                     for i in range(1, n_ligands):
                         for j in range(i + 1, n_ligands + 1):
-                            a = angle( m_ligand_coord[index][0], m_ligand_coord[index][i], m_ligand_coord[index][j])
+                            a = angle( ideal_ligand_coord[0], ideal_ligand_coord[i], ideal_ligand_coord[j])
                             std = 5.000
                             clazzStats.addAngle(AngleStats(Ligand(ligands[i - 1]), Ligand(ligands[j - 1]), a, std, isLigand = i <= n1 and j <= n1))
 
@@ -894,14 +892,13 @@ class OnlyDistanceStatsFinder(StatsFinder):
                     clazzStats.addPdbBond(DistanceStats(Ligand(l), np.array([dist]), np.array([std])))
         
         if idealClasses.contains(class_result.clazz):
+
             ligands = structure.ligands + structure.extra_ligands
-            m_ligand_coord = idealClasses.getCoordinates(class_result.clazz)
             n_ligands = structure.coordination()
-            proc_dist, _, _, _, index = fit(ideal_ligand_coord, m_ligand_coord)
             n1 = len(structure.ligands)
             for i in range(1, n_ligands):
                 for j in range(i + 1, n_ligands + 1):
-                    a = angle( m_ligand_coord[index][0], m_ligand_coord[index][i], m_ligand_coord[index][j])
+                    a = angle( ideal_ligand_coord[0], ideal_ligand_coord[i], ideal_ligand_coord[j])
                     std = 5.000
                     clazzStats.addAngle(AngleStats(Ligand(ligands[i - 1]), Ligand(ligands[j - 1]), a, std, isLigand = i <= n1 and j <= n1))
 
