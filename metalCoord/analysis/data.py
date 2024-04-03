@@ -846,8 +846,9 @@ class WeekCorrespondenceStatsFinder(FileStatsFinder):
                     
                
                 for i, l in enumerate(ligands):
-                    dist, std = results[l.atom.element.name]
-                    clazzStats.addBond(DistanceStats(Ligand(l), dist, std))
+                    if l.atom.element.name in results:
+                        dist, std = results[l.atom.element.name]
+                        clazzStats.addBond(DistanceStats(Ligand(l), dist, std))
 
                 for i, l in enumerate(structure.extra_ligands):
                     if l.atom.element.name in results:
