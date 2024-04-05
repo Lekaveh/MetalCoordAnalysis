@@ -893,7 +893,6 @@ class OnlyDistanceStatsFinder(StatsFinder):
                     clazzStats.addPdbBond(DistanceStats(Ligand(l), np.array([dist]), np.array([std])))
         
         if idealClasses.contains(class_result.clazz):
-
             ligands = structure.ligands + structure.extra_ligands
             n_ligands = structure.coordination()
             n1 = len(structure.ligands)

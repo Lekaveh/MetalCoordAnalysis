@@ -193,6 +193,7 @@ def fit_group(coords, ideal_coords, groups=None, rings = None):
     s_y = tf.reshape(s_y, (k*1, n1, coords.shape[1]))
     s_x = tf.broadcast_to(tf.convert_to_tensor(coords[correspondense[0]], dtype='float32'), (1, n1, n2))   
 
+    
     distances, approxs, c, R = procrustes_fit(s_y, s_x)
     distances = distances.numpy()
     min_distance = np.min(distances)
@@ -222,7 +223,7 @@ def  find_in_group(groups, index):
     return -1
     
 def fit(coords, ideal_coords, groups=None, all = False, center = True):
-
+   
     if center:
         coords = coords - coords[0]
         ideal_coords = ideal_coords - ideal_coords[0]
@@ -266,6 +267,8 @@ def fit(coords, ideal_coords, groups=None, all = False, center = True):
                 distances, approxs, c, R, indices, rotated =  distances[filtered_indices], approxs[filtered_indices], c[filtered_indices], R[filtered_indices], indices[filtered_indices], rotated[filtered_indices]
             else:
                 distances, approxs, c, R, indices, rotated  = np.ones(1) , np.expand_dims(np.zeros_like(approxs[0]), axis=0),  np.expand_dims(np.zeros_like(c[0]), axis=0),  np.expand_dims(np.zeros_like(R[0]), axis=0),  np.expand_dims(np.zeros_like(indices[0]), axis=0),  np.expand_dims(np.zeros_like(rotated[0]), axis=0)
+    elif len(coords) >= 8:
+        return Procustes().fit(coords, ideal_coords, groups, all, center)
     else:
         distances, approxs, c, R, indices, rotated = fit_group(coords, ideal_coords, groups)
     
@@ -274,3 +277,119 @@ def fit(coords, ideal_coords, groups=None, all = False, center = True):
         return (distances, indices, distances[min_arg].squeeze(), rotated)
     
     return (distances[min_arg].squeeze(), approxs[min_arg][indices[min_arg]].squeeze(),  c[min_arg].ravel()[0], R[min_arg].squeeze(), indices[min_arg].ravel())
+
+
+class Procustes:
+    def _init(self, coords, ideal_coords):
+        self._coords = coords
+        self._ideal_coords = ideal_coords
+        self._n = len(coords)
+        self._n_processed = 1
+        self._step = 6
+        self._index = list(range(self._n))
+        self._current_indices = [[0]]
+        self._dim1 = coords.shape[0]
+        self._dim2 = coords.shape[1]
+        self._y = tf.broadcast_to(tf.convert_to_tensor(ideal_coords, dtype='float32'), (1, self._dim1 ,  self._dim2))
+        self._x = tf.broadcast_to(tf.convert_to_tensor(ideal_coords, dtype='float32'), (1, self._dim1 ,  self._dim2))
+        self._result = []
+        
+
+    def fit(self, coords, ideal_coords, groups=None, all = False, center = True):
+        if center:
+            self._init(coords - coords[0], ideal_coords - ideal_coords[0])
+        else:
+            self._init(coords, ideal_coords)
+        
+        while not self.is_finished():
+            self._get_next_combinations()
+
+        if self._results:
+            distances, approxs, c, R, indices, rotated = [np.concatenate([r[i] for r in self._results], axis=0) for i in range(6)]
+            
+            if groups is not None:
+                filtered_indices = []
+                for i, index in enumerate(indices):
+                    if len([0 for j, id in enumerate(index) if find_in_group(groups[0], j) != find_in_group(groups[1], id)]) == 0:
+                        filtered_indices.append(i)
+
+                if filtered_indices:
+                    distances, approxs, c, R, indices, rotated =  distances[filtered_indices], approxs[filtered_indices], c[filtered_indices], R[filtered_indices], indices[filtered_indices], rotated[filtered_indices]
+                else:
+                    return self._dummy(all)
+    
+
+ 
+            if all:
+                return (distances, indices, distances[np.argmin(distances)].squeeze() if len(distances) else 1, rotated)
+
+            min_arg = np.argmin(distances)
+            return (distances[min_arg].squeeze(), approxs[min_arg][indices[min_arg]].squeeze(),  c[min_arg].ravel()[0], R[min_arg].squeeze(), indices[min_arg].ravel())
+        
+        return self._dummy(all)
+
+    def _dummy(self, all = False):
+        if all:
+            return ([], [], 1, [])
+        return (1, None, None, None, [])
+    
+    def _fit(self, combinations):
+        k = combinations.shape[0]
+        n1 = combinations.shape[1]
+        t_combinations = combinations.reshape(-1, combinations.shape[0], combinations.shape[1], 1)
+
+        s_y = tf.gather_nd(self._y, indices=t_combinations, batch_dims=1)
+        s_y = tf.reshape(s_y, (k, n1, self._dim2))
+        s_x = tf.broadcast_to(tf.convert_to_tensor(self._coords[:n1], dtype='float32'), (1, n1, self._dim2))   
+
+        
+        distances, approxs, c, R = procrustes_fit(s_y, s_x)
+        distances = distances.numpy()
+        mask = distances <= min(np.min(distances) + 0.1, 0.2)
+        
+
+        distances = distances[mask]
+        R = tf.boolean_mask(R, mask)
+        c = tf.boolean_mask(c, mask)
+        indices = tf.boolean_mask(combinations, mask).numpy()
+        indices = indices.reshape(len(indices), n1)
+
+
+        rotated = tf.broadcast_to(tf.convert_to_tensor(self._ideal_coords[:n1], dtype='float32'), (1, n1, self._dim2))@R
+        approxs = (c*rotated).numpy()
+
+        return distances, approxs, c.numpy() ,R.numpy(), indices, rotated.numpy()
+    
+    def _get_next_combinations(self):
+        self._results = []
+        next_step = min(self._step, self._n - self._n_processed)
+        for current_index in self._current_indices:
+            combinations = self._get_combinations(current_index)
+            result = self._fit(combinations)
+            if result[0].size:
+                self._results.append(result)
+
+        if self._results:
+            self._current_indices = np.concatenate([r[4].tolist() for r in self._results], axis=0).tolist()
+            self._n_processed += next_step
+        else:
+            self._current_indices = []
+            self._n_processed  = self._n
+        
+
+        
+    def _get_combinations(self, current_index):
+        result = []
+        step = min(self._step, self._n - self._n_processed)
+        candidates = np.setdiff1d(self._index, current_index)
+        
+        for next_indices in np.fromiter(itertools.chain.from_iterable(itertools.combinations(candidates, step)), dtype=np.float32).reshape(-1, step):
+            permutations = np.fromiter(itertools.chain.from_iterable(itertools.permutations(next_indices)), dtype=int).reshape(-1, step)
+            result.extend([current_index + permutation.tolist() for permutation in permutations])
+        return np.array(result)
+
+        
+    def is_finished(self):
+        return self._n_processed == self._n
+        
+    
