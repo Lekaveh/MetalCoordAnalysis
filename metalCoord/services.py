@@ -161,6 +161,8 @@ def update_cif(output_path, path, pdb):
     atoms = block.get_mmcif_category(_atom_category)
     bonds = block.get_mmcif_category(_bond_category)
     angles = block.get_mmcif_category(_angle_category)
+
+    
     
     if not atoms:
         Logger().error(f"mmcif category {_atom_category} not found. Please check the cif file.")
@@ -208,11 +210,27 @@ def update_cif(output_path, path, pdb):
             pdb = mon[0]
             Logger().info(f"Best pdb file is {pdb}")
 
-        pdbStats = find_classes(name, pdb)
+        def get_bonds(atoms, bonds):
+            result = {}
+            for atom1, atom2  in zip(bonds[_atom_id_1], bonds[_atom_id_2]):
+                if not gemmi.Element(get_element_name(atoms, atom1)).is_metal and not gemmi.Element(get_element_name(atoms, atom2)).is_metal:
+                    continue
+                if  gemmi.Element(get_element_name(atoms, atom1)).is_metal and gemmi.Element(get_element_name(atoms, atom2)).is_metal:
+                    continue
+
+                if gemmi.Element(get_element_name(atoms, atom2)).is_metal:
+                    atom1, atom2 = atom2, atom1
+
+                result.setdefault(atom1, []).append(atom2)
+            
+            return result
+                    
+        
+        pdbStats = find_classes(name, pdb, get_bonds(atoms, bonds))
 
 
         if pdbStats.isEmpty():
-            Logger().info(f"No {name} found in {pdb}. Please check the pdb file")
+            # Logger().info(f"No coordination found for {name}  in {pdb}. Please check the pdb file")
             return
         
         

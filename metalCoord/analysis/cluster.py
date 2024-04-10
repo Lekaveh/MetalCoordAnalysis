@@ -68,7 +68,7 @@ def modes(dists):
     if n_modes < 2:
         return common_stats
     
-    clf = sklearn.mixture.GaussianMixture(n_components=n_modes, covariance_type='full')
+    clf = sklearn.mixture.GaussianMixture(n_components=n_modes, covariance_type='full', random_state=0)
     clf.fit(dists.reshape(-1, 1))
     
     means = clf.means_.squeeze()
