@@ -874,8 +874,6 @@ strategies = [StrictCorrespondenceStatsFinder(StrictCandidateFinder()),
               WeekCorrespondenceStatsFinder(AnyElementCandidateFinder()),
               OnlyDistanceStatsFinder(NoCoordinationCandidateFinder())]
 
-strategies = []
-
 def find_classes(ligand, pdb_name, bonds = {}):
     Logger().info(f"Analysing structres in  {pdb_name} for patterns")
     structures = get_structures(ligand, pdb_name, bonds)
