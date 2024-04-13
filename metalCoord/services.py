@@ -236,10 +236,10 @@ def update_cif(output_path, path, pdb):
         
         Logger().info(f"Ligand updating started")
         if _value_dist not in bonds:
-            bonds[_value_dist] = ["0.00"] * len(bonds[_atom_id_1])
-            bonds[_value_dist_esd] = ["0.00"] * len(bonds[_atom_id_1])
-            bonds[_value_dist_nucleus] = ["0.00"] * len(bonds[_atom_id_1])
-            bonds[_value_dist_nucleus_esd] = ["0.00"] * len(bonds[_atom_id_1])
+            bonds[_value_dist] = [None for x in range(len(bonds[_atom_id_1]))]
+            bonds[_value_dist_esd] = [None for x in range(len(bonds[_atom_id_1]))]
+            bonds[_value_dist_nucleus] = [None for x in range(len(bonds[_atom_id_1]))]
+            bonds[_value_dist_nucleus_esd] = [None for x in range(len(bonds[_atom_id_1]))]
         
         
 

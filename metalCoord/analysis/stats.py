@@ -14,6 +14,9 @@ from metalCoord.load.rcsb import load_pdb
 from metalCoord.logging import Logger
 from metalCoord.analysis.utlis import elementCode, elements
 
+
+MAX_FILES = 2000
+
 def get_structures(ligand, path, bonds = {}):
   
     if os.path.isfile(path):
@@ -694,8 +697,8 @@ class StrictCorrespondenceStatsFinder(FileStatsFinder):
             sum_coords = np.zeros(ideal_ligand_coord.shape)
             n = 0
             angles = []
-            if len(files) > 2000:
-                files = np.random.choice(files, 2000, replace=False)
+            if len(files) > MAX_FILES:
+                files = np.random.choice(files, MAX_FILES, replace=False)
 
             for file in tqdm(files, desc=f"{class_result.clazz} ligands", leave=False, disable=Logger().disabled):
                 file_data = self._finder.data(file)
@@ -735,25 +738,21 @@ class StrictCorrespondenceStatsFinder(FileStatsFinder):
                 
                 sum_coords = sum_coords/n
 
-                n_ligands = len(structure.ligands)
-                ligands = structure.ligands
-                for i, l in enumerate(ligands):
+                for i, l in enumerate(list(structure.ligands)):
                     dist, std = modes(distances[i])
                     clazzStats.addBond(DistanceStats(Ligand(l), dist , std, distances[i], procrustes_dists))
 
 
 
-                for i, l in enumerate(structure.extra_ligands):
-                    dist, std = modes(distances[i + n_ligands])
-                    clazzStats.addPdbBond(DistanceStats(Ligand(l), dist, std, euclidean(sum_coords[i + 1 + n_ligands], sum_coords[0])  , procrustes_dists))
+                for i, l in enumerate(list(structure.extra_ligands)):
+                    dist, std = modes(distances[i + structure.ligands_len])
+                    clazzStats.addPdbBond(DistanceStats(Ligand(l), dist, std, euclidean(sum_coords[i + 1 + structure.ligands_len], sum_coords[0])  , procrustes_dists))
                 
                 k = 0
-                n_ligands = structure.coordination()
-                n1 = len(ligands)
-                ligands = ligands + structure.extra_ligands
-                for i in range(n_ligands - 1):
-                    for j in range(i + 1, n_ligands):
-                        # a, std = angles[k].mean(), angles[k].std()
+                n1 = structure.ligands_len
+                ligands = list(structure.all_ligands)
+                for i in range(structure.coordination() - 1):
+                    for j in range(i + 1, structure.coordination()):
                         a, std = calculate_stats(angles[k])
                         clazzStats.addAngle(AngleStats(Ligand(ligands[i]), Ligand(ligands[j]), a, std, isLigand = i < n1 and j < n1, angles = angles[k] , procrustes_dists = procrustes_dists))
                         k += 1
@@ -773,8 +772,8 @@ class WeekCorrespondenceStatsFinder(FileStatsFinder):
 
             distances = []
             ligNames = []
-            if len(files) > 2000:
-                files = np.random.choice(files, 2000, replace=False)
+            if len(files) > MAX_FILES:
+                files = np.random.choice(files, MAX_FILES, replace=False)
 
             for file in tqdm(files, desc=f"{class_result.clazz} ligands", leave=False, disable=Logger().disabled):
                 file_data = self._finder.data(file)
@@ -795,7 +794,7 @@ class WeekCorrespondenceStatsFinder(FileStatsFinder):
 
                 clazzStats = LigandStats(
                     class_result.clazz, class_result.proc, structure.coordination(), distances.shape[1], self._finder.description())
-                ligands = structure.ligands
+                ligands = list(structure.ligands)
 
                 results = {}
                 for element in np.unique(ligNames):
@@ -819,11 +818,10 @@ class WeekCorrespondenceStatsFinder(FileStatsFinder):
 
                 if idealClasses.contains(class_result.clazz):
 
-                    ligands = structure.ligands + structure.extra_ligands
-                    n_ligands = structure.coordination()
-                    n1 = len(structure.ligands)
-                    for i in range(1, n_ligands):
-                        for j in range(i + 1, n_ligands + 1):
+                    n1 = structure.ligands_len
+                    ligands = list(structure.all_ligands)
+                    for i in range(1, structure.coordination()):
+                        for j in range(i + 1, structure.coordination() + 1):
                             a = angle( ideal_ligand_coord[0], ideal_ligand_coord[i], ideal_ligand_coord[j])
                             std = 5.000
                             clazzStats.addAngle(AngleStats(Ligand(ligands[i - 1]), Ligand(ligands[j - 1]), a, std, isLigand = i <= n1 and j <= n1))
@@ -841,25 +839,25 @@ class OnlyDistanceStatsFinder(StatsFinder):
         data = self._finder.data("")
         ideal_ligand_coord = class_result.coord[class_result.index]
         clazzStats = LigandStats(class_result.clazz, class_result.proc, structure.coordination(), -1, self._finder.description())
+        
         for l in structure.ligands:
             dist, std, count = DB.getDistanceStats(
                 structure.metal.element.name, l.atom.element.name)
             if count > 0:
                 clazzStats.addBond(DistanceStats(Ligand(l), np.array([dist]), np.array([std])))
 
-        if len(structure.extra_ligands) > 0:
-            for l in structure.extra_ligands:
-                dist, std, count = DB.getDistanceStats(
-                    structure.metal.element.name, l.atom.element.name)
-                if count > 0:
-                    clazzStats.addPdbBond(DistanceStats(Ligand(l), np.array([dist]), np.array([std])))
+
+        for l in structure.extra_ligands:
+            dist, std, count = DB.getDistanceStats(
+                structure.metal.element.name, l.atom.element.name)
+            if count > 0:
+                clazzStats.addPdbBond(DistanceStats(Ligand(l), np.array([dist]), np.array([std])))
         
         if idealClasses.contains(class_result.clazz):
-            ligands = structure.ligands + structure.extra_ligands
-            n_ligands = structure.coordination()
-            n1 = len(structure.ligands)
-            for i in range(1, n_ligands):
-                for j in range(i + 1, n_ligands + 1):
+            n1 = structure.ligands_len
+            ligands = list(structure.all_ligands)
+            for i in range(1, structure.coordination()):
+                for j in range(i + 1, structure.coordination() + 1):
                     a = angle( ideal_ligand_coord[0], ideal_ligand_coord[i], ideal_ligand_coord[j])
                     std = 5.000
                     clazzStats.addAngle(AngleStats(Ligand(ligands[i - 1]), Ligand(ligands[j - 1]), a, std, isLigand = i <= n1 and j <= n1))
@@ -876,6 +874,7 @@ strategies = [StrictCorrespondenceStatsFinder(StrictCandidateFinder()),
               WeekCorrespondenceStatsFinder(AnyElementCandidateFinder()),
               OnlyDistanceStatsFinder(NoCoordinationCandidateFinder())]
 
+strategies = []
 
 def find_classes(ligand, pdb_name, bonds = {}):
     Logger().info(f"Analysing structres in  {pdb_name} for patterns")
