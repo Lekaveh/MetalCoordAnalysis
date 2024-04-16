@@ -165,8 +165,9 @@ def get_ligands(st, ligand, bonds = {}, max_dist = 10, only_best = False):
                             continue
                         
                         if bonds:
-                            # if cra.residue.name == ligand and cra.residue.seqid.num  == residue.seqid.num and cra.chain.name == chain.name:
-                            if cra.residue.name == ligand:
+                            
+                            if cra.residue.name == ligand and cra.residue.seqid.num  == residue.seqid.num and cra.chain.name == chain.name:
+                            # if cra.residue.name == ligand:
                                 if cra.atom.name in metal_bonds:
                                     ligand_obj._ligands.append(Atom(cra.atom, cra.residue, cra.chain))
                             elif distance(atom, cra.atom) <= (covalent_radii(atom.element.name) + covalent_radii(cra.atom.element.name)) * scale:
