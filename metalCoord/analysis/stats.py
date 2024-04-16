@@ -17,11 +17,11 @@ from metalCoord.analysis.utlis import elementCode, elements
 
 MAX_FILES = 2000
 
-def get_structures(ligand, path, bonds = {}):
+def get_structures(ligand, path, bonds = {}, only_best = False):
   
     if os.path.isfile(path):
         st = gemmi.read_structure(path)
-        return get_ligands(st, ligand)
+        return get_ligands(st, ligand, bonds, only_best= only_best)
 
     elif len(path) == 4:         
         pdb, type = load_pdb(path)
@@ -30,7 +30,7 @@ def get_structures(ligand, path, bonds = {}):
             st = gemmi.make_structure_from_block(cif_block)
         else:
             st = gemmi.read_pdb_string(pdb)
-        return get_ligands(st, ligand, bonds)
+        return get_ligands(st, ligand, bonds, only_best = only_best)
 
     else:
         raise Exception("Existing pdb or mmcif file path should be provided or 4 letter pdb code")
@@ -648,7 +648,14 @@ class NoCoordinationCandidateFinder(CandidateFinder):
         self._selection = self._data[(
             self._data.Metal == self._structure.metal.element.name)]
 
-
+class CovalentCandidateFinder(CandidateFinder):
+    
+        def __init__(self) -> None:
+            super().__init__()
+            self._description = "Based on covalent distances"
+    
+        def _load(self):
+            self._selection = self._data[self._data.Metal == self._structure.metal.element.name]
 
 class StatsFinder(ABC):
     def __init__(self, candidateFinder) -> None:
@@ -658,6 +665,7 @@ class StatsFinder(ABC):
     @abstractmethod
     def get_stats(self, structure, data, class_result):
         pass
+
 
 
 
@@ -854,6 +862,7 @@ class OnlyDistanceStatsFinder(StatsFinder):
                 clazzStats.addPdbBond(DistanceStats(Ligand(l), np.array([dist]), np.array([std])))
         
         if idealClasses.contains(class_result.clazz):
+            
             n1 = structure.ligands_len
             ligands = list(structure.all_ligands)
             for i in range(1, structure.coordination()):
@@ -866,17 +875,44 @@ class OnlyDistanceStatsFinder(StatsFinder):
             return clazzStats
         return None
     
+class CovalentStatsFinder(StatsFinder):
+    def __init__(self, candidateFinder) -> None:
+        super().__init__(candidateFinder)
+
+    def get_stats(self, structure, data, class_result):
+        clazzStats = LigandStats(class_result.clazz if class_result else "", class_result.proc if class_result else -1, structure.coordination(), -1, self._finder.description())
+        
+        for l in structure.ligands:
+            clazzStats.addBond(DistanceStats(Ligand(l), np.array([gemmi.Element(l.atom.element.name).covalent_r + gemmi.Element(structure.metal.element.name).covalent_r ]), np.array([0.2])))
 
 
+        for l in structure.extra_ligands:
+            clazzStats.addBond(DistanceStats(Ligand(l), np.array([gemmi.Element(l.atom.element.name).covalent_r + gemmi.Element(structure.metal.element.name).covalent_r ]), np.array([0.2])))
+
+
+        if class_result and idealClasses.contains(class_result.clazz):
+            n1 = structure.ligands_len
+            ideal_ligand_coord = class_result.coord[class_result.index]
+            ligands = list(structure.all_ligands)
+            for i in range(1, structure.coordination()):
+                for j in range(i + 1, structure.coordination() + 1):
+                    a = angle(ideal_ligand_coord[0], ideal_ligand_coord[i], ideal_ligand_coord[j])
+                    std = 5.000
+                    clazzStats.addAngle(AngleStats(Ligand(ligands[i - 1]), Ligand(ligands[j - 1]), a, std, isLigand = i <= n1 and j <= n1))
+        return clazzStats
+
+convalent_strategy = CovalentStatsFinder(CovalentCandidateFinder())
 strategies = [StrictCorrespondenceStatsFinder(StrictCandidateFinder()),
               WeekCorrespondenceStatsFinder(ElementCandidateFinder()),
               WeekCorrespondenceStatsFinder(ElementInCandidateFinder()),
               WeekCorrespondenceStatsFinder(AnyElementCandidateFinder()),
-              OnlyDistanceStatsFinder(NoCoordinationCandidateFinder())]
+              OnlyDistanceStatsFinder(NoCoordinationCandidateFinder()),
+              convalent_strategy
+              ]
 
-def find_classes(ligand, pdb_name, bonds = {}):
+def find_classes(ligand, pdb_name, bonds = {}, only_best = False):
     Logger().info(f"Analysing structres in  {pdb_name} for patterns")
-    structures = get_structures(ligand, pdb_name, bonds)
+    structures = get_structures(ligand, pdb_name, bonds, only_best)
     for structure in tqdm(structures):
         Logger().info(f"Structure for {structure} found. Coordination number: {structure.coordination()}")
     Logger().info(f"{len(structures)} structures found.")
@@ -898,12 +934,17 @@ def find_classes(ligand, pdb_name, bonds = {}):
 
     for i, structure in tqdm(list(enumerate(structures)), desc="Structures", position=0, disable=Logger().disabled):
         metalStats = MetalStats(structure.metal.name, structure.metal.element.name, structure.chain.name, structure.residue.name, structure.residue.seqid.num, structure.mean_occ(), structure.mean_b())
-        for class_result in classes[i]:
-            for strategy in tqdm(strategies, desc="Strategies", position=1, leave=False, disable=Logger().disabled):
-                ligandStats = strategy.get_stats(structure, DB.data(), class_result)
-                if ligandStats:
-                    metalStats.addLigand(ligandStats)
-                    break
+        if classes[i]:
+            for class_result in classes[i]:
+                for strategy in tqdm(strategies, desc="Strategies", position=1, leave=False, disable=Logger().disabled):
+                    ligandStats = strategy.get_stats(structure, DB.data(), class_result)
+                    if ligandStats:
+                        metalStats.addLigand(ligandStats)
+                        break
+        else:
+            ligandStats = convalent_strategy.get_stats(structure, DB.data(), None)
+            metalStats.addLigand(ligandStats)
+
         if not metalStats.isEmpty():
             results.addMetal(metalStats)
     Logger().info(f"Analysis completed. Statistics for {int(results.len())} ligands(metals) found.")

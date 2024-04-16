@@ -226,7 +226,7 @@ def update_cif(output_path, path, pdb):
             return result
                     
         
-        pdbStats = find_classes(name, pdb, get_bonds(atoms, bonds))
+        pdbStats = find_classes(name, pdb, get_bonds(atoms, bonds), only_best=True)
 
 
         if pdbStats.isEmpty():
