@@ -47,6 +47,7 @@ def create_parser():
     stats_parser.add_argument('-d', '--dist', type=float, required=False, help='Distance threshold.', metavar='<DISTANCE THRESHOLD>', default=0.2, choices=[Range(0, 1)])
     stats_parser.add_argument('-t', '--threshold', type=float, required=False, help='Procrustes distance threshold.', metavar='<PROCRUSTES DISTANCE THRESHOLD>', default=0.3, choices=[Range(0, 1)])
     stats_parser.add_argument('-m', '--min_size', required=False, help='Minimum sample size for statistics.', metavar='<MINIMUM SAMPLE SIZE>', default=30, type=check_positive)
+    stats_parser.add_argument('--ideal_angles', required=False, help='Provide only ideal angles', default=argparse.SUPPRESS,  action='store_true')
 
 
 
