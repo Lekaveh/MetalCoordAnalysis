@@ -31,6 +31,6 @@ pip install git+https://github.com/Lekaveh/MetalCoordAnalysis
 
 ### Usage
 - **Metal Coordination Analysis**: 
-    - metalCoord stats [-h] -l LIGAND CODE -p <PDB CODE|PDB FILE> -o OUTPUT JSON FILE [-d <DISTANCE THRESHOLD>] [-t <PROCRUSTES DISTANCE THRESHOLD>] [-m <MINIMUM SAMPLE SIZE>]
+    - metalCoord stats [-h] -l LIGAND CODE -p <PDB CODE|PDB FILE> -o OUTPUT JSON FILE [-d <DISTANCE THRESHOLD>] [-t <PROCRUSTES DISTANCE THRESHOLD>] [-m <MINIMUM SAMPLE SIZE>] [--ideal_angles]
 - **Ligand Update**: 
     - metalCoord update [-h] -i INPUT CIF FILE -o OUTPUT CIF FILE [-p <PDB CODE|PDB FILE>] [-d <DISTANCE THRESHOLD>] [-t <PROCRUSTES DISTANCE THRESHOLD>] [-m <MINIMUM SAMPLE SIZE>]

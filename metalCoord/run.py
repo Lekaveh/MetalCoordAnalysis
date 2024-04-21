@@ -1,5 +1,4 @@
 import argparse
-import tensorflow as tf
 from metalCoord.logging import Logger
 from metalCoord.services import update_cif, get_stats
 from metalCoord.config import Config
@@ -25,7 +24,7 @@ def check_positive(value):
 
 def create_parser():
     parser = argparse.ArgumentParser(prog='metalCoord', description='MetalCoord: Metal coordination analysis.')
-    parser.add_argument('--version', action='version', version='%(prog)s 0.1.16')
+    parser.add_argument('--version', action='version', version='%(prog)s 0.1.17')
 
     # Define the subparsers for the two apps    
     subparsers = parser.add_subparsers(dest='command')
@@ -38,6 +37,7 @@ def create_parser():
     update_parser.add_argument('-d', '--dist', type=float, required=False, help='Distance threshold.', metavar='<DISTANCE THRESHOLD>', default=0.2, choices=[Range(0, 1)])
     update_parser.add_argument('-t', '--threshold', type=float, required=False, help='Procrustes distance threshold.', metavar='<PROCRUSTES DISTANCE THRESHOLD>', default=0.3, choices=[Range(0, 1)])
     update_parser.add_argument('-m', '--min_size', required=False, help='Minimum sample size for statistics.', metavar='<MINIMUM SAMPLE SIZE>', default=30, type=check_positive)
+    update_parser.add_argument('--ideal_angles', required=False, help='Provide only ideal angles', default=argparse.SUPPRESS,  action='store_true')
 
     # App2
     stats_parser = subparsers.add_parser('stats', help='Distance and angle statistics.')
@@ -57,13 +57,15 @@ def main_func():
     try:
         Logger().addHandler()
         Logger().info(f"Logging started. Logging level: {Logger().logger.level}")
-        tf.config.set_visible_devices([], 'GPU')
+
         parser = create_parser()
         args = parser.parse_args()
         
+        Config().ideal_angles = args.ideal_angles if "ideal_angles" in args else False
         Config().distance_threshold = args.dist
         Config().procrustes_threshold = args.threshold
         Config().min_sample_size = args.min_size
+        
         if args.command == 'update':
             update_cif(args.output, args.input, args.pdb)
 

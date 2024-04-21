@@ -4,6 +4,7 @@ from scipy.linalg import helmert
 import tensorflow as tf
 from sklearn.cluster import DBSCAN
 
+tf.config.set_visible_devices([], 'GPU')
 
 def is_it_plane(xyz):
     R = np.zeros(shape=3); Rp = np.zeros(shape=3); Rpp = np.zeros(shape=3)

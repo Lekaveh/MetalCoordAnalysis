@@ -666,7 +666,22 @@ class StatsFinder(ABC):
     def get_stats(self, structure, data, class_result):
         pass
 
+    def get_ideal_angles(self, structure, class_result):
+        
+        n1 = structure.ligands_len
+        ideal_ligand_coord = class_result.coord[class_result.index]
+        ligands = list(structure.all_ligands)
+        for i in range(1, structure.coordination()):
+            for j in range(i + 1, structure.coordination() + 1):
+                a = angle(ideal_ligand_coord[0], ideal_ligand_coord[i], ideal_ligand_coord[j])
+                std = 5.000
+                yield AngleStats(Ligand(ligands[i - 1]), Ligand(ligands[j - 1]), a, std, isLigand = i <= n1 and j <= n1)
 
+    def add_ideal_angels(self, structure, class_result, clazzStats):
+        if class_result and idealClasses.contains(class_result.clazz):
+            for angle in self.get_ideal_angles(structure, class_result):
+                clazzStats.addAngle(angle)
+        return clazzStats
 
 
 
@@ -687,12 +702,13 @@ class FileStatsFinder(StatsFinder):
     def _calculate(self, stucture, clazz, main_proc_dist):
         pass
 
+    
+    
+
 
 class StrictCorrespondenceStatsFinder(FileStatsFinder):
     def _calculate(self, structure, class_result):
         o_ligand_atoms = np.array([structure.metal.name] + structure.atoms())
-
-
 
         if class_result.clazz in self._classes:
             files = self._files[class_result.clazz]
@@ -756,14 +772,17 @@ class StrictCorrespondenceStatsFinder(FileStatsFinder):
                     dist, std = modes(distances[i + structure.ligands_len])
                     clazzStats.addPdbBond(DistanceStats(Ligand(l), dist, std, euclidean(sum_coords[i + 1 + structure.ligands_len], sum_coords[0])  , procrustes_dists))
                 
-                k = 0
-                n1 = structure.ligands_len
-                ligands = list(structure.all_ligands)
-                for i in range(structure.coordination() - 1):
-                    for j in range(i + 1, structure.coordination()):
-                        a, std = calculate_stats(angles[k])
-                        clazzStats.addAngle(AngleStats(Ligand(ligands[i]), Ligand(ligands[j]), a, std, isLigand = i < n1 and j < n1, angles = angles[k] , procrustes_dists = procrustes_dists))
-                        k += 1
+                if Config().ideal_angles:
+                    self.add_ideal_angels(structure, class_result, clazzStats)
+                else:
+                    k = 0
+                    n1 = structure.ligands_len
+                    ligands = list(structure.all_ligands)
+                    for i in range(structure.coordination() - 1):
+                        for j in range(i + 1, structure.coordination()):
+                            a, std = calculate_stats(angles[k])
+                            clazzStats.addAngle(AngleStats(Ligand(ligands[i]), Ligand(ligands[j]), a, std, isLigand = i < n1 and j < n1, angles = angles[k] , procrustes_dists = procrustes_dists))
+                            k += 1
 
 
                 return clazzStats
@@ -824,15 +843,7 @@ class WeekCorrespondenceStatsFinder(FileStatsFinder):
                         dist, std = results[l.atom.element.name]
                         clazzStats.addPdbBond(DistanceStats(Ligand(l), dist, std))
 
-                if idealClasses.contains(class_result.clazz):
-
-                    n1 = structure.ligands_len
-                    ligands = list(structure.all_ligands)
-                    for i in range(1, structure.coordination()):
-                        for j in range(i + 1, structure.coordination() + 1):
-                            a = angle( ideal_ligand_coord[0], ideal_ligand_coord[i], ideal_ligand_coord[j])
-                            std = 5.000
-                            clazzStats.addAngle(AngleStats(Ligand(ligands[i - 1]), Ligand(ligands[j - 1]), a, std, isLigand = i <= n1 and j <= n1))
+                self.add_ideal_angels(structure, class_result, clazzStats)
 
                 return clazzStats
         return None
@@ -845,7 +856,6 @@ class OnlyDistanceStatsFinder(StatsFinder):
     def get_stats(self, structure, data, class_result):
         self._finder.load(structure, data)
         data = self._finder.data("")
-        ideal_ligand_coord = class_result.coord[class_result.index]
         clazzStats = LigandStats(class_result.clazz, class_result.proc, structure.coordination(), -1, self._finder.description())
         
         for l in structure.ligands:
@@ -861,15 +871,7 @@ class OnlyDistanceStatsFinder(StatsFinder):
             if count > 0:
                 clazzStats.addPdbBond(DistanceStats(Ligand(l), np.array([dist]), np.array([std])))
         
-        if idealClasses.contains(class_result.clazz):
-            
-            n1 = structure.ligands_len
-            ligands = list(structure.all_ligands)
-            for i in range(1, structure.coordination()):
-                for j in range(i + 1, structure.coordination() + 1):
-                    a = angle( ideal_ligand_coord[0], ideal_ligand_coord[i], ideal_ligand_coord[j])
-                    std = 5.000
-                    clazzStats.addAngle(AngleStats(Ligand(ligands[i - 1]), Ligand(ligands[j - 1]), a, std, isLigand = i <= n1 and j <= n1))
+        self.add_ideal_angels(structure, class_result, clazzStats)
 
         if clazzStats.bondCount > 0:
             return clazzStats
@@ -890,16 +892,11 @@ class CovalentStatsFinder(StatsFinder):
             clazzStats.addBond(DistanceStats(Ligand(l), np.array([gemmi.Element(l.atom.element.name).covalent_r + gemmi.Element(structure.metal.element.name).covalent_r ]), np.array([0.2])))
 
 
-        if class_result and idealClasses.contains(class_result.clazz):
-            n1 = structure.ligands_len
-            ideal_ligand_coord = class_result.coord[class_result.index]
-            ligands = list(structure.all_ligands)
-            for i in range(1, structure.coordination()):
-                for j in range(i + 1, structure.coordination() + 1):
-                    a = angle(ideal_ligand_coord[0], ideal_ligand_coord[i], ideal_ligand_coord[j])
-                    std = 5.000
-                    clazzStats.addAngle(AngleStats(Ligand(ligands[i - 1]), Ligand(ligands[j - 1]), a, std, isLigand = i <= n1 and j <= n1))
+        self.add_ideal_angels(structure, class_result, clazzStats)
+
         return clazzStats
+
+
 
 convalent_strategy = CovalentStatsFinder(CovalentCandidateFinder())
 strategies = [StrictCorrespondenceStatsFinder(StrictCandidateFinder()),
