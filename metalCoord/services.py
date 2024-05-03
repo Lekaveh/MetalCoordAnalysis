@@ -4,6 +4,7 @@ import os
 from pathlib import Path
 import sys
 import gemmi
+from metalCoord.analysis.classes import idealClasses
 from metalCoord.analysis.stats import find_classes
 from metalCoord.logging import Logger
 import networkx as nx
@@ -387,3 +388,18 @@ def get_stats(ligand, pdb, output):
                             indent=4,  
                             separators=(',',': '))
     Logger().info(f"Report written to {output}")
+
+def get_coordinations(coordination_num:int = None) -> list:
+    """
+    Retrieves the ideal coordination classes based on the given coordination number.
+
+    Parameters:
+    coordination_num (int): The coordination number to filter the ideal classes. If None, returns all ideal classes.
+
+    Returns:
+    list: A list of ideal coordination classes.
+
+    """
+    if coordination_num:
+        return idealClasses.get_ideal_classes_by_coordination(coordination_num)
+    return idealClasses.get_ideal_classes()

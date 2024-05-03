@@ -97,7 +97,7 @@ def find_rings(coords):
             rings.append(indices)
         else:
             others.append(indices)
-    return sort_rings(coords, sorted(rings, key = lambda x: len(x), reverse=True)), others
+    return sort_rings(coords, sorted(rings, key = len, reverse=True)), others
 
 def have_same_ring_length(rings1, rings2):
     if len(rings1) != len(rings2):
@@ -129,16 +129,40 @@ def preshape(x):
     return hm@x/tf.reshape(norm(x, hm), (-1, 1, 1))
 
 
-def distance(x1, x2):
+def distance(x1:tf.Tensor, x2:tf.Tensor) -> tf.Tensor:
+    """
+    Calculates the distance between two sets of coordinates using the Procrustes analysis.
+
+    Args:
+        x1: The first set of coordinates.
+        x2: The second set of coordinates.
+
+    Returns:
+        Distances between the two sets of coordinates.
+    """
     z2 = preshape(x2)
     z1 = preshape(x1)
-    s, u, v = tf.linalg.svd(tf.transpose(
+    s, _, _ = tf.linalg.svd(tf.transpose(
         z1, perm=[0, 2, 1])@z2@tf.transpose(z2, perm=[0, 2, 1])@z1)
     return tf.sqrt(tf.abs(1 - tf.reduce_sum(tf.sqrt(s), axis=1)**2))
 
-def procrustes_fit(A, B):
+def procrustes_fit(A: tf.Tensor, B: tf.Tensor) -> tuple[tf.Tensor, tf.Tensor, tf.Tensor, tf.Tensor]:
+    """
+    Computes the Procrustes fit between two matrices A and B.
+
+    Parameters:
+    A (tf.Tensor): The first matrix.
+    B (tf.Tensor): The second matrix.
+
+    Returns:
+    tuple: A tuple containing the following elements:
+        - distance (tf.Tensor): The distance between the approximated matrix and B.
+        - approx (tf.Tensor): The approximated matrix.
+        - c (tf.Tensor): The scaling factor.
+        - R (tf.Tensor): The rotation matrix.
+    """
     A_t = tf.transpose(A, perm=[0, 2, 1])
-    s, v, w = tf.linalg.svd(A_t@B)
+    _, v, w = tf.linalg.svd(A_t@B)
     wt = tf.transpose(w, perm=[0, 2, 1])
     R = v@wt
     c = tf.linalg.trace(tf.transpose(
@@ -151,7 +175,6 @@ def get_combinations(groups=None, rings=None):
 
     c_list = []
     ranges = [0] + np.cumsum(groups).tolist()
-   
     if rings is None:
         rings = [0]*len(groups)
 
@@ -222,7 +245,7 @@ def  find_in_group(groups, index):
             return i
     return -1
     
-def fit(coords, ideal_coords, groups=None, all = False, center = True):
+def fit(coords: np.ndarray, ideal_coords: np.ndarray, groups: tuple = None, all: bool = False, center: bool = True):
    
     if center:
         coords = coords - coords[0]
@@ -254,7 +277,7 @@ def fit(coords, ideal_coords, groups=None, all = False, center = True):
                 current_groups = [ring1_group, ring2_group]
                 results.append(fit_group(coords, ideal_coords, current_groups, [0] + [1 for i, x in enumerate(rings1)] + [0]))
             
-            distances, approxs, c, R, indices, rotated = [np.concatenate([r[i] for r in results], axis=0) for i in range(6)]
+            distances, approxs, c, r, indices, rotated = [np.concatenate([r[i] for r in results], axis=0) for i in range(6)]
 
 
             
@@ -264,21 +287,21 @@ def fit(coords, ideal_coords, groups=None, all = False, center = True):
                     if len([0 for j, id in enumerate(index) if find_in_group(groups[0], j) != find_in_group(groups[1], id)]) == 0:
                         filtered_indices.append(i)
             
-                if len(filtered_indices):
-                    distances, approxs, c, R, indices, rotated =  distances[filtered_indices], approxs[filtered_indices], c[filtered_indices], R[filtered_indices], indices[filtered_indices], rotated[filtered_indices]
+                if filtered_indices:
+                    distances, approxs, c, r, indices, rotated =  distances[filtered_indices], approxs[filtered_indices], c[filtered_indices], r[filtered_indices], indices[filtered_indices], rotated[filtered_indices]
                 else:
-                    distances, approxs, c, R, indices, rotated  = np.ones(1) , np.expand_dims(np.zeros_like(approxs[0]), axis=0),  np.expand_dims(np.zeros_like(c[0]), axis=0),  np.expand_dims(np.zeros_like(R[0]), axis=0),  np.expand_dims(np.zeros_like(indices[0]), axis=0),  np.expand_dims(np.zeros_like(rotated[0]), axis=0)
+                    distances, approxs, c, r, indices, rotated  = np.ones(1) , np.expand_dims(np.zeros_like(approxs[0]), axis=0),  np.expand_dims(np.zeros_like(c[0]), axis=0),  np.expand_dims(np.zeros_like(R[0]), axis=0),  np.expand_dims(np.zeros_like(indices[0]), axis=0),  np.expand_dims(np.zeros_like(rotated[0]), axis=0)
         else:
             return Procustes().fit(coords, ideal_coords, groups, all, center)
     else:
-        distances, approxs, c, R, indices, rotated = fit_group(coords, ideal_coords, groups)
+        distances, approxs, c, r, indices, rotated = fit_group(coords, ideal_coords, groups)
 
     
     min_arg = np.argmin(distances)
     if all:
         return (distances, indices, distances[min_arg].squeeze(), rotated)
     
-    return (distances[min_arg].squeeze(), approxs[min_arg][indices[min_arg]].squeeze(),  c[min_arg].ravel()[0], R[min_arg].squeeze(), indices[min_arg].ravel())
+    return (distances[min_arg].squeeze(), approxs[min_arg][indices[min_arg]].squeeze(),  c[min_arg].ravel()[0], r[min_arg].squeeze(), indices[min_arg].ravel())
 
 
 class Procustes:
