@@ -243,6 +243,8 @@ class Ligand:
             The code representation of the ligand.
         """
         return "".join([self._metal.element.name] + self.elements())
+    
+
 
     def get_coord(self):
         """
@@ -322,6 +324,10 @@ class Ligand:
     def __str__(self) -> str:
         return f"{self._metal.name} - {self._chain.name} - {self._residue.name} - {self._residue.seqid.num}"
 
+    def __repr__(self) -> str:
+        ligands = " ".join([ligand.atom.name for ligand in self._ligands])
+        extra_ligands = " ".join([ligand.atom.name for ligand in self._extra_ligands])
+        return f"{self._metal.name} - {self._chain.name} - {self._residue.name} - {self._residue.seqid.num} - {ligands} - {extra_ligands}"
 
 def distance(atom1, atom2):
     """
@@ -409,7 +415,7 @@ def get_ligands(st, ligand, bonds=None, max_dist=10, only_best=False) -> list[Li
 
                     if ligand_obj.ligands_len < len(bonds.get(metal_name, [])):
                         raise ValueError(
-                            f"There is inconsistency between ligand(s) in the PDB and monomer file. Metal {metal_name} in {chain.name} - {residue.name} - {residue.seqid.num} has fewer neighbours than expected. Expected: {bonds.get(metal_name, [])}, found: {[l.atom.name for l in ligand_obj.get_ligands()]}")
+                            f"There is inconsistency between ligand(s) in the PDB and monomer file. Metal {metal_name} in {chain.name} - {residue.name} - {residue.seqid.num} has fewer neighbours than expected. Expected: {sorted(bonds.get(metal_name, []))}, found: {sorted([l.atom.name for l in ligand_obj.ligands])}")
 
     if only_best:
         best_structures = []
