@@ -1054,6 +1054,9 @@ class OnlyDistanceStatsFinder(StatsFinder):
             if count > 0:
                 clazzStats.addBond(DistanceStats(
                     Ligand(l), np.array([dist]), np.array([std])))
+            else:
+                clazzStats.addBond(
+                    self._create_covalent_distance_stats(structure, l, "Covalent distance"))
 
         for l in structure.extra_ligands:
             dist, std, count = DB.getDistanceStats(
@@ -1061,6 +1064,10 @@ class OnlyDistanceStatsFinder(StatsFinder):
             if count > 0:
                 clazzStats.addPdbBond(DistanceStats(
                     Ligand(l), np.array([dist]), np.array([std])))
+            else:
+                clazzStats.addPdbBond(
+                    self._create_covalent_distance_stats(structure, l, "Covalent distance"))
+                
 
         self.add_ideal_angels(structure, class_result, clazzStats)
 
