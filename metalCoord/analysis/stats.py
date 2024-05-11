@@ -74,6 +74,17 @@ def get_coordinate(file_data: pd.DataFrame) -> np.ndarray:
 
 
 def get_groups(atoms1, atoms2):
+    """
+    Get the groups of indices for each unique atom in atoms1 and atoms2.
+
+    Parameters:
+    atoms1 (numpy.ndarray): Array of atoms for group 1.
+    atoms2 (numpy.ndarray): Array of atoms for group 2.
+
+    Returns:
+    list: A list containing two sublists. The first sublist contains the groups of indices for each unique atom in atoms1.
+          The second sublist contains the groups of indices for each unique atom in atoms2.
+    """
     unique_atoms = np.unique(atoms1)
     group1 = []
     group2 = []
@@ -85,10 +96,31 @@ def get_groups(atoms1, atoms2):
 
 
 def euclidean(coords1, coords2):
+    """
+    Calculates the Euclidean distance between two sets of coordinates.
+
+    Parameters:
+    coords1 (numpy.ndarray): The first set of coordinates.
+    coords2 (numpy.ndarray): The second set of coordinates.
+
+    Returns:
+    float: The Euclidean distance between the two sets of coordinates.
+    """
     return np.sqrt(np.sum((coords1 - coords2)**2))
 
 
 def angle(metal, ligand1, ligand2):
+    """
+    Calculate the angle between two vectors representing the metal-ligand bonds.
+
+    Parameters:
+    metal (array-like): The coordinates of the metal atom.
+    ligand1 (array-like): The coordinates of the first ligand atom.
+    ligand2 (array-like): The coordinates of the second ligand atom.
+
+    Returns:
+    float: The angle between the metal-ligand1 bond and the metal-ligand2 bond in degrees.
+    """
     a = metal - ligand1
     b = metal - ligand2
     a = np.array(a)/np.linalg.norm(a)
@@ -98,47 +130,131 @@ def angle(metal, ligand1, ligand2):
 
 
 class Ligand():
+    """
+    Represents a ligand atom in a molecular structure.
+
+    Attributes:
+        name (str): The name of the ligand atom.
+        element (str): The element of the ligand atom.
+        chain (str): The chain of the ligand atom.
+        residue (str): The residue of the ligand atom.
+        sequence (int): The sequence number of the ligand atom.
+        insertion_code (str): The insertion code of the ligand atom.
+        altloc (str): The alternate location identifier of the ligand atom.
+    """
+
     def __init__(self, ligand) -> None:
         self._name = ligand.atom.name
         self._element = ligand.atom.element.name
         self._chain = ligand.chain.name
         self._residue = ligand.residue.name
         self._sequence = ligand.residue.seqid.num
+        self._icode = ligand.residue.seqid.icode
         self._altloc = ligand.atom.altloc
 
     @property
     def name(self):
+        """
+        Returns the name of the object.
+
+        Returns:
+            str: The name of the object.
+        """
         return self._name
 
     @property
     def element(self):
+        """
+        Returns the element associated with this object.
+
+        Returns:
+            The element associated with this object.
+        """
         return self._element
 
     @property
     def chain(self):
+        """
+        Returns the chain associated with the object.
+
+        Returns:
+            The chain associated with the object.
+        """
         return self._chain
 
     @property
     def residue(self):
+        """
+        Returns the residue associated with the object.
+
+        Returns:
+            The residue associated with the object.
+        """
         return self._residue
 
     @property
     def sequence(self):
+        """
+        Returns the sequence associated with the object.
+
+        Returns:
+            str: The sequence associated with the object.
+        """
         return self._sequence
 
     @property
-    def code(self):
-        return (self.name, self.element, self.chain, self.residue, self.sequence, self.altloc)
+    def insertion_code(self):
+        """
+        Returns the insertion code of the object.
+
+        Returns:
+            str: The insertion code of the object.
+        """
+        return self._icode.strip()
+
+    def equals(self, other):
+        """
+        Check if the current object is equal to another object.
+
+        Args:
+            other: The other object to compare with.
+
+        Returns:
+            True if the objects are equal, False otherwise.
+        """
+        return self.code == other.code
 
     @property
     def altloc(self):
+        """
+        Returns the alternative location indicator for the atom.
+
+        If the alternative location indicator is the null character ('\u0000'),
+        an empty string is returned.
+
+        Returns:
+            str: The alternative location indicator for the atom.
+        """
         return "" if self._altloc == "\u0000" else self._altloc
 
-    def equals(self, other):
-        return self.code == other.code
+    @property
+    def code(self):
+        """
+        Returns a tuple containing the name, element, chain, residue, sequence, and altloc of the object.
+
+        Returns:
+            tuple: A tuple containing the name, element, chain, residue, sequence, and altloc.
+        """
+        return (self.name, self.element, self.chain, self.residue, self.sequence, self.altloc)
 
     def to_dict(self):
-        return {"name": self.name, "element": self.element, "chain": self.chain, "residue": self.residue, "sequence ": self.sequence, "altloc": self.altloc}
+        """
+        Converts the object to a dictionary.
+
+        Returns:
+            dict: A dictionary representation of the object.
+        """
+        return {"name": self.name, "element": self.element, "chain": self.chain, "residue": self.residue, "sequence ": self.sequence, "icode": self.insertion_code, "altloc": self.altloc}
 
 
 class DistanceStats():
@@ -249,7 +365,7 @@ class AngleStats():
     Class representing angle statistics between two ligands.
     """
 
-    def __init__(self, ligand1, ligand2, angle_value, std, isLigand=True, angles=None, procrustes_dists=None) -> None:
+    def __init__(self, ligand1, ligand2, angle_value, std, is_ligand=True, angles=None, procrustes_dists=None) -> None:
         """
         Initialize an AngleStats object.
 
@@ -258,7 +374,7 @@ class AngleStats():
             ligand2 (Ligand): The second ligand.
             angle_value (float): The angle value.
             std (float): The standard deviation.
-            isLigand (bool, optional): Whether the object represents a ligand. Defaults to True.
+            is_ligand (bool, optional): Whether the object represents a ligand. Defaults to True.
             angles (list[float], optional): List of angles. Defaults to None.
             procrustes_dists (list[float], optional): List of procrustes distances. Defaults to None.
         """
@@ -266,7 +382,7 @@ class AngleStats():
         self._ligand2 = ligand2
         self._angle = angle_value
         self._std = std if std > 1e-03 else 5
-        self._isLigand = isLigand
+        self._is_ligand = is_ligand
         self._angles = angles
         self._procrustes_dists = procrustes_dists
 
@@ -311,14 +427,14 @@ class AngleStats():
         return self._std
 
     @property
-    def isLigand(self):
+    def is_ligand(self):
         """
         Check if the object represents a ligand.
 
         Returns:
             bool: True if the object represents a ligand, False otherwise.
         """
-        return self._isLigand
+        return self._is_ligand
 
     @property
     def angles(self):
@@ -366,7 +482,31 @@ class AngleStats():
 
 
 class LigandStats():
+    """
+    Represents the statistics of a ligand.
+
+    Attributes:
+        _clazz (str): The class of the ligand.
+        _procrustes (float): The procrustes value of the ligand.
+        _coordination (int): The coordination number of the ligand.
+        _count (int): The count of the ligand.
+        _bonds (list): The list of bonds associated with the ligand.
+        _pdb_bonds (list): The list of PDB bonds associated with the ligand.
+        _angles (list): The list of angles associated with the ligand.
+        _description (str): The description of the ligand.
+    """
+
     def __init__(self, clazz, procrustes, coordination, count, description) -> None:
+        """
+        Initializes a LigandStats object.
+
+        Args:
+            clazz (str): The class of the ligand.
+            procrustes (float): The procrustes value of the ligand.
+            coordination (int): The coordination number of the ligand.
+            count (int): The count of the ligand.
+            description (str): The description of the ligand.
+        """
         self._clazz = clazz
         self._procrustes = procrustes
         self._coordination = coordination
@@ -375,80 +515,163 @@ class LigandStats():
         self._pdb_bonds = []
         self._angles = []
         self._description = description
-
+    
     @property
     def clazz(self):
+        """
+        str: The class of the ligand.
+        """
         return self._clazz
 
     @property
     def procrustes(self):
+        """
+        float: The procrustes value of the ligand.
+        """
         return self._procrustes
 
     @property
     def coordination(self):
+        """
+        int: The coordination number of the ligand.
+        """
         return self._coordination
 
     @property
     def count(self):
+        """
+        int: The count of the ligand.
+        """
         return self._count
 
     @property
     def description(self):
+        """
+        str: The description of the ligand.
+        """
         return self._description
 
     @property
     def bondCount(self):
+        """
+        int: The total number of bonds associated with the ligand.
+        """
         return len(self._bonds) + len(self._pdb_bonds)
 
     @property
     def bonds(self):
+        """
+        Generator: Yields each bond associated with the ligand.
+        """
         for bond in self._bonds:
             yield bond
 
     @property
     def pdb(self):
+        """
+        Generator: Yields each PDB bond associated with the ligand.
+        """
         for bond in self._pdb_bonds:
             yield bond
 
     @property
     def angles(self):
+        """
+        Generator: Yields each angle associated with the ligand.
+        """
         for angle in self._angles:
             yield angle
 
     @property
     def ligandAngles(self):
+        """
+        Generator: Yields each angle associated with the ligand that involves only ligands.
+        """
         for angle in self._angles:
-            if angle.isLigand:
+            if angle.is_ligand:
                 yield angle
 
     def getLigandBond(self, ligand_name):
+        """
+        Retrieves the bond associated with the specified ligand name.
+
+        Args:
+            ligand_name (str): The name of the ligand.
+
+        Returns:
+            Bond or None: The bond associated with the specified ligand name, or None if not found.
+        """
         for bond in self.bonds:
             if bond.ligand.name == ligand_name:
                 return bond
         return None
 
     def getLigandAngle(self, ligand1_name, ligand2_name):
+        """
+        Retrieves the angle associated with the specified ligand names.
+
+        Args:
+            ligand1_name (str): The name of the first ligand.
+            ligand2_name (str): The name of the second ligand.
+
+        Returns:
+            Angle or None: The angle associated with the specified ligand names, or None if not found.
+        """
         for angle in self.ligandAngles:
             if (angle.ligand1.name == ligand1_name and angle.ligand2.name == ligand2_name) or (angle.ligand1.name == ligand2_name and angle.ligand2.name == ligand1_name):
                 return angle
         return None
 
     def getAngle(self, ligand1_code, ligand2_code):
+        """
+        Retrieves the angle associated with the specified ligand codes.
+
+        Args:
+            ligand1_code (str): The code of the first ligand.
+            ligand2_code (str): The code of the second ligand.
+
+        Returns:
+            Angle or None: The angle associated with the specified ligand codes, or None if not found.
+        """
         for angle in self.angles:
             if angle.equals(ligand1_code, ligand2_code):
                 return angle
         return None
 
     def addBond(self, distance):
+        """
+        Adds a bond to the ligand.
+
+        Args:
+            distance: The bond distance to add.
+        """
         self._bonds.append(distance)
 
     def addPdbBond(self, distance):
+        """
+        Adds a PDB bond to the ligand.
+
+        Args:
+            distance: The PDB bond distance to add.
+        """
         self._pdb_bonds.append(distance)
 
     def addAngle(self, new_angle):
+        """
+        Adds an angle to the ligand.
+
+        Args:
+            new_angle: The angle to add.
+        """
         self._angles.append(new_angle)
 
     def to_dict(self):
+        """
+        Converts the LigandStats object to a dictionary.
+
+        Returns:
+            dict: The LigandStats object represented as a dictionary.
+        """
         clazz = {"class": self.clazz, "procrustes": np.round(float(self.procrustes), 3), "coordination": self.coordination,  "count": self.count, "description": self.description,
                  "base": [], "angles": [], "pdb": []}
         for b in self.bonds:
@@ -849,7 +1072,7 @@ class StatsFinder(ABC):
                 a = angle(
                     ideal_ligand_coord[0], ideal_ligand_coord[i], ideal_ligand_coord[j])
                 std = 5.000
-                yield AngleStats(Ligand(ligands[i - 1]), Ligand(ligands[j - 1]), a, std, isLigand=i <= n1 and j <= n1)
+                yield AngleStats(Ligand(ligands[i - 1]), Ligand(ligands[j - 1]), a, std, is_ligand=i <= n1 and j <= n1)
 
     def add_ideal_angels(self, structure, class_result, clazzStats):
         if class_result and idealClasses.contains(class_result.clazz):
@@ -962,7 +1185,7 @@ class StrictCorrespondenceStatsFinder(FileStatsFinder):
                         for j in range(i + 1, structure.coordination()):
                             a, std = calculate_stats(angles[k])
                             clazzStats.addAngle(AngleStats(Ligand(ligands[i]), Ligand(
-                                ligands[j]), a, std, isLigand=i < n1 and j < n1, angles=angles[k], procrustes_dists=procrustes_dists))
+                                ligands[j]), a, std, is_ligand=i < n1 and j < n1, angles=angles[k], procrustes_dists=procrustes_dists))
                             k += 1
 
                 return clazzStats

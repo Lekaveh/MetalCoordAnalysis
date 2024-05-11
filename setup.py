@@ -10,8 +10,6 @@ Functions:
 """
 
 from setuptools import setup, find_packages
-import codecs
-import os.path
 from metalCoord import __version__
 
 
