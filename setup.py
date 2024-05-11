@@ -1,11 +1,23 @@
 """
 Author: "Kaveh Babai, Garib N. Murshudov, Keitaro Yamashita"
+
+This script is used to set up the MetalCoordAnalysis package. It includes the necessary information such as the author, version, required packages, and entry points.
+
+Functions:
+- read(rel_path): Reads the contents of a file.
+- get_version(rel_path): Retrieves the version string from a file.
+
 """
 
 from setuptools import setup, find_packages
+import codecs
+import os.path
+from metalCoord import __version__
+
+
 
 setup(name='MetalCoordAnalysis',
-      version='0.1.18',
+      version=__version__,
       author='Kaveh Babai, Garib N. Murshudov, Keitaro Yamashita',
       author_email='lekaveh@gmail.com, garib@mrc-lmb.cam.ac.uk',
       

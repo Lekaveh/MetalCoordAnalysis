@@ -1,4 +1,5 @@
 import argparse
+import metalCoord
 from metalCoord.logging import Logger
 from metalCoord.services import update_cif, get_stats, get_coordinations
 from metalCoord.config import Config
@@ -53,7 +54,7 @@ def create_parser():
     parser = argparse.ArgumentParser(
         prog='metalCoord', description='MetalCoord: Metal coordination analysis.')
     parser.add_argument('--version', action='version',
-                        version='%(prog)s 0.1.18')
+                        version='%(prog)s ' + metalCoord.__version__)
 
     # Define the subparsers for the two apps
     subparsers = parser.add_subparsers(dest='command')

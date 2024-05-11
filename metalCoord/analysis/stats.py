@@ -1067,7 +1067,6 @@ class OnlyDistanceStatsFinder(StatsFinder):
             else:
                 clazzStats.addPdbBond(
                     self._create_covalent_distance_stats(structure, l, "Covalent distance"))
-                
 
         self.add_ideal_angels(structure, class_result, clazzStats)
 
