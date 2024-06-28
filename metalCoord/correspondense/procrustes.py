@@ -266,10 +266,14 @@ def fit(coords: np.ndarray, ideal_coords: np.ndarray, groups: tuple = None, all:
                     ring_groups.append([i])
                 current_l = l
             
-            ring_group_permutations = [] 
-            for ring_group in ring_groups:
-                for perm_group in itertools.permutations(ring_group):
-                    ring_group_permutations.append(create_group([rings2[i] for i in perm_group], others2))
+            if len(ring_groups) > 1:
+                ring_group_combinations = ([[rings2[i] for perm_group in itertools.permutations(ring_group) for i in perm_group] for ring_group in ring_groups ])
+            else:
+                ring_group_combinations = ([[rings2[i] for i in perm_group] for perm_group in itertools.permutations(ring_groups[0])])
+
+            ring_group_permutations = []
+            for c in itertools.product(*ring_group_combinations):       
+                ring_group_permutations.append(create_group(list(c), others2))
             ring1_group = create_group(rings1, others1)
 
             results = []
@@ -302,6 +306,7 @@ def fit(coords: np.ndarray, ideal_coords: np.ndarray, groups: tuple = None, all:
         return (distances, indices, distances[min_arg].squeeze(), rotated)
     
     return (distances[min_arg].squeeze(), approxs[min_arg][indices[min_arg]].squeeze(),  c[min_arg].ravel()[0], r[min_arg].squeeze(), indices[min_arg].ravel())
+
 
 
 class Procustes:

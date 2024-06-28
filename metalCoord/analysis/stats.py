@@ -149,7 +149,7 @@ class Ligand():
         self._chain = ligand.chain.name
         self._residue = ligand.residue.name
         self._sequence = ligand.residue.seqid.num
-        self._icode = ligand.residue.seqid.icode
+        self._icode = ligand.residue.seqid.icode.strip()
         self._altloc = ligand.atom.altloc
 
     @property
@@ -210,7 +210,7 @@ class Ligand():
         Returns:
             str: The insertion code of the object.
         """
-        return self._icode.strip()
+        return self._icode if self._icode else "."
 
     def equals(self, other):
         """
@@ -515,7 +515,7 @@ class LigandStats():
         self._pdb_bonds = []
         self._angles = []
         self._description = description
-    
+
     @property
     def clazz(self):
         """
@@ -935,9 +935,6 @@ class PdbStats():
             return clazz.getAllDistances()
         return []
 
-    def len(self):
-        return len(self._metals)
-
     def isEmpty(self):
         return len(self._monomers) == 0
 
@@ -1272,7 +1269,7 @@ class OnlyDistanceStatsFinder(StatsFinder):
                                  structure.coordination(), -1, self._finder.description())
 
         for l in structure.ligands:
-            dist, std, count = DB.getDistanceStats(
+            dist, std, count = DB.get_distance_stats(
                 structure.metal.element.name, l.atom.element.name)
             if count > 0:
                 clazzStats.addBond(DistanceStats(
@@ -1282,7 +1279,7 @@ class OnlyDistanceStatsFinder(StatsFinder):
                     self._create_covalent_distance_stats(structure, l, "Covalent distance"))
 
         for l in structure.extra_ligands:
-            dist, std, count = DB.getDistanceStats(
+            dist, std, count = DB.get_distance_stats(
                 structure.metal.element.name, l.atom.element.name)
             if count > 0:
                 clazzStats.addPdbBond(DistanceStats(

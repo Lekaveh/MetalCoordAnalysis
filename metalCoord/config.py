@@ -20,10 +20,6 @@ class Config:
             cls._instance.min_sample_size = 30
         return cls._instance
 
-    def __init__(self) -> None:
-        self.distance_threshold = 0.1
-        self.procrustes_threshold = 0.3
-        self.min_sample_size = 30
 
     def scale(self) -> float:
         """
