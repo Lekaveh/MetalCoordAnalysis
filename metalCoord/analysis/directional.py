@@ -203,7 +203,7 @@ class VonMises(ABC):
         Returns:
             float: Log-likelihood value.
         """
-        return self._loglikelihood(self._kappa * np.cos(self._alpha), self._kappa * np.sin(self._alpha))
+        return self._loglikelihood(np.vstack([self._kappa * np.cos(self._alpha), self._kappa * np.sin(self._alpha)]))
 
     def fit(self):
         """
