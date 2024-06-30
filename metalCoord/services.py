@@ -353,7 +353,7 @@ def update_cif(output_path, path, pdb):
         
         pdbStats = find_classes(name, pdb, get_bonds(atoms, bonds), only_best=True)
 
-        if pdbStats.isEmpty():
+        if pdbStats.is_empty():
             # Logger().info(f"No coordination found for {name}  in {pdb}. Please check the PDB file")
             return
         
@@ -374,7 +374,7 @@ def update_cif(output_path, path, pdb):
                 metal_name, ligand_name = ligand_name, metal_name
 
 
-            bondStat = pdbStats.getLigandDistance(metal_name, ligand_name)
+            bondStat = pdbStats.get_ligand_distance(metal_name, ligand_name)
             if  bondStat:
                 bonds[VALUE_DIST][i] = bonds[VALUE_DIST_NUCLEUS][i] = str(round(bondStat.distance[0], 3))
                 bonds[VALUE_DIST_ESD][i] = bonds[VALUE_DIST_NUCLEUS_ESD][i] = str(round(bondStat.std[0], 3))
@@ -393,8 +393,8 @@ def update_cif(output_path, path, pdb):
             angles[VALUE_ANGLE] = list()
             angles[VALUE_ANGLE_ESD] = list()
 
-            for metal_name in pdbStats.metalNames():
-                for angle in pdbStats.getLigandAngles(metal_name):
+            for metal_name in pdbStats.metal_names():
+                for angle in pdbStats.get_ligand_angles(metal_name):
                     if not bond_exist(bonds, angle.ligand1.name, metal_name) or not bond_exist(bonds, angle.ligand2.name, metal_name):
                         continue
                     angles[COMP_ID].append(name)
@@ -412,15 +412,15 @@ def update_cif(output_path, path, pdb):
                 if not gemmi.Element(get_element_name(atoms, metal_name)).is_metal:
                     continue
 
-                angleStat = pdbStats.getLigandAngle(metal_name, ligand1_name, ligand2_name)
+                angleStat = pdbStats.get_ligand_angle(metal_name, ligand1_name, ligand2_name)
                 if angleStat:
                     angles[VALUE_ANGLE][i] = str(round(angleStat.angle, 3))
                     angles[VALUE_ANGLE_ESD][i] = str(round(angleStat.std, 3))
                     update_angles.append(code(ligand1_name, metal_name, ligand2_name))
             
             
-            for metal_name in pdbStats.metalNames():
-                for angle in pdbStats.getLigandAngles(metal_name):
+            for metal_name in pdbStats.metal_names():
+                for angle in pdbStats.get_ligand_angles(metal_name):
                     if code(angle.ligand1.name, metal_name, angle.ligand2.name) in update_angles:
                         continue
 
@@ -436,7 +436,7 @@ def update_cif(output_path, path, pdb):
         v = []
         monomer = list(pdbStats.monomers())[-1]
         for metal_stat in monomer.metals:
-            for bond in metal_stat.getAllDistances():
+            for bond in metal_stat.get_all_distances():
                 v.append((metal_stat.code, bond.ligand.code))
         
         for cycle in find_minimal_cycles(v):
@@ -453,8 +453,8 @@ def update_cif(output_path, path, pdb):
                     ligand2 = cycle[2]
                 
                               
-                angle1 = monomer.getAngle(metal1[0], ligand1, ligand2)
-                angle2 = monomer.getAngle(metal2[0], ligand1, ligand2)
+                angle1 = monomer.get_angle(metal1[0], ligand1, ligand2)
+                angle2 = monomer.get_angle(metal2[0], ligand1, ligand2)
 
                 if not angle1 or not angle2:
                     if not angle1:

@@ -205,11 +205,14 @@ class Ligand():
     @property
     def insertion_code(self):
         """
-        Returns the insertion code of the object.
+        Returns the insertion code of the atom.
+        
 
         Returns:
-            str: The insertion code of the object.
+            str: The insertion code of the atom.
         """
+        if self._icode == "\u0000":
+            return "."
         return self._icode if self._icode else "."
 
     def equals(self, other):
@@ -579,19 +582,19 @@ class LigandStats():
         """
         Generator: Yields each angle associated with the ligand.
         """
-        for angle in self._angles:
-            yield angle
+        for ligand_angle in self._angles:
+            yield ligand_angle
 
     @property
-    def ligandAngles(self):
+    def ligand_angles(self):
         """
         Generator: Yields each angle associated with the ligand that involves only ligands.
         """
-        for angle in self._angles:
-            if angle.is_ligand:
-                yield angle
+        for ligand_angle in self._angles:
+            if ligand_angle.is_ligand:
+                yield ligand_angle
 
-    def getLigandBond(self, ligand_name):
+    def get_ligand_bond(self, ligand_name):
         """
         Retrieves the bond associated with the specified ligand name.
 
@@ -606,7 +609,7 @@ class LigandStats():
                 return bond
         return None
 
-    def getLigandAngle(self, ligand1_name, ligand2_name):
+    def get_ligand_angle(self, ligand1_name, ligand2_name):
         """
         Retrieves the angle associated with the specified ligand names.
 
@@ -617,12 +620,12 @@ class LigandStats():
         Returns:
             Angle or None: The angle associated with the specified ligand names, or None if not found.
         """
-        for angle in self.ligandAngles:
-            if (angle.ligand1.name == ligand1_name and angle.ligand2.name == ligand2_name) or (angle.ligand1.name == ligand2_name and angle.ligand2.name == ligand1_name):
-                return angle
+        for ligand_angle in self.ligand_angles:
+            if (ligand_angle.ligand1.name == ligand1_name and ligand_angle.ligand2.name == ligand2_name) or (ligand_angle.ligand1.name == ligand2_name and ligand_angle.ligand2.name == ligand1_name):
+                return ligand_angle
         return None
 
-    def getAngle(self, ligand1_code, ligand2_code):
+    def get_angle(self, ligand1_code, ligand2_code):
         """
         Retrieves the angle associated with the specified ligand codes.
 
@@ -633,12 +636,12 @@ class LigandStats():
         Returns:
             Angle or None: The angle associated with the specified ligand codes, or None if not found.
         """
-        for angle in self.angles:
-            if angle.equals(ligand1_code, ligand2_code):
-                return angle
+        for ligand_angle in self.angles:
+            if ligand_angle.equals(ligand1_code, ligand2_code):
+                return ligand_angle
         return None
 
-    def addBond(self, distance):
+    def add_bond(self, distance):
         """
         Adds a bond to the ligand.
 
@@ -647,7 +650,7 @@ class LigandStats():
         """
         self._bonds.append(distance)
 
-    def addPdbBond(self, distance):
+    def add_pdb_bond(self, distance):
         """
         Adds a PDB bond to the ligand.
 
@@ -656,7 +659,7 @@ class LigandStats():
         """
         self._pdb_bonds.append(distance)
 
-    def addAngle(self, new_angle):
+    def add_angle(self, new_angle):
         """
         Adds an angle to the ligand.
 
@@ -684,106 +687,308 @@ class LigandStats():
 
 
 class MetalStats():
-    def __init__(self, metal, metalElement, chain, residue, sequence, mean_occ, mean_b) -> None:
+    def __init__(self, metal, metal_element, chain, residue, sequence, altloc, icode, mean_occ, mean_b) -> None:
+        """
+        Initialize a MetalStats object.
+
+        Args:
+            metal (str): The metal identifier.
+            metal_element (str): The metal element.
+            chain (str): The chain identifier.
+            residue (str): The residue identifier.
+            sequence (int): The sequence number.
+            mean_occ (float): The mean occupancy.
+            mean_b (float): The mean B-factor.
+            altloc (str): The alternative location identifier.
+            icode (str): The insertion code.
+        """
         self._metal = metal
-        self._metalElement = metalElement
+        self._metal_element = metal_element
         self._chain = chain
         self._residue = residue
         self._sequence = sequence
         self._mean_occ = mean_occ
         self._mean_b = mean_b
+        self._icode = icode
+        self._altloc = altloc
         self._ligands = []
 
     @property
     def code(self):
-        return (self._metal, self._metalElement, self._chain, self._residue, str(self._sequence))
+        """
+        Get the code of the metal.
+
+        Returns:
+            tuple: A tuple containing the metal, metal element, chain, residue, and sequence.
+        """
+        return (self._metal, self._metal_element, self._chain, self._residue, str(self._sequence))
 
     @property
     def metal(self):
+        """
+        Get the metal identifier.
+
+        Returns:
+            str: The metal identifier.
+        """
         return self._metal
 
     @property
-    def metalElement(self):
-        return self._metalElement
+    def metal_element(self):
+        """
+        Get the metal element.
+
+        Returns:
+            str: The metal element.
+        """
+        return self._metal_element
 
     @property
     def chain(self):
+        """
+        Get the chain identifier.
+
+        Returns:
+            str: The chain identifier.
+        """
         return self._chain
 
     @property
     def residue(self):
+        """
+        Get the residue identifier.
+
+        Returns:
+            str: The residue identifier.
+        """
         return self._residue
 
     @property
     def sequence(self):
+        """
+        Get the sequence number.
+
+        Returns:
+            int: The sequence number.
+        """
         return self._sequence
 
     @property
+    def altloc(self):
+        """
+        Get the alternative location identifier.
+
+        Returns:
+            str: The alternative location identifier.
+        """
+        return self._altloc
+    
+    @property
+    def insertion_code(self):
+        """
+        Returns the insertion code of the metal.
+
+        Returns:
+            str: The insertion code of the metal.
+        """
+        if self._icode == "\u0000":
+            return "."
+        return self._icode if self._icode else "."
+
+    @property
     def mean_occ(self):
+        """
+        Get the mean occupancy.
+
+        Returns:
+            float: The mean occupancy.
+        """
         return self._mean_occ
 
     @property
     def mean_b(self):
+        """
+        Get the mean B-factor.
+
+        Returns:
+            float: The mean B-factor.
+        """
         return self._mean_b
 
     @property
     def ligands(self):
+        """
+        Get an iterator over the ligands.
+
+        Yields:
+            Ligand: A ligand object.
+        """
         for ligand in self._ligands:
             yield ligand
 
-    def sameMetal(self, other):
-        return (self.metal == other.metal) and (self.metalElement == other.metalElement)
+    def same_metal(self, other):
+        """
+        Check if two MetalStats objects represent the same metal.
 
-    def sameMonomer(self, other):
+        Args:
+            other (MetalStats): Another MetalStats object.
+
+        Returns:
+            bool: True if the metals are the same, False otherwise.
+        """
+        return (self.metal == other.metal) and (self.metal_element == other.metalElement)
+
+    def same_monomer(self, other):
+        """
+        Check if two MetalStats objects belong to the same monomer.
+
+        Args:
+            other (MetalStats): Another MetalStats object.
+
+        Returns:
+            bool: True if the monomers are the same, False otherwise.
+        """
         return (self.chain == other.chain) and (self.residue == other.residue) and (self.sequence == other.sequence)
 
-    def addLigand(self, ligand):
+    def add_ligand(self, ligand):
+        """
+        Add a ligand to the MetalStats object.
+
+        Args:
+            ligand (Ligand): A ligand object.
+        """
         self._ligands.append(ligand)
 
-    def isLigandAtom(self, atom):
+    def is_ligand_atom(self, atom):
+        """
+        Check if an atom is a ligand atom.
+
+        Args:
+            atom (Atom): An atom object.
+
+        Returns:
+            bool: True if the atom is a ligand atom, False otherwise.
+        """
         return (atom.chain == self.chain) and (atom.residue == self.residue) and (atom.sequence == self.sequence)
 
-    def getCoordination(self):
+    def get_coordination(self):
+        """
+        Get the maximum coordination number among the ligands.
+
+        Returns:
+            int: The maximum coordination number.
+        """
         return np.max([l.coordination for l in self.ligands])
 
-    def getBestClass(self):
-        coord = self.getCoordination()
+    def get_best_class(self):
+        """
+        Get the best class of ligands based on the coordination number and procrustes score.
+
+        Returns:
+            Ligand: The best class of ligands.
+        """
+        coord = self.get_coordination()
         return self._ligands[np.argmin([l.procrustes for l in self.ligands if l.coordination == coord])]
 
-    def getAllDistances(self):
-        clazz = self.getBestClass()
+    def get_all_distances(self):
+        """
+        Get a list of all distances from the best class of ligands.
+
+        Returns:
+            list: A list of distances.
+        """
+        clazz = self.get_best_class()
         return list(clazz.bonds) + list(clazz.pdb)
 
-    def getLigandDistances(self):
-        clazz = self.getBestClass()
+    def get_ligand_distances(self):
+        """
+        Get a list of distances from the best class of ligands.
+
+        Returns:
+            list: A list of distances.
+        """
+        clazz = self.get_best_class()
         return list(clazz.bonds)
 
-    def getAllAngles(self):
-        clazz = self.getBestClass()
+    def get_all_angles(self):
+        """
+        Get a list of all angles from the best class of ligands.
+
+        Returns:
+            list: A list of angles.
+        """
+        clazz = self.get_best_class()
         return list(clazz.angles)
 
-    def getLigandAngles(self):
-        clazz = self.getBestClass()
-        return [angle for angle in clazz.angles if self.isLigandAtom(angle.ligand1) and self.isLigandAtom(angle.ligand2)]
+    def get_ligand_angles(self):
+        """
+        Get a list of ligand angles from the best class of ligands.
 
-    def getLigandBond(self, ligand_name):
-        clazz = self.getBestClass()
-        return clazz.getLigandBond(ligand_name)
+        Returns:
+            list: A list of ligand angles.
+        """
+        clazz = self.get_best_class()
+        return [angle for angle in clazz.angles if self.is_ligand_atom(angle.ligand1) and self.is_ligand_atom(angle.ligand2)]
 
-    def getLigandAngle(self, ligand1_name, ligand2_name):
-        clazz = self.getBestClass()
-        return clazz.getLigandAngle(ligand1_name, ligand2_name)
+    def get_ligand_bond(self, ligand_name):
+        """
+        Get the bond associated with a ligand.
 
-    def getAngle(self, ligand1_code, ligand2_code):
-        clazz = self.getBestClass()
-        return clazz.getAngle(ligand1_code, ligand2_code)
+        Args:
+            ligand_name (str): The name of the ligand.
 
-    def isEmpty(self):
+        Returns:
+            Bond: The bond associated with the ligand.
+        """
+        clazz = self.get_best_class()
+        return clazz.get_ligand_bond(ligand_name)
+
+    def get_ligand_angle(self, ligand1_name, ligand2_name):
+        """
+        Get the angle between two ligands.
+
+        Args:
+            ligand1_name (str): The name of the first ligand.
+            ligand2_name (str): The name of the second ligand.
+
+        Returns:
+            Angle: The angle between the ligands.
+        """
+        clazz = self.get_best_class()
+        return clazz.get_ligand_angle(ligand1_name, ligand2_name)
+
+    def get_angle(self, ligand1_code, ligand2_code):
+        """
+        Get the angle between two ligands based on their codes.
+
+        Args:
+            ligand1_code (str): The code of the first ligand.
+            ligand2_code (str): The code of the second ligand.
+
+        Returns:
+            Angle: The angle between the ligands.
+        """
+        clazz = self.get_best_class()
+        return clazz.get_angle(ligand1_code, ligand2_code)
+
+    def is_empty(self):
+        """
+        Check if the MetalStats object has any ligands.
+
+        Returns:
+            bool: True if the object has no ligands, False otherwise.
+        """
         return len(self._ligands) == 0
 
     def to_dict(self):
+        """
+        Convert the MetalStats object to a dictionary.
+
+        Returns:
+            dict: A dictionary representation of the MetalStats object.
+        """
         metal = {"chain": self.chain, "residue": self.residue, "sequence": self.sequence, "metal": self.metal,
-                 "metalElement": self.metalElement, "ligands": []}
+                 "metalElement": self.metal_element, "icode": self.insertion_code, "altloc": self.altloc, "ligands": []}
 
         for l in sorted(self.ligands, key=lambda x: (-x.coordination, x.procrustes)):
             metal["ligands"].append(l.to_dict())
@@ -819,46 +1024,46 @@ class MonomerStats():
         for metal in self._metals.values():
             yield metal
 
-    def metalNames(self):
+    def metal_names(self):
         return self._metals.keys()
 
-    def getMetal(self, metal_name):
+    def get_metal(self, metal_name):
         return self._metals.get(metal_name, None)
 
-    def isIn(self, atom):
+    def is_in(self, atom):
         return self._chain == atom.chain and self._residue == atom.residue and self._sequence == atom.sequence
 
-    def addMetal(self, metal):
-        if self.isIn(metal):
+    def add_metal(self, metal):
+        if self.is_in(metal):
             self._metals.setdefault(metal.metal, metal)
 
     def contains(self, metal_name):
         return metal_name in self._metals
 
-    def getBestClass(self, metal_name):
+    def get_best_class(self, metal_name):
         if metal_name in self._metals:
-            return self._metals[metal_name].getBestClass()
+            return self._metals[metal_name].get_best_class()
         return None
 
-    def getLigandBond(self, metal_name, ligand_name):
+    def get_ligand_bond(self, metal_name, ligand_name):
         if metal_name in self._metals:
-            return self._metals[metal_name].getLigandBond(ligand_name)
+            return self._metals[metal_name].get_ligand_bond(ligand_name)
         return None
 
-    def getLigandAngle(self, metal_name, ligand1_name, ligand2_name):
+    def get_ligand_angle(self, metal_name, ligand1_name, ligand2_name):
         if metal_name in self._metals:
-            return self._metals[metal_name].getLigandAngle(ligand1_name, ligand2_name)
+            return self._metals[metal_name].get_ligand_angle(ligand1_name, ligand2_name)
         return None
 
-    def getAngle(self, metal_name, ligand1_code, ligand2_code):
+    def get_angle(self, metal_name, ligand1_code, ligand2_code):
         if metal_name in self._metals:
-            return self._metals[metal_name].getAngle(ligand1_code, ligand2_code)
+            return self._metals[metal_name].get_angle(ligand1_code, ligand2_code)
         return None
 
     def len(self):
         return len(self._metals)
 
-    def isEmpty(self):
+    def is_empty(self):
         return self.len() == 0
 
 
@@ -866,17 +1071,17 @@ class PdbStats():
     def __init__(self) -> None:
         self._monomers = dict()
 
-    def addMetal(self, metal):
-        if not metal.isEmpty():
+    def add_metal(self, metal):
+        if not metal.is_empty():
             self._monomers.setdefault(metal.chain + metal.residue + str(metal.sequence),
-                                      MonomerStats(metal.chain, metal.residue, metal.sequence)).addMetal(metal)
+                                      MonomerStats(metal.chain, metal.residue, metal.sequence)).add_metal(metal)
 
     def monomers(self):
         for monomer in self._monomers.values():
             yield monomer
 
-    def metalNames(self):
-        return np.unique([name for monomer in self._monomers.values() for name in monomer.metalNames()]).tolist()
+    def metal_names(self):
+        return np.unique([name for monomer in self._monomers.values() for name in monomer.metal_names()]).tolist()
 
     @property
     def metals(self):
@@ -884,11 +1089,11 @@ class PdbStats():
             for metal in monomer.metals:
                 yield metal
 
-    def getBestClass(self, metal_name):
+    def get_best_class(self, metal_name):
 
-        metals = [monomer.getMetal(
+        metals = [monomer.get_metal(
             metal_name) for monomer in self.monomers() if monomer.contains(metal_name)]
-        classes = [metal.getBestClass() for metal in metals]
+        classes = [metal.get_best_class() for metal in metals]
         coordinations = [clazz.coordination for clazz in classes]
         procrustes = [clazz.procrustes for clazz in classes]
 
@@ -904,38 +1109,38 @@ class PdbStats():
 
         return classes[np.argmin(procrustes)]
 
-    def getLigandDistances(self, metal_name):
-        clazz = self.getBestClass(metal_name)
+    def get_ligand_distances(self, metal_name):
+        clazz = self.get_best_class(metal_name)
         if clazz:
-            return clazz.getLigandDistances()
+            return clazz.get_ligand_distances()
         return []
 
-    def getLigandDistance(self, metal_name, ligand_name):
-        clazz = self.getBestClass(metal_name)
+    def get_ligand_distance(self, metal_name, ligand_name):
+        clazz = self.get_best_class(metal_name)
         if clazz:
-            return clazz.getLigandBond(ligand_name)
+            return clazz.get_ligand_bond(ligand_name)
         return None
 
-    def getLigandAngle(self, metal_name, ligand1_name, ligand2_name):
-        clazz = self.getBestClass(metal_name)
+    def get_ligand_angle(self, metal_name, ligand1_name, ligand2_name):
+        clazz = self.get_best_class(metal_name)
         if clazz:
-            return clazz.getLigandAngle(ligand1_name, ligand2_name)
+            return clazz.get_ligand_angle(ligand1_name, ligand2_name)
         return []
 
-    def getLigandAngles(self, metal_name):
-        clazz = self.getBestClass(metal_name)
+    def get_ligand_angles(self, metal_name):
+        clazz = self.get_best_class(metal_name)
 
         if clazz:
-            return clazz.ligandAngles
+            return clazz.ligand_angles
         return []
 
-    def getAllDistances(self, metal_name):
-        clazz = self.getBestClass(metal_name)
+    def get_all_distances(self, metal_name):
+        clazz = self.get_best_class(metal_name)
         if clazz:
-            return clazz.getAllDistances()
+            return clazz.get_all_distances()
         return []
 
-    def isEmpty(self):
+    def is_empty(self):
         return len(self._monomers) == 0
 
     def len(self):
@@ -1071,11 +1276,11 @@ class StatsFinder(ABC):
                 std = 5.000
                 yield AngleStats(Ligand(ligands[i - 1]), Ligand(ligands[j - 1]), a, std, is_ligand=i <= n1 and j <= n1)
 
-    def add_ideal_angels(self, structure, class_result, clazzStats):
+    def add_ideal_angels(self, structure, class_result, clazz_stats):
         if class_result and idealClasses.contains(class_result.clazz):
             for ideal_angle in self.get_ideal_angles(structure, class_result):
-                clazzStats.addAngle(ideal_angle)
-        return clazzStats
+                clazz_stats.add_angle(ideal_angle)
+        return clazz_stats
 
     def _create_covalent_distance_stats(self, structure: metalCoord.analysis.structures.Ligand, l: metalCoord.analysis.structures.Atom, description: str = "") -> DistanceStats:
         """
@@ -1157,23 +1362,23 @@ class StrictCorrespondenceStatsFinder(FileStatsFinder):
             angles = np.array(angles).T
 
             if (len(distances) > 0 and distances.shape[1] >= Config().min_sample_size):
-                clazzStats = LigandStats(
+                clazz_stats = LigandStats(
                     class_result.clazz, class_result.proc, structure.coordination(), distances.shape[1], self._finder.description())
 
                 sum_coords = sum_coords/n
 
                 for i, l in enumerate(list(structure.ligands)):
                     dist, std = modes(distances[i])
-                    clazzStats.addBond(DistanceStats(
+                    clazz_stats.add_bond(DistanceStats(
                         Ligand(l), dist, std, distances[i], procrustes_dists))
 
                 for i, l in enumerate(list(structure.extra_ligands)):
                     dist, std = modes(distances[i + structure.ligands_len])
-                    clazzStats.addPdbBond(DistanceStats(Ligand(l), dist, std, euclidean(
+                    clazz_stats.add_pdb_bond(DistanceStats(Ligand(l), dist, std, euclidean(
                         sum_coords[i + 1 + structure.ligands_len], sum_coords[0]), procrustes_dists))
 
                 if Config().ideal_angles:
-                    self.add_ideal_angels(structure, class_result, clazzStats)
+                    self.add_ideal_angels(structure, class_result, clazz_stats)
                 else:
                     k = 0
                     n1 = structure.ligands_len
@@ -1181,11 +1386,11 @@ class StrictCorrespondenceStatsFinder(FileStatsFinder):
                     for i in range(structure.coordination() - 1):
                         for j in range(i + 1, structure.coordination()):
                             a, std = calculate_stats(angles[k])
-                            clazzStats.addAngle(AngleStats(Ligand(ligands[i]), Ligand(
+                            clazz_stats.add_angle(AngleStats(Ligand(ligands[i]), Ligand(
                                 ligands[j]), a, std, is_ligand=i < n1 and j < n1, angles=angles[k], procrustes_dists=procrustes_dists))
                             k += 1
 
-                return clazzStats
+                return clazz_stats
         return None
 
 
@@ -1198,7 +1403,7 @@ class WeekCorrespondenceStatsFinder(FileStatsFinder):
             ideal_ligand_coord = class_result.coord[class_result.index]
 
             distances = []
-            ligNames = []
+            lig_names = []
             if len(files) > MAX_FILES:
                 files = np.random.choice(files, MAX_FILES, replace=False)
 
@@ -1212,48 +1417,48 @@ class WeekCorrespondenceStatsFinder(FileStatsFinder):
                 if proc_dist < Config().procrustes_thr():
                     distances.append(np.sqrt(np.sum(
                         (m_ligand_coord[0] - m_ligand_coord)**2, axis=1))[1:].tolist())
-                    ligNames.append(
+                    lig_names.append(
                         file_data[["Ligand"]].values.ravel().tolist())
 
             distances = np.array(distances).T
-            ligNames = np.array(ligNames).T
+            lig_names = np.array(lig_names).T
 
             if (len(distances) > 0 and distances.shape[1] >= Config().min_sample_size):
 
-                clazzStats = LigandStats(
+                clazz_stats = LigandStats(
                     class_result.clazz, class_result.proc, structure.coordination(), distances.shape[1], self._finder.description())
                 ligands = list(structure.ligands)
 
                 results = {}
-                for element in np.unique(ligNames):
-                    elementDistances = distances.ravel(
-                    )[ligNames.ravel() == element]
+                for element in np.unique(lig_names):
+                    element_distances = distances.ravel(
+                    )[lig_names.ravel() == element]
 
-                    if elementDistances.size == 1:
-                        results[element] = modes(elementDistances)
-                    elif elementDistances.size > 1:
-                        results[element] = modes(elementDistances.squeeze())
+                    if element_distances.size == 1:
+                        results[element] = modes(element_distances)
+                    elif element_distances.size > 1:
+                        results[element] = modes(element_distances.squeeze())
 
-                for i, l in enumerate(ligands):
+                for l in ligands:
                     if l.atom.element.name in results:
                         dist, std = results[l.atom.element.name]
-                        clazzStats.addBond(DistanceStats(Ligand(l), dist, std))
+                        clazz_stats.add_bond(DistanceStats(Ligand(l), dist, std))
                     else:
-                        clazzStats.addBond(
+                        clazz_stats.add_bond(
                             self._create_covalent_distance_stats(structure, l, "Covalent distance"))
 
-                for i, l in enumerate(structure.extra_ligands):
+                for l in structure.extra_ligands:
                     if l.atom.element.name in results:
                         dist, std = results[l.atom.element.name]
-                        clazzStats.addPdbBond(
+                        clazz_stats.add_pdb_bond(
                             DistanceStats(Ligand(l), dist, std))
                     else:
-                        clazzStats.addPdbBond(
+                        clazz_stats.add_pdb_bond(
                             self._create_covalent_distance_stats(structure, l, "Covalent distance"))
 
-                self.add_ideal_angels(structure, class_result, clazzStats)
+                self.add_ideal_angels(structure, class_result, clazz_stats)
 
-                return clazzStats
+                return clazz_stats
         return None
 
 
@@ -1265,33 +1470,33 @@ class OnlyDistanceStatsFinder(StatsFinder):
     def get_stats(self, structure, data, class_result):
         self._finder.load(structure, data)
         data = self._finder.data("")
-        clazzStats = LigandStats(class_result.clazz, class_result.proc,
+        clazz_stats = LigandStats(class_result.clazz, class_result.proc,
                                  structure.coordination(), -1, self._finder.description())
 
         for l in structure.ligands:
             dist, std, count = DB.get_distance_stats(
                 structure.metal.element.name, l.atom.element.name)
             if count > 0:
-                clazzStats.addBond(DistanceStats(
+                clazz_stats.add_bond(DistanceStats(
                     Ligand(l), np.array([dist]), np.array([std])))
             else:
-                clazzStats.addBond(
+                clazz_stats.add_bond(
                     self._create_covalent_distance_stats(structure, l, "Covalent distance"))
 
         for l in structure.extra_ligands:
             dist, std, count = DB.get_distance_stats(
                 structure.metal.element.name, l.atom.element.name)
             if count > 0:
-                clazzStats.addPdbBond(DistanceStats(
+                clazz_stats.add_pdb_bond(DistanceStats(
                     Ligand(l), np.array([dist]), np.array([std])))
             else:
-                clazzStats.addPdbBond(
+                clazz_stats.add_pdb_bond(
                     self._create_covalent_distance_stats(structure, l, "Covalent distance"))
 
-        self.add_ideal_angels(structure, class_result, clazzStats)
+        self.add_ideal_angels(structure, class_result, clazz_stats)
 
-        if clazzStats.bondCount > 0:
-            return clazzStats
+        if clazz_stats.bondCount > 0:
+            return clazz_stats
         return None
 
 
@@ -1301,20 +1506,20 @@ class CovalentStatsFinder(StatsFinder):
         super().__init__(candidateFinder)
 
     def get_stats(self, structure, data, class_result):
-        clazzStats = LigandStats(class_result.clazz if class_result else "",
+        clazz_stats = LigandStats(class_result.clazz if class_result else "",
                                  class_result.proc if class_result else -1, structure.coordination(), -1, self._finder.description())
 
         for l in structure.ligands:
-            clazzStats.addBond(
+            clazz_stats.add_bond(
                 self._create_covalent_distance_stats(structure, l))
 
         for l in structure.extra_ligands:
-            clazzStats.addPdbBond(
+            clazz_stats.add_pdb_bond(
                 self._create_covalent_distance_stats(structure, l))
 
-        self.add_ideal_angels(structure, class_result, clazzStats)
+        self.add_ideal_angels(structure, class_result, clazz_stats)
 
-        return clazzStats
+        return clazz_stats
 
 
 convalent_strategy = CovalentStatsFinder(CovalentCandidateFinder())
@@ -1327,8 +1532,22 @@ strategies = [StrictCorrespondenceStatsFinder(StrictCandidateFinder()),
               ]
 
 
-def find_classes(ligand, pdb_name, bonds={}, only_best=False):
-    Logger().info(f"Analysing structres in  {pdb_name} for patterns")
+def find_classes(ligand, pdb_name, bonds=None, only_best=False):
+    """
+    Analyzes structures in a given PDB file for patterns and returns the statistics for ligands (metals) found.
+
+    Args:
+        ligand (str): The name of the ligand.
+        pdb_name (str): The name of the PDB file.
+        bonds (dict, optional): A dictionary of bonds. Defaults to None.
+        only_best (bool, optional): Flag indicating whether to consider only the best structures. Defaults to False.
+
+    Returns:
+        PdbStats: An object containing the statistics for ligands (metals) found.
+    """
+    if bonds is None:
+        bonds = {}
+    Logger().info(f"Analyzing structures in {pdb_name} for patterns")
     structures = get_structures(ligand, pdb_name, bonds, only_best)
     for structure in tqdm(structures):
         Logger().info(
@@ -1351,23 +1570,23 @@ def find_classes(ligand, pdb_name, bonds={}, only_best=False):
         Logger().info(f"Candidates for {structure} : {candidantes}")
 
     for i, structure in tqdm(list(enumerate(structures)), desc="Structures", position=0, disable=Logger().disabled):
-        metalStats = MetalStats(structure.metal.name, structure.metal.element.name, structure.chain.name,
-                                structure.residue.name, structure.residue.seqid.num, structure.mean_occ(), structure.mean_b())
+        metal_stats = MetalStats(structure.metal.name, structure.metal.element.name, structure.chain.name,
+                                structure.residue.name, structure.residue.seqid.num, structure.residue.seqid.icode.strip(), structure.metal.altloc, structure.mean_occ(), structure.mean_b())
         if classes[i]:
             for class_result in classes[i]:
                 for strategy in tqdm(strategies, desc="Strategies", position=1, leave=False, disable=Logger().disabled):
-                    ligandStats = strategy.get_stats(
+                    ligand_stats = strategy.get_stats(
                         structure, DB.data(), class_result)
-                    if ligandStats:
-                        metalStats.addLigand(ligandStats)
+                    if ligand_stats:
+                        metal_stats.add_ligand(ligand_stats)
                         break
         else:
-            ligandStats = convalent_strategy.get_stats(
+            ligand_stats = convalent_strategy.get_stats(
                 structure, DB.data(), None)
-            metalStats.addLigand(ligandStats)
+            metal_stats.add_ligand(ligand_stats)
 
-        if not metalStats.isEmpty():
-            results.addMetal(metalStats)
+        if not metal_stats.is_empty():
+            results.add_metal(metal_stats)
     Logger().info(
         f"Analysis completed. Statistics for {int(results.len())} ligands(metals) found.")
     return results
