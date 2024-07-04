@@ -15,11 +15,17 @@ class Config:
     def __new__(cls, *args, **kwargs):
         if not cls._instance:
             cls._instance = super().__new__(cls, *args, **kwargs)
-            cls._instance.distance_threshold = 0.2
-            cls._instance.procrustes_threshold = 0.3
-            cls._instance.min_sample_size = 30
+            cls._instance.__initialized = False
         return cls._instance
 
+
+    def __init__(self):
+        if self.__initialized:
+            return
+        self.distance_threshold = 0.2
+        self.procrustes_threshold = 0.3
+        self.min_sample_size = 30
+        self.__initialized = True
 
     def scale(self) -> float:
         """
