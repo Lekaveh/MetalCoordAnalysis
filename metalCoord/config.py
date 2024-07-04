@@ -25,6 +25,9 @@ class Config:
         self.distance_threshold = 0.2
         self.procrustes_threshold = 0.3
         self.min_sample_size = 30
+        self.simple = False
+        self.save = False
+        self.ideal_angles = False
         self.__initialized = True
 
     def scale(self) -> float:

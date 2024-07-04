@@ -7,7 +7,7 @@ import gemmi
 import networkx as nx
 import metalCoord
 from metalCoord.analysis.classes import idealClasses
-from metalCoord.analysis.stats import find_classes
+from metalCoord.analysis.classify import find_classes
 from metalCoord.logging import Logger
 
 # Constants
