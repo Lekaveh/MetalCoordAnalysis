@@ -28,6 +28,7 @@ class Config:
         self.simple = False
         self.save = False
         self.ideal_angles = False
+        self.output_folder = ""
         self.__initialized = True
 
     def scale(self) -> float:

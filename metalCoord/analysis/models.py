@@ -389,6 +389,7 @@ class LigandStats():
         self._pdb_bonds = []
         self._angles = []
         self._description = description
+        self._cod_files = {}
 
     @property
     def clazz(self):
@@ -426,7 +427,25 @@ class LigandStats():
         return self._description
 
     @property
-    def bondCount(self):
+    def cod_files(self):
+        """
+        dict: The names of COD files associated with the ligand.
+        """
+        return self._cod_files.keys()
+
+    @property
+    def cods(self):
+            """
+            Generator function that yields the key-value pairs of the _cod_files dictionary.
+
+            Yields:
+                tuple: A tuple containing the key and value of each item in the _cod_files dictionary.
+            """
+            for key, value in self._cod_files.items():
+                yield key, value
+    
+    @property
+    def bond_count(self):
         """
         int: The total number of bonds associated with the ligand.
         """
@@ -538,6 +557,15 @@ class LigandStats():
             new_angle: The angle to add.
         """
         self._angles.append(new_angle)
+
+    def add_cod_file(self, cod_file, structure):
+        """
+        Adds a COD file to the ligand.
+
+        Args:
+            cod_file: The COD file to add.
+        """
+        self._cod_files[cod_file] = structure
 
     def to_dict(self):
         """

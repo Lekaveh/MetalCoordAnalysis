@@ -1,4 +1,5 @@
 import argparse
+import os
 import metalCoord
 from metalCoord.logging import Logger
 from metalCoord.services import update_cif, get_stats, get_coordinations
@@ -128,23 +129,19 @@ def main_func():
         args = parser.parse_args()
 
 
-
-        if args.command == 'update':
+        if args.command == 'update' or args.command == 'stats':
             Config().ideal_angles = args.ideal_angles if "ideal_angles" in args else False
             Config().distance_threshold = args.dist
             Config().procrustes_threshold = args.threshold
             Config().min_sample_size = args.min_size
             Config().simple = args.simple if "simple" in args else False
-            Config().save = args.simple if "save" in args else False
+            Config().save = args.save if "save" in args else False
+            Config().output_folder = os.path.dirname(args.output)
+
+        if args.command == 'update':
             update_cif(args.output, args.input, args.pdb)
 
         elif args.command == 'stats':
-            Config().ideal_angles = args.ideal_angles if "ideal_angles" in args else False
-            Config().distance_threshold = args.dist
-            Config().procrustes_threshold = args.threshold
-            Config().min_sample_size = args.min_size
-            Config().simple = args.simple if "simple" in args else False
-            Config().save = args.simple if "save" in args else False
             get_stats(args.ligand, args.pdb, args.output)
         
         elif args.command == 'coord':
