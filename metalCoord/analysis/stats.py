@@ -1,5 +1,7 @@
 from abc import ABC, abstractmethod
+import dis
 import os
+from pathlib import Path
 import gemmi
 import numpy as np
 import pandas as pd
@@ -91,17 +93,50 @@ def angle(metal, ligand1, ligand2):
 
 
 
+from abc import ABC, abstractmethod
+
 class StatsFinder(ABC):
+    """
+    Abstract base class for finding statistics in metal coordination analysis.
+
+    Attributes:
+        _finder: The candidate finder object.
+        _thr: The threshold value.
+
+    """
+
     def __init__(self, candidateFinder) -> None:
         self._finder = candidateFinder
         self._thr = 0.3
 
     @abstractmethod
     def get_stats(self, structure, data, class_result):
+        """
+        Abstract method to get statistics.
+
+        Args:
+            structure: The structure object.
+            data: The data object.
+            class_result: The class result object.
+
+        Returns:
+            None
+
+        """
         pass
 
     def get_ideal_angles(self, structure, class_result):
+        """
+        Get ideal angles for a given structure and class result.
 
+        Args:
+            structure: The structure object.
+            class_result: The class result object.
+
+        Yields:
+            AngleStats: The ideal angle statistics.
+
+        """
         n1 = structure.ligands_len
         ideal_ligand_coord = class_result.coord[class_result.index]
         ligands = list(structure.all_ligands)
@@ -113,6 +148,18 @@ class StatsFinder(ABC):
                 yield AngleStats(Ligand(ligands[i - 1]), Ligand(ligands[j - 1]), a, std, is_ligand=i <= n1 and j <= n1)
 
     def add_ideal_angels(self, structure, class_result, clazz_stats):
+        """
+        Add ideal angles to the class statistics.
+
+        Args:
+            structure: The structure object.
+            class_result: The class result object.
+            clazz_stats: The class statistics object.
+
+        Returns:
+            ClassStats: The updated class statistics.
+
+        """
         if class_result and idealClasses.contains(class_result.clazz):
             for ideal_angle in self.get_ideal_angles(structure, class_result):
                 clazz_stats.add_angle(ideal_angle)
@@ -151,6 +198,51 @@ class FileStatsFinder(StatsFinder):
     def _calculate(self, stucture, clazz, main_proc_dist):
         pass
 
+def create_gemmi_structure(df):
+    """
+    Create a Gemmi structure from a DataFrame.
+
+    Args:
+        df (pandas.DataFrame): The DataFrame containing the data for creating the structure.
+
+    Returns:
+        gemmi.Structure: The Gemmi structure object.
+
+    """
+    residue = gemmi.Residue()
+    residue.name = "RES"
+    residue.seqid = gemmi.SeqId(str(1))
+    atom_number = 1
+    for _, row in df.iterrows():
+        # Create metal residue and add metal atom
+        if atom_number == 1:
+            metal_atom = gemmi.Atom()
+            metal_atom.name = row['MetalName']
+            metal_atom.element = gemmi.Element(row['Metal'])
+            metal_atom.pos = gemmi.Position(row['MetalX'], row['MetalY'], row['MetalZ'])
+            metal_atom.serial = atom_number
+            residue.add_atom(metal_atom)
+            atom_number += 1
+       
+        # Create ligand residue and add ligand atom
+        ligand_atom = gemmi.Atom()
+        ligand_atom.name = row['LigandName']
+        ligand_atom.element = gemmi.Element(row['Ligand'])
+        ligand_atom.pos = gemmi.Position(row['LigandX'], row['LigandY'], row['LigandZ'])
+        ligand_atom.serial = atom_number
+        residue.add_atom(ligand_atom)
+        atom_number += 1
+
+    chain = gemmi.Chain('A')
+    chain.add_residue(residue)
+    model = gemmi.Model('1')
+    model.add_chain(chain)
+
+    # Save to PDB
+    structure = gemmi.Structure()
+    structure.add_model(model)
+    return structure
+
 
 class StrictCorrespondenceStatsFinder(FileStatsFinder):
     def _calculate(self, structure, class_result):
@@ -169,6 +261,8 @@ class StrictCorrespondenceStatsFinder(FileStatsFinder):
             if len(files) > MAX_FILES:
                 files = np.random.choice(files, MAX_FILES, replace=False)
 
+            cods = {}
+            
             for file in tqdm(files, desc=f"{class_result.clazz} ligands", leave=False, disable=Logger().disabled):
                 file_data = self._finder.data(file)
                 m_ligand_coord = get_coordinate(file_data)
@@ -180,6 +274,7 @@ class StrictCorrespondenceStatsFinder(FileStatsFinder):
                 proc_dists, indices, _, rotateds = fit(
                     ideal_ligand_coord, m_ligand_coord, groups=groups, all=True)
 
+                m = n
                 for proc_dist, index, rotated in zip(proc_dists, indices, rotateds):
                     if proc_dist >= Config().procrustes_thr():
                         continue
@@ -192,7 +287,9 @@ class StrictCorrespondenceStatsFinder(FileStatsFinder):
                         (m_ligand_coord[index][0] - m_ligand_coord[index])**2, axis=1))[1:].tolist())
                     angles.append([angle(m_ligand_coord[index][0], m_ligand_coord[index][i], m_ligand_coord[index][j]) for i in range(
                         1, len(ideal_ligand_coord) - 1) for j in range(i + 1, len(ideal_ligand_coord))])
-
+                   
+                if m < n:
+                    cods[file] = create_gemmi_structure(file_data)
             procrustes_dists = np.array(procrustes_dists)
             distances = np.array(distances).T
             angles = np.array(angles).T
@@ -200,6 +297,8 @@ class StrictCorrespondenceStatsFinder(FileStatsFinder):
             if (len(distances) > 0 and distances.shape[1] >= Config().min_sample_size):
                 clazz_stats = LigandStats(
                     class_result.clazz, class_result.proc, structure.coordination(), distances.shape[1], self._finder.description())
+                for file, st in cods.items():
+                    clazz_stats.add_cod_file(file, st)
 
                 sum_coords = sum_coords/n
 
@@ -243,6 +342,7 @@ class WeekCorrespondenceStatsFinder(FileStatsFinder):
             if len(files) > MAX_FILES:
                 files = np.random.choice(files, MAX_FILES, replace=False)
 
+            cods = {}
             for file in tqdm(files, desc=f"{class_result.clazz} ligands", leave=False, disable=Logger().disabled):
                 file_data = self._finder.data(file)
 
@@ -255,6 +355,7 @@ class WeekCorrespondenceStatsFinder(FileStatsFinder):
                         (m_ligand_coord[0] - m_ligand_coord)**2, axis=1))[1:].tolist())
                     lig_names.append(
                         file_data[["Ligand"]].values.ravel().tolist())
+                    cods[file] = create_gemmi_structure(file_data)
 
             distances = np.array(distances).T
             lig_names = np.array(lig_names).T
@@ -263,6 +364,9 @@ class WeekCorrespondenceStatsFinder(FileStatsFinder):
 
                 clazz_stats = LigandStats(
                     class_result.clazz, class_result.proc, structure.coordination(), distances.shape[1], self._finder.description())
+                for file, st in cods.items():
+                    clazz_stats.add_cod_file(file, st)
+
                 ligands = list(structure.ligands)
 
                 results = {}
@@ -331,7 +435,7 @@ class OnlyDistanceStatsFinder(StatsFinder):
 
         self.add_ideal_angels(structure, class_result, clazz_stats)
 
-        if clazz_stats.bondCount > 0:
+        if clazz_stats.bond_count > 0:
             return clazz_stats
         return None
 

@@ -12,8 +12,6 @@ from metalCoord.load.rcsb import load_pdb
 from metalCoord.logging import Logger
 
 
-MAX_FILES = 2000
-
 
 def get_structures(ligand, path, bonds=None, only_best=False) -> list:
     """

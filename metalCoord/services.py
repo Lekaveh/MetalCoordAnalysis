@@ -8,6 +8,8 @@ import networkx as nx
 import metalCoord
 from metalCoord.analysis.classes import idealClasses
 from metalCoord.analysis.classify import find_classes
+from metalCoord.analysis.models import PdbStats
+from metalCoord.config import Config
 from metalCoord.logging import Logger
 
 # Constants
@@ -230,6 +232,27 @@ def bond_exist(bonds, atom1, atom2):
             return True
     return False
 
+def save_cods(pdb_stats: PdbStats, path: str):
+    """
+    Save COD files for ligands in the given PdbStats object.
+
+    Args:
+        pdb_stats (PdbStats): The PdbStats object containing the ligand information.
+        path (str): The path where the COD files will be saved.
+
+    Returns:
+        None
+    """
+    output = os.path.join(path, "cod")
+    for monomer in pdb_stats.monomers():
+        for metal_stats in monomer.metals:
+            for ligand_stats in metal_stats.ligands:
+                output_folder = os.path.join(output, metal_stats.residue, metal_stats.chain, str(metal_stats.sequence), ligand_stats.clazz)
+                Path(output_folder).mkdir(exist_ok=True, parents=True)
+                for file, st in ligand_stats.cods:
+                    st.write_pdb(os.path.join(output_folder, file))
+
+
 def update_cif(output_path, path, pdb):
     """
     Update the CIF file with ligand information.
@@ -351,9 +374,9 @@ def update_cif(output_path, path, pdb):
             return result
                     
         
-        pdbStats = find_classes(name, pdb, get_bonds(atoms, bonds), only_best=True)
+        pdb_stats = find_classes(name, pdb, get_bonds(atoms, bonds), only_best=True)
 
-        if pdbStats.is_empty():
+        if pdb_stats.is_empty():
             # Logger().info(f"No coordination found for {name}  in {pdb}. Please check the PDB file")
             return
         
@@ -374,7 +397,7 @@ def update_cif(output_path, path, pdb):
                 metal_name, ligand_name = ligand_name, metal_name
 
 
-            bondStat = pdbStats.get_ligand_distance(metal_name, ligand_name)
+            bondStat = pdb_stats.get_ligand_distance(metal_name, ligand_name)
             if  bondStat:
                 bonds[VALUE_DIST][i] = bonds[VALUE_DIST_NUCLEUS][i] = str(round(bondStat.distance[0], 3))
                 bonds[VALUE_DIST_ESD][i] = bonds[VALUE_DIST_NUCLEUS_ESD][i] = str(round(bondStat.std[0], 3))
@@ -393,8 +416,8 @@ def update_cif(output_path, path, pdb):
             angles[VALUE_ANGLE] = list()
             angles[VALUE_ANGLE_ESD] = list()
 
-            for metal_name in pdbStats.metal_names():
-                for angle in pdbStats.get_ligand_angles(metal_name):
+            for metal_name in pdb_stats.metal_names():
+                for angle in pdb_stats.get_ligand_angles(metal_name):
                     if not bond_exist(bonds, angle.ligand1.name, metal_name) or not bond_exist(bonds, angle.ligand2.name, metal_name):
                         continue
                     angles[COMP_ID].append(name)
@@ -412,15 +435,15 @@ def update_cif(output_path, path, pdb):
                 if not gemmi.Element(get_element_name(atoms, metal_name)).is_metal:
                     continue
 
-                angleStat = pdbStats.get_ligand_angle(metal_name, ligand1_name, ligand2_name)
+                angleStat = pdb_stats.get_ligand_angle(metal_name, ligand1_name, ligand2_name)
                 if angleStat:
                     angles[VALUE_ANGLE][i] = str(round(angleStat.angle, 3))
                     angles[VALUE_ANGLE_ESD][i] = str(round(angleStat.std, 3))
                     update_angles.append(code(ligand1_name, metal_name, ligand2_name))
             
             
-            for metal_name in pdbStats.metal_names():
-                for angle in pdbStats.get_ligand_angles(metal_name):
+            for metal_name in pdb_stats.metal_names():
+                for angle in pdb_stats.get_ligand_angles(metal_name):
                     if code(angle.ligand1.name, metal_name, angle.ligand2.name) in update_angles:
                         continue
 
@@ -434,7 +457,7 @@ def update_cif(output_path, path, pdb):
                     angles[VALUE_ANGLE_ESD].append(str(round(angle.std, 3)))
             
         v = []
-        monomer = list(pdbStats.monomers())[-1]
+        monomer = list(pdb_stats.monomers())[-1]
         for metal_stat in monomer.metals:
             for bond in metal_stat.get_all_distances():
                 v.append((metal_stat.code, bond.ligand.code))
@@ -494,12 +517,16 @@ def update_cif(output_path, path, pdb):
         report_path = output_path + ".json"
         Logger().info(f"Update written to {output_path}")
         with open(report_path, 'w', encoding="utf-8") as json_file:
-            json.dump(pdbStats.json(), json_file, 
+            json.dump(pdb_stats.json(), json_file, 
                                 indent=4,  
                                 separators=(',',': '))
+        
+        if Config().save:
+            save_cods(pdb_stats, os.path.dirname(output_path))
         Logger().info(f"Report written to {report_path}")
     else:
         Logger().info(f"No metal found in {name}")
+
 
 
 def get_stats(ligand, pdb, output):
@@ -514,11 +541,16 @@ def get_stats(ligand, pdb, output):
     Returns:
         None
     """
-    results = find_classes(ligand, pdb).json()
+    pdb_stats = find_classes(ligand, pdb) 
+    results = pdb_stats.json()
+    
     with open(output, 'w', encoding="utf-8") as json_file:
         json.dump(results, json_file, 
                             indent=4,  
                             separators=(',',': '))
+    if Config().save:
+        save_cods(pdb_stats, os.path.dirname(output))
+
     Logger().info(f"Report written to {output}")
 
 
