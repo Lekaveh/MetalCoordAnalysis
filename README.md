@@ -11,6 +11,8 @@ The Metal Coordination Analysis Tool is a Python application designed for analyz
 
 - **Ligand Update**: Based coordination analysis update distances and angles of specified metal containing ligands.
 
+- **Coordination List**: Provides a list of coordination numbers for the given parameters.
+
 ## Installation
 
 ### Prerequisites
@@ -31,8 +33,28 @@ pip install git+https://github.com/Lekaveh/MetalCoordAnalysis
 
 ### Usage
 - **Metal Coordination Analysis**: 
-    - metalCoord stats [-h] -l LIGAND CODE -p <PDB CODE|PDB FILE> -o OUTPUT JSON FILE [-d <DISTANCE THRESHOLD>] [-t <PROCRUSTES DISTANCE THRESHOLD>] [-m <MINIMUM SAMPLE SIZE>] [--ideal_angles]
+    - metalCoord stats -l LIGAND_CODE -p <PDB_CODE|PDB_FILE> -o OUTPUT_JSON_FILE [-d <DISTANCE_THRESHOLD>] [-t <PROCRUSTES_DISTANCE_THRESHOLD>] [-m <MINIMUM_SAMPLE_SIZE>] [--ideal_angles] [-s] [--save]
+        - -l, --ligand: Ligand code.
+        - -o, --output: Output JSON file.
+        - -p, --pdb: PDB code or PDB file.
+        - -d, --dist: Distance threshold (default: 0.2, range: 0-1).
+        - -t, --threshold: Procrustes distance threshold (default: 0.3, range: 0-1).
+        - -m, --min_size: Minimum sample size for statistics (default: 30).
+        - --ideal_angles: Provide only ideal angles.
+        - -s, --simple: Simple distance-based filtering.
+        - --save: Save COD files used in statistics.
 - **Ligand Update**: 
-    - metalCoord update [-h] -i INPUT CIF FILE -o OUTPUT CIF FILE [-p <PDB CODE|PDB FILE>] [-d <DISTANCE THRESHOLD>] [-t <PROCRUSTES DISTANCE THRESHOLD>] [-m <MINIMUM SAMPLE SIZE>] [--ideal_angles]
+    - metalCoord update -i INPUT_CIF_FILE -o OUTPUT_CIF_FILE [-p <PDB_CODE|PDB_FILE>] [-d <DISTANCE_THRESHOLD>] [-t <PROCRUSTES_DISTANCE_THRESHOLD>] [-m <MINIMUM_SAMPLE_SIZE>] [--ideal_angles] [-s] [--save]
+        - -i, --input: CIF file.
+        - -o, --output: Output CIF file.
+        - -p, --pdb: PDB code or PDB file.
+        - -d, --dist: Distance threshold (default: 0.2, range: 0-1).
+        - -t, --threshold: Procrustes distance threshold (default: 0.3, range: 0-1).
+        - -m, --min_size: Minimum sample size for statistics (default: 30).
+        - --ideal_angles: Provide only ideal angles.
+        - -s, --simple: Simple distance-based filtering.
+        - --save: Save COD files used in statistics.
 - **Coordination List**: 
-    - metalCoord coord [-h] [-n <COORDINATION NUMBER>]
+    - metalCoord coord [-n <COORDINATION_NUMBER>]
+        - -n, --number: Coordination number.
+
