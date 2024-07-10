@@ -250,12 +250,15 @@ class StrictCorrespondenceStatsFinder(FileStatsFinder):
 
         if class_result.clazz in self._classes:
             files = self._files[class_result.clazz]
-
-            ideal_ligand_coord = class_result.coord[class_result.index]
+            
+            if Config().use_pdb:
+                pattern_ligand_coord = structure.get_coord()
+            else:
+                pattern_ligand_coord = class_result.coord[class_result.index]
 
             distances = []
             procrustes_dists = []
-            sum_coords = np.zeros(ideal_ligand_coord.shape)
+            sum_coords = np.zeros(pattern_ligand_coord.shape)
             n = 0
             angles = []
             if len(files) > MAX_FILES:
@@ -272,7 +275,7 @@ class StrictCorrespondenceStatsFinder(FileStatsFinder):
                 groups = get_groups(o_ligand_atoms,  m_ligand_atoms)
 
                 proc_dists, indices, _, rotateds = fit(
-                    ideal_ligand_coord, m_ligand_coord, groups=groups, all=True)
+                    pattern_ligand_coord, m_ligand_coord, groups=groups, all=True)
 
                 m = n
                 for proc_dist, index, rotated in zip(proc_dists, indices, rotateds):
@@ -286,7 +289,7 @@ class StrictCorrespondenceStatsFinder(FileStatsFinder):
                     distances.append(np.sqrt(np.sum(
                         (m_ligand_coord[index][0] - m_ligand_coord[index])**2, axis=1))[1:].tolist())
                     angles.append([angle(m_ligand_coord[index][0], m_ligand_coord[index][i], m_ligand_coord[index][j]) for i in range(
-                        1, len(ideal_ligand_coord) - 1) for j in range(i + 1, len(ideal_ligand_coord))])
+                        1, len(pattern_ligand_coord) - 1) for j in range(i + 1, len(pattern_ligand_coord))])
                    
                 if m < n:
                     cods[file] = create_gemmi_structure(file_data)
@@ -335,7 +338,10 @@ class WeekCorrespondenceStatsFinder(FileStatsFinder):
         if class_result.clazz in self._classes:
             files = self._files[class_result.clazz]
 
-            ideal_ligand_coord = class_result.coord[class_result.index]
+            if Config().use_pdb:
+                pattern_ligand_coord = structure.get_coord()
+            else:
+                pattern_ligand_coord = class_result.coord[class_result.index]
 
             distances = []
             lig_names = []
@@ -348,7 +354,7 @@ class WeekCorrespondenceStatsFinder(FileStatsFinder):
 
                 m_ligand_coord = get_coordinate(file_data)
                 proc_dist, _, _, _, _ = fit(
-                    ideal_ligand_coord, m_ligand_coord)
+                    pattern_ligand_coord, m_ligand_coord)
 
                 if proc_dist < Config().procrustes_thr():
                     distances.append(np.sqrt(np.sum(

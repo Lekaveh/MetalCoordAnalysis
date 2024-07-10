@@ -74,12 +74,14 @@ def create_parser():
                                metavar='<PROCRUSTES DISTANCE THRESHOLD>', default=0.3, choices=[Range(0, 1)])
     update_parser.add_argument('-m', '--min_size', required=False, help='Minimum sample size for statistics.',
                                metavar='<MINIMUM SAMPLE SIZE>', default=30, type=check_positive)
-    update_parser.add_argument('--ideal_angles', required=False,
+    update_parser.add_argument('--ideal-angles', required=False,
                                help='Provide only ideal angles', default=argparse.SUPPRESS,  action='store_true')
     update_parser.add_argument('-s', '--simple', required=False,
                               help='Simple distance based filtering', default=argparse.SUPPRESS,  action='store_true')
     update_parser.add_argument('--save', required=False,
                               help='Save COD files used in statistics', default=argparse.SUPPRESS,  action='store_true')
+    update_parser.add_argument('--use-pdb', required=False,
+                              help='Use COD structures based on pdb coordinates', default=argparse.SUPPRESS,  action='store_true')
 
     # App2
     stats_parser = subparsers.add_parser(
@@ -96,12 +98,14 @@ def create_parser():
                               metavar='<PROCRUSTES DISTANCE THRESHOLD>', default=0.3, choices=[Range(0, 1)])
     stats_parser.add_argument('-m', '--min_size', required=False, help='Minimum sample size for statistics.',
                               metavar='<MINIMUM SAMPLE SIZE>', default=30, type=check_positive)
-    stats_parser.add_argument('--ideal_angles', required=False,
+    stats_parser.add_argument('--ideal-angles', required=False,
                               help='Provide only ideal angles', default=argparse.SUPPRESS,  action='store_true')
     stats_parser.add_argument('-s', '--simple', required=False,
                               help='Simple distance based filtering', default=argparse.SUPPRESS,  action='store_true')
     stats_parser.add_argument('--save', required=False,
                               help='Save COD files used in statistics', default=argparse.SUPPRESS,  action='store_true')
+    stats_parser.add_argument('--use-pdb', required=False,
+                              help='Use COD structures based on pdb coordinates', default=argparse.SUPPRESS,  action='store_true')
 
 
     # App3
@@ -136,7 +140,9 @@ def main_func():
             Config().min_sample_size = args.min_size
             Config().simple = args.simple if "simple" in args else False
             Config().save = args.save if "save" in args else False
+            Config().use_pdb = args.use_pdb if "use_pdb" in args else False
             Config().output_folder = os.path.dirname(args.output)
+
 
         if args.command == 'update':
             update_cif(args.output, args.input, args.pdb)
