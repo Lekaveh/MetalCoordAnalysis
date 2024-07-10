@@ -198,7 +198,7 @@ class FileStatsFinder(StatsFinder):
     def _calculate(self, stucture, clazz, main_proc_dist):
         pass
 
-def create_gemmi_structure(df):
+def create_gemmi_structure(df, coords):
     """
     Create a Gemmi structure from a DataFrame.
 
@@ -213,13 +213,15 @@ def create_gemmi_structure(df):
     residue.name = "RES"
     residue.seqid = gemmi.SeqId(str(1))
     atom_number = 1
+    coords = coords - coords[0]
     for _, row in df.iterrows():
         # Create metal residue and add metal atom
         if atom_number == 1:
             metal_atom = gemmi.Atom()
             metal_atom.name = row['MetalName']
             metal_atom.element = gemmi.Element(row['Metal'])
-            metal_atom.pos = gemmi.Position(row['MetalX'], row['MetalY'], row['MetalZ'])
+            # metal_atom.pos = gemmi.Position(row['MetalX'], row['MetalY'], row['MetalZ'])
+            metal_atom.pos = gemmi.Position(coords[atom_number - 1, 0], coords[atom_number - 1, 2], coords[atom_number - 1, 1])
             metal_atom.serial = atom_number
             residue.add_atom(metal_atom)
             atom_number += 1
@@ -228,7 +230,8 @@ def create_gemmi_structure(df):
         ligand_atom = gemmi.Atom()
         ligand_atom.name = row['LigandName']
         ligand_atom.element = gemmi.Element(row['Ligand'])
-        ligand_atom.pos = gemmi.Position(row['LigandX'], row['LigandY'], row['LigandZ'])
+        # ligand_atom.pos = gemmi.Position(row['LigandX'], row['LigandY'], row['LigandZ'])
+        ligand_atom.pos = gemmi.Position(coords[atom_number - 1, 0], coords[atom_number - 1, 2], coords[atom_number - 1, 1])
         ligand_atom.serial = atom_number
         residue.add_atom(ligand_atom)
         atom_number += 1
@@ -292,7 +295,7 @@ class StrictCorrespondenceStatsFinder(FileStatsFinder):
                         1, len(pattern_ligand_coord) - 1) for j in range(i + 1, len(pattern_ligand_coord))])
                    
                 if m < n:
-                    cods[file] = create_gemmi_structure(file_data)
+                    cods[file] = create_gemmi_structure(file_data, rotateds[0])
             procrustes_dists = np.array(procrustes_dists)
             distances = np.array(distances).T
             angles = np.array(angles).T
@@ -353,7 +356,7 @@ class WeekCorrespondenceStatsFinder(FileStatsFinder):
                 file_data = self._finder.data(file)
 
                 m_ligand_coord = get_coordinate(file_data)
-                proc_dist, _, _, _, _ = fit(
+                proc_dist, _, _, r, _ = fit(
                     pattern_ligand_coord, m_ligand_coord)
 
                 if proc_dist < Config().procrustes_thr():
@@ -361,7 +364,7 @@ class WeekCorrespondenceStatsFinder(FileStatsFinder):
                         (m_ligand_coord[0] - m_ligand_coord)**2, axis=1))[1:].tolist())
                     lig_names.append(
                         file_data[["Ligand"]].values.ravel().tolist())
-                    cods[file] = create_gemmi_structure(file_data)
+                    cods[file] = create_gemmi_structure(file_data, m_ligand_coord@r)
 
             distances = np.array(distances).T
             lig_names = np.array(lig_names).T
