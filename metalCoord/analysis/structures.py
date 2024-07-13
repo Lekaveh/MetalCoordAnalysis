@@ -1,3 +1,6 @@
+import re
+from unittest import result
+from matplotlib.pylab import f
 import numpy as np
 import gemmi
 from metalCoord.config import Config
@@ -67,6 +70,34 @@ class Ligand:
         self._chain = chain
         self._ligands = []
         self._extra_ligands = []
+
+    def clean_the_farthest(self, free: bool = False) -> "Ligand":
+        """
+        Cleans the farthest ligand from the metal coordination.
+
+        Args:
+            free (bool, optional): If True, includes ligands from both self._ligands and self._extra_ligands.
+                                   If False, includes only ligands from self._extra_ligands. Default is False.
+
+        Returns
+            Ligand: A new Ligand object with the farthest ligand removed.
+
+        """
+        atoms = self._ligands + self._extra_ligands if free else self._extra_ligands
+        to_delete = list(sorted([[l.atom, self._cov_dist_coeff(l)]
+                         for l in atoms], key=lambda x: x[1], reverse=True))[0][0]
+        cleaned_ligand = Ligand(self._metal, self._residue, self._chain)
+
+        for l in self._ligands:
+            if free:
+                if l.atom != to_delete:
+                    cleaned_ligand.add_ligand(l)
+            else:
+                cleaned_ligand.add_ligand(l)
+        for l in self._extra_ligands:
+            if l.atom != to_delete:
+                cleaned_ligand.add_extra_ligand(l)
+        return cleaned_ligand
 
     def _euclidean(self, atom1: gemmi.Atom, atom2: gemmi.Atom):
         """
@@ -452,7 +483,7 @@ def get_ligands(st, ligand, bonds=None, max_dist=10, only_best=False) -> list[Li
 
                             for a1 in N0[:]:
                                 for a2 in N1:
-                                    if distance(a1.atom, a2.atom) < (covalent_radii(a1.atom.element.name) + covalent_radii(a2.atom.element.name)) * alpha1  and angle(atom, a2.atom, a1.atom) > angle1:
+                                    if distance(a1.atom, a2.atom) < (covalent_radii(a1.atom.element.name) + covalent_radii(a2.atom.element.name)) * alpha1 and angle(atom, a2.atom, a1.atom) > angle1:
                                         N0.remove(a1)
 
                         for a in N1:

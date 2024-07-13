@@ -7,13 +7,13 @@ from metalCoord.analysis.data import DB
 from metalCoord.analysis.cod import StrictCandidateFinder, ElementCandidateFinder, ElementInCandidateFinder, AnyElementCandidateFinder, NoCoordinationCandidateFinder, CovalentCandidateFinder
 from metalCoord.analysis.stats import OnlyDistanceStatsFinder, WeekCorrespondenceStatsFinder, StrictCorrespondenceStatsFinder, CovalentStatsFinder
 from metalCoord.analysis.models import MetalStats, PdbStats
-from metalCoord.analysis.structures import get_ligands
+from metalCoord.analysis.structures import get_ligands, Ligand
 from metalCoord.load.rcsb import load_pdb
 from metalCoord.logging import Logger
 
 
 
-def get_structures(ligand, path, bonds=None, only_best=False) -> list:
+def get_structures(ligand, path, bonds=None, only_best=False) -> list[Ligand]:
     """
     Retrieves structures contained in a specific ligand from a given file or 4-letter PDB code.
 
@@ -61,7 +61,7 @@ strategies = [StrictCorrespondenceStatsFinder(StrictCandidateFinder()),
               ]
 
 
-def find_classes(ligand, pdb_name, bonds=None, only_best=False):
+def find_classes(ligand: str, pdb_name: str, bonds: dict = None, only_best: bool = False) -> PdbStats:
     """
     Analyzes structures in a given PDB file for patterns and returns the statistics for ligands (metals) found.
 
@@ -85,24 +85,32 @@ def find_classes(ligand, pdb_name, bonds=None, only_best=False):
     results = PdbStats()
     classificator = Classificator()
 
-    classes = []
+    classes = {}
     for structure in tqdm(structures, desc="Structures", position=0, disable=Logger().disabled):
         structure_classes = []
+
         for class_result in tqdm(classificator.classify(structure), desc="Coordination", position=1, leave=False, disable=Logger().disabled):
             structure_classes.append(class_result)
-        classes.append(structure_classes)
 
-    for structure, structure_classes in zip(structures, classes):
+        if not structure_classes:
+            new_structure = structure.clean_the_farthest(bonds == {}) 
+            for class_result in tqdm(classificator.classify(new_structure), desc="Coordination", position=1, leave=False, disable=Logger().disabled):
+                structure_classes.append(class_result)
+            if structure_classes:
+                structure = new_structure
+        classes[structure] = structure_classes
+
+    for structure, structure_classes in classes.items():
         candidantes = []
         for class_result in structure_classes:
             candidantes.append(class_result.clazz)
         Logger().info(f"Candidates for {structure} : {candidantes}")
 
-    for i, structure in tqdm(list(enumerate(structures)), desc="Structures", position=0, disable=Logger().disabled):
+    for structure in tqdm(classes.keys(), desc="Structures", position=0, disable=Logger().disabled):
         metal_stats = MetalStats(structure.metal.name, structure.metal.element.name, structure.chain.name,
                                 structure.residue.name, structure.residue.seqid.num, structure.residue.seqid.icode.strip(), structure.metal.altloc, structure.mean_occ(), structure.mean_b())
-        if classes[i]:
-            for class_result in classes[i]:
+        if classes[structure]:
+            for class_result in classes[structure]:
                 for strategy in tqdm(strategies, desc="Strategies", position=1, leave=False, disable=Logger().disabled):
                     ligand_stats = strategy.get_stats(
                         structure, DB.data(), class_result)
