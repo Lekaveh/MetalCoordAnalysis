@@ -1,8 +1,11 @@
+from operator import le
 import re
 from unittest import result
 from matplotlib.pylab import f
+from networkx import all_neighbors
 import numpy as np
 import gemmi
+from sklearn import neighbors
 from metalCoord.config import Config
 
 
@@ -411,10 +414,42 @@ def get_ligands(st, ligand, bonds=None, max_dist=10, only_best=False) -> list[Li
     alpha = 1.5
     beta1 = [1.2, 1.3, 1.4]
     alpha1 = 1.1
-    angle1 = 100
+    angle1 = 60
+
+    
 
     def covalent_radii(element):
         return gemmi.Element(element).covalent_r
+    
+    def find_min_angle_and_update(atom, n0, n1, beta_c):
+
+        while True:
+            l_n1 = len(n1)
+            angles = [
+                (angle(a1.atom, atom, a2.atom), a1, a2)
+                for a1 in n1 + n0 for a2 in n1 + n0 if a1 != a2
+            ]
+
+
+            if all(a > angle1 for a, _, _ in angles):
+                return n0, n1
+            
+            angles = list(filter(lambda x: (x[1] in n1) or (x[2] in n1), angles))
+            _, min_a1, min_a2 = min(angles, key=lambda x: x[0])
+
+            coef_i = distance(atom, min_a1.atom) / (covalent_radii(atom.element.name) + covalent_radii(min_a1.atom.element.name))
+            coef_j = distance(atom, min_a2.atom) / (covalent_radii(atom.element.name) + covalent_radii(min_a2.atom.element.name))
+            max_coef_atom = min_a1 if coef_i > coef_j else min_a2
+
+   
+            if max_coef_atom in n1 and max(coef_i, coef_j) > beta_c:
+                n1.remove(max_coef_atom)
+                      
+            if len(n1) == l_n1:
+                return n0, n1
+            
+            if not n1:
+                return n0, n1
 
     if st is None:
         return None
@@ -463,36 +498,48 @@ def get_ligands(st, ligand, bonds=None, max_dist=10, only_best=False) -> list[Li
                                     ligand_obj.add_extra_ligand(
                                         Atom(cra.atom, cra.residue, cra.chain))
                     else:
-                        marks = ns.find_neighbors(
-                            atom, min_dist=0.1, max_dist=max_dist)
-                        N0 = [mark.to_cra(st[0]) for mark in marks if not mark.to_cra(st[0]).atom.element.is_metal and distance(atom, mark.to_cra(
-                            st[0]).atom) < (covalent_radii(atom.element.name) + covalent_radii(mark.to_cra(st[0]).atom.element.name)) * alpha]
+                        k = 2
+                        # Step 1: Select all atoms for which d(m, i) < alpha * (r_m + r_i). Denote this set as n1.
+                        marks = ns.find_neighbors(atom, min_dist=0.1, max_dist=max_dist)
+                        
+                        neighbour_atoms = [mark.to_cra(st[0]) for mark in marks]
+                        n1 = [
+                            neighbour_atom for neighbour_atom in neighbour_atoms
+                            if not neighbour_atom.atom.element.is_metal and distance(atom, neighbour_atom.atom) < (covalent_radii(atom.element.name) + covalent_radii(neighbour_atom.atom.element.name)) * alpha
+                        ]
 
-                        N1 = []
+                        # Step 2: Select all atoms for which d(m, i) <= alpha1 * (r_m + r_i). Denote this set n0.
+                        n0 = [
+                            neighbour_atom for neighbour_atom in neighbour_atoms
+                            if not neighbour_atom.atom.element.is_metal and distance(atom, neighbour_atom.atom) <= (covalent_radii(atom.element.name) + covalent_radii(neighbour_atom.atom.element.name)) * alpha1
+                        ]
+
+                        
+
+                        # Step 3: Remove atoms in n0 from n1n1
+                        n1 = [a for a in n1 if a not in n0]
                         if bonds:
-                            for a in N0[:]:
-                                if a.atom.name in metal_bonds:
-                                    N1.append(a)
-                                    N0.remove(a)
+                            for a in n1:
+                                if a.atom.name in metal_bonds and a.residue.name == ligand and a.residue.seqid.num == residue.seqid.num and a.chain.name == chain.name:
+                                    n0.append(a)
+                                    n1.remove(a)
 
-                        for i, beta in enumerate(beta1):
-                            for a2 in N0[:]:
-                                if distance(atom, a2.atom) < (covalent_radii(atom.element.name) + covalent_radii(a2.atom.element.name)) * beta:
-                                    N1.append(a2)
-                                    N0.remove(a2)
+                        # Step 4-9: Apply the logic iteratively
+                        print(atom.name, [a.atom.name for a in n0], [a.atom.name for a in n1])
+                        beta_c = beta1[k]
+                        while k >=0 :
+                            n0, n1 = find_min_angle_and_update(atom, n0, n1, beta_c)
+                            k -= 1
+                            beta_c = beta1[k]
 
-                            for a1 in N0[:]:
-                                for a2 in N1:
-                                    if distance(a1.atom, a2.atom) < (covalent_radii(a1.atom.element.name) + covalent_radii(a2.atom.element.name)) * alpha1 and angle(atom, a2.atom, a1.atom) > angle1:
-                                        N0.remove(a1)
+                        n0.extend(n1)
 
-                        for a in N1:
+                        # Add atoms to ligand_obj
+                        for a in n0:
                             if a.residue.name == ligand and a.residue.seqid.num == residue.seqid.num and a.chain.name == chain.name:
-                                ligand_obj.add_ligand(
-                                    Atom(a.atom, a.residue, a.chain))
+                                ligand_obj.add_ligand(Atom(a.atom, a.residue, a.chain))
                             else:
-                                ligand_obj.add_extra_ligand(
-                                    Atom(a.atom, a.residue, a.chain))
+                                ligand_obj.add_extra_ligand(Atom(a.atom, a.residue, a.chain))
 
                     # ligand_obj.filter_base()
                     ligand_obj.filter_extra()
