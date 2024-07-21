@@ -525,7 +525,6 @@ def get_ligands(st, ligand, bonds=None, max_dist=10, only_best=False) -> list[Li
                                     n1.remove(a)
 
                         # Step 4-9: Apply the logic iteratively
-                        print(atom.name, [a.atom.name for a in n0], [a.atom.name for a in n1])
                         beta_c = beta1[k]
                         while k >=0 :
                             n0, n1 = find_min_angle_and_update(atom, n0, n1, beta_c)
