@@ -422,7 +422,9 @@ def get_ligands(st, ligand, bonds=None, max_dist=10, only_best=False) -> list[Li
         return gemmi.Element(element).covalent_r
     
     def find_min_angle_and_update(atom, n0, n1, beta_c):
-
+        if not n1:
+            return n0, n1
+        
         while True:
             l_n1 = len(n1)
             angles = [
