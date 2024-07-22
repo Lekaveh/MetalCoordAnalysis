@@ -20,8 +20,8 @@ class Ligand():
         self._chain = ligand.chain.name
         self._residue = ligand.residue.name
         self._sequence = ligand.residue.seqid.num
-        self._icode = ligand.residue.seqid.icode.strip()
-        self._altloc = ligand.atom.altloc
+        self._icode = ligand.residue.seqid.icode.strip().replace('\x00', '')
+        self._altloc = ligand.atom.altloc.strip().replace('\x00', '')
 
     @property
     def name(self):
@@ -608,8 +608,8 @@ class MetalStats():
         self._sequence = sequence
         self._mean_occ = mean_occ
         self._mean_b = mean_b
-        self._icode = icode
-        self._altloc = altloc
+        self._icode = icode.replace('\x00', '')
+        self._altloc = altloc.replace('\x00', '')
         self._ligands = []
 
     @property
@@ -888,7 +888,7 @@ class MetalStats():
         """
         metal = {"chain": self.chain, "residue": self.residue, "sequence": self.sequence, "metal": self.metal,
                  "metalElement": self.metal_element, "icode": self.insertion_code, "altloc": self.altloc, "ligands": []}
-
+        
         for l in sorted(self.ligands, key=lambda x: (-x.coordination, x.procrustes)):
             metal["ligands"].append(l.to_dict())
 
@@ -896,6 +896,34 @@ class MetalStats():
 
 
 class MonomerStats():
+    """
+    Represents the statistics of a monomer in a metal coordination analysis.
+
+    Attributes:
+        _chain (str): The chain identifier of the monomer.
+        _residue (str): The residue identifier of the monomer.
+        _sequence (str): The sequence of the monomer.
+        _metals (dict): A dictionary containing the metals associated with the monomer.
+
+    Methods:
+        code(): Returns a tuple containing the chain, residue, and sequence of the monomer.
+        chain(): Returns the chain identifier of the monomer.
+        residue(): Returns the residue identifier of the monomer.
+        sequence(): Returns the sequence of the monomer.
+        metals(): Returns a generator that yields the metals associated with the monomer.
+        metal_names(): Returns a list of the names of the metals associated with the monomer.
+        get_metal(metal_name): Returns the metal with the specified name, or None if not found.
+        is_in(atom): Checks if the monomer is associated with the specified atom.
+        add_metal(metal): Adds a metal to the monomer if it is associated with the monomer.
+        contains(metal_name): Checks if the monomer contains a metal with the specified name.
+        get_best_class(metal_name): Returns the best class of the metal with the specified name, or None if not found.
+        get_ligand_bond(metal_name, ligand_name): Returns the bond length between the metal and the specified ligand, or None if not found.
+        get_ligand_angle(metal_name, ligand1_name, ligand2_name): Returns the angle between the metal and the specified ligands, or None if not found.
+        get_angle(metal_name, ligand1_code, ligand2_code): Returns the angle between the specified ligands in the metal coordination, or None if not found.
+        len(): Returns the number of metals associated with the monomer.
+        is_empty(): Checks if the monomer has no associated metals.
+    """
+
     def __init__(self, chain, residue, sequence) -> None:
         self._chain = chain
         self._residue = residue
@@ -904,92 +932,273 @@ class MonomerStats():
 
     @property
     def code(self):
+        """
+        Returns the code of the model.
+
+        The code is a tuple containing the chain, residue, and sequence of the model.
+
+        Returns:
+            tuple: A tuple containing the chain, residue, and sequence of the model.
+        """
         return (self._chain, self._residue, self._sequence)
 
     @property
     def chain(self):
+        """
+        Get the chain of the model.
+
+        Returns:
+            str: The chain of the model.
+        """
         return self._chain
 
     @property
     def residue(self):
+        """
+        Get the residue associated with this model.
+
+        Returns:
+            The residue object.
+        """
         return self._residue
 
     @property
     def sequence(self):
+        """
+        Get the sequence of the monomer.
+
+        Returns:
+            str: The sequence of the monomer.
+        """
         return self._sequence
 
     @property
     def metals(self):
+        """
+        Get a generator that yields the metals associated with the monomer.
+
+        Yields:
+            Metal: The metals associated with the monomer.
+        """
         for metal in self._metals.values():
             yield metal
 
     def metal_names(self):
-        return self._metals.keys()
+        """
+        Get a list of the names of the metals associated with the monomer.
+
+        Returns:
+            list: A list of the names of the metals associated with the monomer.
+        """
+        return list(self._metals.keys())
 
     def get_metal(self, metal_name):
+        """
+        Get the metal with the specified name.
+
+        Args:
+            metal_name (str): The name of the metal.
+
+        Returns:
+            Metal: The metal with the specified name, or None if not found.
+        """
         return self._metals.get(metal_name, None)
 
     def is_in(self, atom):
+        """
+        Check if the monomer is associated with the specified atom.
+
+        Args:
+            atom (Atom): The atom to check.
+
+        Returns:
+            bool: True if the monomer is associated with the atom, False otherwise.
+        """
         return self._chain == atom.chain and self._residue == atom.residue and self._sequence == atom.sequence
 
     def add_metal(self, metal):
+        """
+        Add a metal to the monomer if it is associated with the monomer.
+
+        Args:
+            metal (Metal): The metal to add.
+        """
         if self.is_in(metal):
             self._metals.setdefault(metal.metal, metal)
 
     def contains(self, metal_name):
+        """
+        Check if the monomer contains a metal with the specified name.
+
+        Args:
+            metal_name (str): The name of the metal.
+
+        Returns:
+            bool: True if the monomer contains a metal with the specified name, False otherwise.
+        """
         return metal_name in self._metals
 
     def get_best_class(self, metal_name):
+        """
+        Get the best class of the metal with the specified name.
+
+        Args:
+            metal_name (str): The name of the metal.
+
+        Returns:
+            str: The best class of the metal with the specified name, or None if not found.
+        """
         if metal_name in self._metals:
             return self._metals[metal_name].get_best_class()
         return None
 
     def get_ligand_bond(self, metal_name, ligand_name):
+        """
+        Get the bond length between the metal and the specified ligand.
+
+        Args:
+            metal_name (str): The name of the metal.
+            ligand_name (str): The name of the ligand.
+
+        Returns:
+            float: The bond length between the metal and the specified ligand, or None if not found.
+        """
         if metal_name in self._metals:
             return self._metals[metal_name].get_ligand_bond(ligand_name)
         return None
 
     def get_ligand_angle(self, metal_name, ligand1_name, ligand2_name):
+        """
+        Get the angle between the metal and the specified ligands.
+
+        Args:
+            metal_name (str): The name of the metal.
+            ligand1_name (str): The name of the first ligand.
+            ligand2_name (str): The name of the second ligand.
+
+        Returns:
+            float: The angle between the metal and the specified ligands, or None if not found.
+        """
         if metal_name in self._metals:
             return self._metals[metal_name].get_ligand_angle(ligand1_name, ligand2_name)
         return None
 
     def get_angle(self, metal_name, ligand1_code, ligand2_code):
+        """
+        Get the angle between the specified ligands in the metal coordination.
+
+        Args:
+            metal_name (str): The name of the metal.
+            ligand1_code (str): The code of the first ligand.
+            ligand2_code (str): The code of the second ligand.
+
+        Returns:
+            float: The angle between the specified ligands in the metal coordination, or None if not found.
+        """
         if metal_name in self._metals:
             return self._metals[metal_name].get_angle(ligand1_code, ligand2_code)
         return None
 
     def len(self):
+        """
+        Get the number of metals associated with the monomer.
+
+        Returns:
+            int: The number of metals associated with the monomer.
+        """
         return len(self._metals)
 
     def is_empty(self):
+        """
+        Check if the monomer has no associated metals.
+
+        Returns:
+            bool: True if the monomer has no associated metals, False otherwise.
+        """
         return self.len() == 0
 
 
 class PdbStats():
+    """
+    Represents the statistics of a PDB file.
+
+    Attributes:
+        _monomers (dict): A dictionary containing the monomers in the PDB file.
+
+    Methods:
+        add_metal: Adds a metal to the PDB file.
+        monomers: Returns an iterator over the monomers in the PDB file.
+        metal_names: Returns a list of unique metal names in the PDB file.
+        metals: Returns an iterator over all the metals in the PDB file.
+        get_best_class: Returns the best class for a given metal name.
+        get_ligand_distances: Returns the ligand distances for a given metal name.
+        get_ligand_distance: Returns the ligand distance for a given metal name and ligand name.
+        get_ligand_angle: Returns the ligand angle for a given metal name, ligand1 name, and ligand2 name.
+        get_ligand_angles: Returns the ligand angles for a given metal name.
+        get_all_distances: Returns all the distances for a given metal name.
+        is_empty: Checks if the PDB file is empty.
+        len: Returns the total number of monomers in the PDB file.
+        json: Returns a JSON representation of the PDB file.
+    """
+
     def __init__(self) -> None:
         self._monomers = dict()
 
     def add_metal(self, metal):
+        """
+        Adds a metal to the PDB file.
+
+        Args:
+            metal: The metal to be added.
+
+        Returns:
+            None
+        """
         if not metal.is_empty():
             self._monomers.setdefault(metal.chain + metal.residue + str(metal.sequence),
                                       MonomerStats(metal.chain, metal.residue, metal.sequence)).add_metal(metal)
 
     def monomers(self):
+        """
+        Returns an iterator over the monomers in the PDB file.
+
+        Yields:
+            MonomerStats: The monomer statistics.
+        """
         for monomer in self._monomers.values():
             yield monomer
 
     def metal_names(self):
+        """
+        Returns a list of unique metal names in the PDB file.
+
+        Returns:
+            list: The list of unique metal names.
+        """
         return np.unique([name for monomer in self._monomers.values() for name in monomer.metal_names()]).tolist()
 
     @property
     def metals(self):
+        """
+        Returns an iterator over all the metals in the PDB file.
+
+        Yields:
+            MetalStats: The metal statistics.
+        """
         for monomer in self._monomers.values():
             for metal in monomer.metals:
                 yield metal
 
     def get_best_class(self, metal_name):
+        """
+        Returns the best class for a given metal name.
 
+        Args:
+            metal_name (str): The name of the metal.
+
+        Returns:
+            MetalClass: The best class for the given metal name.
+        """
         metals = [monomer.get_metal(
             metal_name) for monomer in self.monomers() if monomer.contains(metal_name)]
         classes = [metal.get_best_class() for metal in metals]
@@ -1000,7 +1209,6 @@ class PdbStats():
             return None
 
         if np.min(coordinations) != np.max(coordinations):
-
             b_vlaues = [metal.mean_b for metal in metals]
             occ_values = [metal.mean_occ for metal in metals]
             best_occ = np.max(occ_values)
@@ -1009,24 +1217,63 @@ class PdbStats():
         return classes[np.argmin(procrustes)]
 
     def get_ligand_distances(self, metal_name):
+        """
+        Returns the ligand distances for a given metal name.
+
+        Args:
+            metal_name (str): The name of the metal.
+
+        Returns:
+            list: The ligand distances for the given metal name.
+        """
         clazz = self.get_best_class(metal_name)
         if clazz:
             return clazz.get_ligand_distances()
         return []
 
     def get_ligand_distance(self, metal_name, ligand_name):
+        """
+        Returns the ligand distance for a given metal name and ligand name.
+
+        Args:
+            metal_name (str): The name of the metal.
+            ligand_name (str): The name of the ligand.
+
+        Returns:
+            float: The ligand distance for the given metal name and ligand name.
+        """
         clazz = self.get_best_class(metal_name)
         if clazz:
             return clazz.get_ligand_bond(ligand_name)
         return None
 
     def get_ligand_angle(self, metal_name, ligand1_name, ligand2_name):
+        """
+        Returns the ligand angle for a given metal name, ligand1 name, and ligand2 name.
+
+        Args:
+            metal_name (str): The name of the metal.
+            ligand1_name (str): The name of the first ligand.
+            ligand2_name (str): The name of the second ligand.
+
+        Returns:
+            list: The ligand angle for the given metal name, ligand1 name, and ligand2 name.
+        """
         clazz = self.get_best_class(metal_name)
         if clazz:
             return clazz.get_ligand_angle(ligand1_name, ligand2_name)
         return []
 
     def get_ligand_angles(self, metal_name):
+        """
+        Returns the ligand angles for a given metal name.
+
+        Args:
+            metal_name (str): The name of the metal.
+
+        Returns:
+            list: The ligand angles for the given metal name.
+        """
         clazz = self.get_best_class(metal_name)
 
         if clazz:
@@ -1034,16 +1281,43 @@ class PdbStats():
         return []
 
     def get_all_distances(self, metal_name):
+        """
+        Returns all the distances for a given metal name.
+
+        Args:
+            metal_name (str): The name of the metal.
+
+        Returns:
+            list: All the distances for the given metal name.
+        """
         clazz = self.get_best_class(metal_name)
         if clazz:
             return clazz.get_all_distances()
         return []
 
     def is_empty(self):
+        """
+        Checks if the PDB file is empty.
+
+        Returns:
+            bool: True if the PDB file is empty, False otherwise.
+        """
         return len(self._monomers) == 0
 
     def len(self):
+        """
+        Returns the total number of monomers in the PDB file.
+
+        Returns:
+            int: The total number of monomers.
+        """
         return np.sum([monomer.len() for monomer in self.monomers()])
 
     def json(self):
+        """
+        Returns a JSON representation of the statistics of the PDB file.
+
+        Returns:
+            list: A list of dictionaries representing the metals in the PDB file.
+        """
         return [metal.to_dict() for monomer in self.monomers() for metal in monomer.metals]
