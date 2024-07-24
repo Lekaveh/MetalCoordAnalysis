@@ -1,7 +1,6 @@
 import argparse
 import os
 
-from pyparsing import C
 import metalCoord
 from metalCoord.logging import Logger
 from metalCoord.services import update_cif, get_stats, get_coordinations
