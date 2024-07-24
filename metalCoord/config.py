@@ -29,6 +29,7 @@ class Config:
         self.save = False
         self.ideal_angles = False
         self.use_pdb = False
+        self.max_coordination_number = None
         self.output_folder = ""
         self.__initialized = True
 

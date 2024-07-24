@@ -1,5 +1,7 @@
 import argparse
 import os
+
+from pyparsing import C
 import metalCoord
 from metalCoord.logging import Logger
 from metalCoord.services import update_cif, get_stats, get_coordinations
@@ -44,6 +46,25 @@ def check_positive(value: str) -> int:
             f"{value} is an invalid positive int value")
     return ivalue
 
+def check_positive_more_than_two(value: str) -> int:
+    """
+    Check if the given value is a positive integer greater than 1.
+
+    Args:
+        value (str): The value to be checked.
+
+    Returns:
+        int: The converted integer value if it is valid.
+
+    Raises:
+        argparse.ArgumentTypeError: If the value is not a valid positive integer greater than 1.
+    """
+
+    ivalue = int(value)
+    if ivalue <= 1:
+        raise argparse.ArgumentTypeError(
+            f"{value} is an invalid positive int value. It should be more than 1")
+    return ivalue
 
 def create_parser():
     """
@@ -82,6 +103,8 @@ def create_parser():
                               help='Save COD files used in statistics', default=argparse.SUPPRESS,  action='store_true')
     update_parser.add_argument('--use-pdb', required=False,
                               help='Use COD structures based on pdb coordinates', default=argparse.SUPPRESS,  action='store_true')
+    update_parser.add_argument('-c', '--coordination', type=check_positive_more_than_two, required=False,
+                                     help='Maximum coordination number.', metavar='<MAXIMUM COORDINATION NUMBER>', default=1000)
 
     # App2
     stats_parser = subparsers.add_parser(
@@ -106,6 +129,8 @@ def create_parser():
                               help='Save COD files used in statistics', default=argparse.SUPPRESS,  action='store_true')
     stats_parser.add_argument('--use-pdb', required=False,
                               help='Use COD structures based on pdb coordinates', default=argparse.SUPPRESS,  action='store_true')
+    stats_parser.add_argument('-c', '--coordination', type=check_positive_more_than_two, required=False,
+                                     help='Maximum coordination number.', metavar='<MAXIMUM COORDINATION NUMBER>', default=1000)
 
 
     # App3
@@ -142,6 +167,7 @@ def main_func():
             Config().save = args.save if "save" in args else False
             Config().use_pdb = args.use_pdb if "use_pdb" in args else False
             Config().output_folder = os.path.dirname(args.output)
+            Config().max_coordination_number = args.coordination
 
 
         if args.command == 'update':

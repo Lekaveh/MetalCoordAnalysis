@@ -74,33 +74,37 @@ class Ligand:
         self._ligands = []
         self._extra_ligands = []
 
-    def clean_the_farthest(self, free: bool = False) -> "Ligand":
+    def clean_the_farthest(self, free: bool = False, n: int = 1) -> "Ligand":
         """
-        Cleans the farthest ligand from the metal coordination.
+        Cleans the n farthest ligands from the metal coordination.
 
         Args:
             free (bool, optional): If True, includes ligands from both self._ligands and self._extra_ligands.
-                                   If False, includes only ligands from self._extra_ligands. Default is False.
+                                If False, includes only ligands from self._extra_ligands. Default is False.
+            n (int, optional): Number of farthest ligands to remove. Default is 1.
 
         Returns
-            Ligand: A new Ligand object with the farthest ligand removed.
+            Ligand: A new Ligand object with the n farthest ligands removed.
 
         """
         atoms = self._ligands + self._extra_ligands if free else self._extra_ligands
-        to_delete = list(sorted([[l.atom, self._cov_dist_coeff(l)]
-                         for l in atoms], key=lambda x: x[1], reverse=True))[0][0]
+        # Sort the ligands by distance and get the atoms of the n farthest
+        to_delete_atoms = [l[0] for l in sorted([[l.atom, self._cov_dist_coeff(l)]
+                                                for l in atoms], key=lambda x: x[1], reverse=True)[:n]]
+
         cleaned_ligand = Ligand(self._metal, self._residue, self._chain)
 
         for l in self._ligands:
             if free:
-                if l.atom != to_delete:
+                if l.atom not in to_delete_atoms:
                     cleaned_ligand.add_ligand(l)
             else:
                 cleaned_ligand.add_ligand(l)
         for l in self._extra_ligands:
-            if l.atom != to_delete:
+            if l.atom not in to_delete_atoms:
                 cleaned_ligand.add_extra_ligand(l)
         return cleaned_ligand
+
 
     def _euclidean(self, atom1: gemmi.Atom, atom2: gemmi.Atom):
         """
@@ -472,7 +476,7 @@ def get_ligands(st, ligand, bonds=None, max_dist=10, only_best=False) -> list[Li
                     metal_name = atom.name
                     metal_bonds = set(bonds.get(metal_name, []))
                     ligand_obj = Ligand(atom, residue, chain)
-                    structures.append(ligand_obj)
+                    
                     if Config().simple:
                         marks = ns.find_neighbors(
                             atom, min_dist=0.1, max_dist=max_dist)
@@ -544,11 +548,16 @@ def get_ligands(st, ligand, bonds=None, max_dist=10, only_best=False) -> list[Li
 
                     # ligand_obj.filter_base()
                     ligand_obj.filter_extra()
+                    if Config().max_coordination_number and ligand_obj.coordination() > Config().max_coordination_number:
+                        ligand_obj = ligand_obj.clean_the_farthest(
+                            free=bool(bonds) , n= ligand_obj.coordination() - Config().max_coordination_number)
+
 
                     if ligand_obj.ligands_len < len(bonds.get(metal_name, [])):
                         raise ValueError(
                             f"There is inconsistency between ligand(s) in the PDB and monomer file. Metal {metal_name} in {chain.name} - {residue.name} - {residue.seqid.num} has fewer neighbours than expected. Expected: {sorted(bonds.get(metal_name, []))}, found: {sorted([l.atom.name for l in ligand_obj.ligands])}")
 
+                    structures.append(ligand_obj)
     if only_best:
         best_structures = []
         metals = np.unique(

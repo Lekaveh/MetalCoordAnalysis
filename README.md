@@ -44,6 +44,7 @@ pip install git+https://github.com/Lekaveh/MetalCoordAnalysis
         - -s, --simple: Simple distance-based filtering.
         - --save: Save COD files used in statistics.
         - --use-pdb Use COD structures based on pdb coordinates.
+        - -c, --coordination: Defines maximum coordination number.
 - **Ligand Update**: 
     - metalCoord update -i INPUT_CIF_FILE -o OUTPUT_CIF_FILE [-p <PDB_CODE|PDB_FILE>] [-d <DISTANCE_THRESHOLD>] [-t <PROCRUSTES_DISTANCE_THRESHOLD>] [-m <MINIMUM_SAMPLE_SIZE>] [--ideal_angles] [-s] [--save]
         - -i, --input: CIF file.
@@ -56,6 +57,7 @@ pip install git+https://github.com/Lekaveh/MetalCoordAnalysis
         - -s, --simple: Simple distance-based filtering.
         - --save: Save COD files used in statistics.
         - --use-pdb Use COD structures based on pdb coordinates.
+        - -c, --coordination: Defines maximum coordination number.
 - **Coordination List**: 
     - metalCoord coord [-n <COORDINATION_NUMBER>]
         - -n, --number: Coordination number.
