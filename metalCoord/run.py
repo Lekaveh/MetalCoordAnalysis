@@ -1,5 +1,7 @@
 import argparse
+import json
 import os
+
 
 import metalCoord
 from metalCoord.logging import Logger
@@ -149,6 +151,7 @@ def main_func():
     Raises:
         argparse.ArgumentError: If the command-line arguments are invalid.
     """
+
     try:
         Logger().add_handler()
         Logger().info(f"Logging started. Logging level: {Logger().logger.level}")
@@ -166,11 +169,13 @@ def main_func():
             Config().save = args.save if "save" in args else False
             Config().use_pdb = args.use_pdb if "use_pdb" in args else False
             Config().output_folder = os.path.dirname(args.output)
+            Config().output_file = os.path.basename(args.output)
             Config().max_coordination_number = args.coordination
 
 
         if args.command == 'update':
             update_cif(args.output, args.input, args.pdb)
+            
 
         elif args.command == 'stats':
             get_stats(args.ligand, args.pdb, args.output)
@@ -179,14 +184,20 @@ def main_func():
             print(f"List of coordinations: {get_coordinations(args.number)}")
         else:
             parser.print_help()
-    except ValueError as e:
-        Logger().error(f"{repr(e)}")
-    except FileNotFoundError as e:
-        Logger().error(f"{repr(e)}")
-    except PermissionError as e:
-        Logger().error(f"{repr(e)}")
+        
+        if args.command == 'update' or args.command == 'stats':
+            with open(os.path.join(Config().output_folder, Config().output_file + ".status.json"), 'w', encoding="utf-8") as json_file:
+                json.dump({"status":" Success"}, json_file, 
+                                    indent=4,  
+                                    separators=(',',': '))
     except Exception as e:
         Logger().error(f"{repr(e)}")
+        if args.command == 'update' or args.command == 'stats':
+            with open(os.path.join(Config().output_folder, Config().output_file + ".status.json"), 'w', encoding="utf-8") as json_file:
+                json.dump({"status":" Failure", "Reason":str(e)}, json_file, 
+                                    indent=4,  
+                                    separators=(',',': '))
+        
 
 
 if __name__ == '__main__':

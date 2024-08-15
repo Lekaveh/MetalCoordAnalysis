@@ -1,7 +1,4 @@
 from abc import ABC, abstractmethod
-import dis
-import os
-from pathlib import Path
 import gemmi
 import numpy as np
 import pandas as pd

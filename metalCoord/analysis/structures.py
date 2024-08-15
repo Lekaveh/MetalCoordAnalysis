@@ -1,11 +1,5 @@
-from operator import le
-import re
-from unittest import result
-from matplotlib.pylab import f
-from networkx import all_neighbors
 import numpy as np
 import gemmi
-from sklearn import neighbors
 from metalCoord.config import Config
 
 
