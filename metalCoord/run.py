@@ -187,14 +187,14 @@ def main_func():
         
         if args.command == 'update' or args.command == 'stats':
             with open(os.path.join(Config().output_folder, Config().output_file + ".status.json"), 'w', encoding="utf-8") as json_file:
-                json.dump({"status":" Success"}, json_file, 
+                json.dump({"status":"Success"}, json_file, 
                                     indent=4,  
                                     separators=(',',': '))
     except Exception as e:
         Logger().error(f"{repr(e)}")
         if args.command == 'update' or args.command == 'stats':
             with open(os.path.join(Config().output_folder, Config().output_file + ".status.json"), 'w', encoding="utf-8") as json_file:
-                json.dump({"status":" Failure", "Reason":str(e)}, json_file, 
+                json.dump({"status":"Failure", "Reason":str(e)}, json_file, 
                                     indent=4,  
                                     separators=(',',': '))
         
