@@ -220,7 +220,7 @@ def fit_group(coords, ideal_coords, groups=None, rings = None):
     distances, approxs, c, R = procrustes_fit(s_y, s_x)
 
     distances = distances.numpy()
-    min_distance = np.min(distances)
+    min_distance = np.nanmin(distances)
     mask = distances <= min_distance + 0.2
     distances = distances[mask]
     
@@ -375,7 +375,7 @@ class Procustes:
         
         distances, approxs, c, R = procrustes_fit(s_y, s_x)
         distances = distances.numpy()
-        mask = distances <= min(np.min(distances) + 0.1, 0.2)
+        mask = distances <= min(np.nanmin(distances) + 0.1, 0.2)
         
 
         distances = distances[mask]
