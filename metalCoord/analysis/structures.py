@@ -1,9 +1,32 @@
+from abc import ABC, abstractmethod
+import dis
+
 import numpy as np
 import gemmi
 from metalCoord.config import Config
 
 
-class Atom:
+
+class IAtom(ABC):
+    """Abstract base class representing an atom in a molecular structure."""
+
+    @property
+    @abstractmethod
+    def atom(self):
+        """Get the atom identifier."""
+
+    @property
+    @abstractmethod
+    def residue(self):
+        """Get the residue the atom belongs to."""
+
+    @property
+    @abstractmethod
+    def chain(self):
+        """Get the chain the atom belongs to."""
+
+
+class Atom(IAtom):
     """
     Represents an atom in a molecular structure.
 
@@ -47,6 +70,90 @@ class Atom:
             str: The chain identifier.
         """
         return self._chain
+
+
+
+class ComplexAtom(IAtom):
+    """
+    Represents a complex atom composed of multiple atoms.
+
+    Args:
+        atoms (list[Atom]): A list of atoms that make up the complex atom.
+
+    Attributes:
+        _atoms (list[Atom]): The list of atoms that make up the complex atom.
+        _atom (Atom): The representative atom of the complex atom.
+        _residue (str): The residue of the complex atom.
+        _chain (str): The chain of the complex atom.
+
+    Methods:
+        get_initial_atoms(): Returns the list of atoms that make up the complex atom.
+
+    """
+
+    def __init__(self, atoms: list[Atom]):
+        self._atoms = atoms
+        self._calculate_properties()
+
+    def _calculate_properties(self):
+        """
+        Calculate the properties of the complex atom.
+
+        This method computes the average position, residue, and chain of the complex atom,
+        or uses the properties of the central atom.
+
+        Customize this method based on your specific needs.
+
+        """
+        self._atom = self._atoms[0].atom  # Choose a representative atom
+        self._residue = self._atoms[0].residue
+        self._chain = self._atoms[0].chain
+
+    @property
+    def atom(self):
+        """
+        Get the representative atom of the complex atom.
+
+        Returns:
+            Atom: The representative atom.
+
+        """
+        return self._atom
+
+    @property
+    def residue(self):
+        """
+        Get the residue of the complex atom.
+
+        Returns:
+            str: The residue.
+
+        """
+        return self._residue
+
+    @property
+    def chain(self):
+        """
+        Get the chain of the complex atom.
+
+        Returns:
+            str: The chain.
+
+        """
+        return self._chain
+
+    def get_initial_atoms(self):
+        """
+        Get the list of atoms that make up the complex atom.
+
+        Returns:
+            list[Atom]: The list of atoms.
+
+        """
+        return self._atoms
+
+    def __str__(self):
+        return f"ComplexAtom: {', '.join([atom.atom.name for atom in self._atoms])}"
 
 
 class Ligand:
@@ -98,7 +205,6 @@ class Ligand:
             if l.atom not in to_delete_atoms:
                 cleaned_ligand.add_extra_ligand(l)
         return cleaned_ligand
-
 
     def _euclidean(self, atom1: gemmi.Atom, atom2: gemmi.Atom):
         """
@@ -238,7 +344,9 @@ class Ligand:
         Args:
             ligand (Atom): The ligand to add.
         """
-        self._ligands.append(ligand)
+
+        if all([distance(l.atom, ligand.atom) > 0.1 for l in self._ligands]):
+            self._ligands.append(ligand)
 
     def add_extra_ligand(self, ligand: Atom):
         """
@@ -247,7 +355,9 @@ class Ligand:
         Args:
             ligand (Atom): The extra ligand to add.
         """
-        self._extra_ligands.append(ligand)
+        if all([distance(l.atom, ligand.atom) > 0.1 for l in self._extra_ligands]):
+            self._extra_ligands.append(ligand)
+        
 
     def elements(self):
         """
@@ -313,7 +423,7 @@ class Ligand:
         to_delete = []
         for i, atom1 in enumerate(self._extra_ligands):
             for atom2 in self._ligands:
-                if distance(atom1.atom, atom2.atom) < 1:
+                if distance(atom1.atom, atom2.atom) < 0.5:
                     to_delete.append(i)
                     break
         if to_delete:
@@ -332,6 +442,8 @@ class Ligand:
         if to_delete:
             self._ligands = [atom for i, atom in enumerate(
                 self._ligands) if i not in to_delete]
+            
+
 
     def mean_occ(self):
         """
@@ -414,15 +526,13 @@ def get_ligands(st, ligand, bonds=None, max_dist=10, only_best=False) -> list[Li
     alpha1 = 1.1
     angle1 = 60
 
-    
-
     def covalent_radii(element):
         return gemmi.Element(element).covalent_r
-    
+
     def find_min_angle_and_update(atom, n0, n1, beta_c):
         if not n1:
             return n0, n1
-        
+
         while True:
             l_n1 = len(n1)
             angles = [
@@ -430,24 +540,25 @@ def get_ligands(st, ligand, bonds=None, max_dist=10, only_best=False) -> list[Li
                 for a1 in n1 + n0 for a2 in n1 + n0 if a1 != a2
             ]
 
-
             if all(a > angle1 for a, _, _ in angles):
                 return n0, n1
-            
-            angles = list(filter(lambda x: (x[1] in n1) or (x[2] in n1), angles))
+
+            angles = list(
+                filter(lambda x: (x[1] in n1) or (x[2] in n1), angles))
             _, min_a1, min_a2 = min(angles, key=lambda x: x[0])
 
-            coef_i = distance(atom, min_a1.atom) / (covalent_radii(atom.element.name) + covalent_radii(min_a1.atom.element.name))
-            coef_j = distance(atom, min_a2.atom) / (covalent_radii(atom.element.name) + covalent_radii(min_a2.atom.element.name))
+            coef_i = distance(atom, min_a1.atom) / (covalent_radii(
+                atom.element.name) + covalent_radii(min_a1.atom.element.name))
+            coef_j = distance(atom, min_a2.atom) / (covalent_radii(
+                atom.element.name) + covalent_radii(min_a2.atom.element.name))
             max_coef_atom = min_a1 if coef_i > coef_j else min_a2
 
-   
             if max_coef_atom in n1 and max(coef_i, coef_j) > beta_c:
                 n1.remove(max_coef_atom)
-                      
+
             if len(n1) == l_n1:
                 return n0, n1
-            
+
             if not n1:
                 return n0, n1
 
@@ -470,7 +581,7 @@ def get_ligands(st, ligand, bonds=None, max_dist=10, only_best=False) -> list[Li
                     metal_name = atom.name
                     metal_bonds = set(bonds.get(metal_name, []))
                     ligand_obj = Ligand(atom, residue, chain)
-                    
+
                     if Config().simple:
                         marks = ns.find_neighbors(
                             atom, min_dist=0.1, max_dist=max_dist)
@@ -500,13 +611,19 @@ def get_ligands(st, ligand, bonds=None, max_dist=10, only_best=False) -> list[Li
                     else:
                         k = 2
                         # Step 1: Select all atoms for which d(m, i) < alpha * (r_m + r_i). Denote this set as n1.
-                        marks = ns.find_neighbors(atom, min_dist=0.1, max_dist=max_dist)
+                        marks = ns.find_neighbors(
+                            atom, min_dist=0.1, max_dist=max_dist)
+
+                        neighbour_atoms = [
+                            mark.to_cra(st[0]) for mark in marks]
                         
-                        neighbour_atoms = [mark.to_cra(st[0]) for mark in marks]
+
                         n1 = [
                             neighbour_atom for neighbour_atom in neighbour_atoms
                             if not neighbour_atom.atom.element.is_metal and distance(atom, neighbour_atom.atom) < (covalent_radii(atom.element.name) + covalent_radii(neighbour_atom.atom.element.name)) * alpha
+                            and distance(atom, neighbour_atom.atom) <= (covalent_radii(atom.element.name) + covalent_radii(neighbour_atom.atom.element.name)) * alpha1
                         ]
+      
 
                         # Step 2: Select all atoms for which d(m, i) <= alpha1 * (r_m + r_i). Denote this set n0.
                         n0 = [
@@ -514,10 +631,11 @@ def get_ligands(st, ligand, bonds=None, max_dist=10, only_best=False) -> list[Li
                             if not neighbour_atom.atom.element.is_metal and distance(atom, neighbour_atom.atom) <= (covalent_radii(atom.element.name) + covalent_radii(neighbour_atom.atom.element.name)) * alpha1
                         ]
 
-                        
-
-                        # Step 3: Remove atoms in n0 from n1n1
+                        # Step 3: Remove atoms in n0 from n1
                         n1 = [a for a in n1 if a not in n0]
+
+                        
+                            
                         if bonds:
                             for a in n1:
                                 if a.atom.name in metal_bonds and a.residue.name == ligand and a.residue.seqid.num == residue.seqid.num and a.chain.name == chain.name:
@@ -526,8 +644,9 @@ def get_ligands(st, ligand, bonds=None, max_dist=10, only_best=False) -> list[Li
 
                         # Step 4-9: Apply the logic iteratively
                         beta_c = beta1[k]
-                        while k >=0 :
-                            n0, n1 = find_min_angle_and_update(atom, n0, n1, beta_c)
+                        while k >= 0:
+                            n0, n1 = find_min_angle_and_update(
+                                atom, n0, n1, beta_c)
                             k -= 1
                             beta_c = beta1[k]
 
@@ -536,22 +655,26 @@ def get_ligands(st, ligand, bonds=None, max_dist=10, only_best=False) -> list[Li
                         # Add atoms to ligand_obj
                         for a in n0:
                             if a.residue.name == ligand and a.residue.seqid.num == residue.seqid.num and a.chain.name == chain.name:
-                                ligand_obj.add_ligand(Atom(a.atom, a.residue, a.chain))
+                                ligand_obj.add_ligand(
+                                    Atom(a.atom, a.residue, a.chain))
+                                
                             else:
-                                ligand_obj.add_extra_ligand(Atom(a.atom, a.residue, a.chain))
+                                ligand_obj.add_extra_ligand(
+                                    Atom(a.atom, a.residue, a.chain))
 
                     # ligand_obj.filter_base()
                     ligand_obj.filter_extra()
+                
                     if Config().max_coordination_number and ligand_obj.coordination() > Config().max_coordination_number:
                         ligand_obj = ligand_obj.clean_the_farthest(
-                            free=bool(bonds) , n= ligand_obj.coordination() - Config().max_coordination_number)
-
+                            free=bool(bonds), n=ligand_obj.coordination() - Config().max_coordination_number)
 
                     if ligand_obj.ligands_len < len(bonds.get(metal_name, [])):
                         raise ValueError(
                             f"There is inconsistency between ligand(s) in the PDB and monomer file. Metal {metal_name} in {chain.name} - {residue.name} - {residue.seqid.num} has fewer neighbours than expected. Expected: {sorted(bonds.get(metal_name, []))}, found: {sorted([l.atom.name for l in ligand_obj.ligands])}")
 
                     structures.append(ligand_obj)
+
     if only_best:
         best_structures = []
         metals = np.unique(
