@@ -1,10 +1,9 @@
 from abc import ABC, abstractmethod
-import dis
 
 import numpy as np
 import gemmi
 from metalCoord.config import Config
-
+from metalCoord.logging import Logger
 
 
 class IAtom(ABC):
@@ -25,6 +24,11 @@ class IAtom(ABC):
     def chain(self):
         """Get the chain the atom belongs to."""
 
+    @property
+    @abstractmethod
+    def symmetry(self):
+        """Get if the atom comes from the symmetry."""
+
 
 class Atom(IAtom):
     """
@@ -36,10 +40,11 @@ class Atom(IAtom):
         chain (str): The chain identifier of the atom.
     """
 
-    def __init__(self, atom, residue, chain):
+    def __init__(self, atom, residue, chain, symmetry=0):
         self._atom = atom
         self._residue = residue
         self._chain = chain
+        self._symmetry = symmetry
 
     @property
     def atom(self):
@@ -70,90 +75,16 @@ class Atom(IAtom):
             str: The chain identifier.
         """
         return self._chain
-
-
-
-class ComplexAtom(IAtom):
-    """
-    Represents a complex atom composed of multiple atoms.
-
-    Args:
-        atoms (list[Atom]): A list of atoms that make up the complex atom.
-
-    Attributes:
-        _atoms (list[Atom]): The list of atoms that make up the complex atom.
-        _atom (Atom): The representative atom of the complex atom.
-        _residue (str): The residue of the complex atom.
-        _chain (str): The chain of the complex atom.
-
-    Methods:
-        get_initial_atoms(): Returns the list of atoms that make up the complex atom.
-
-    """
-
-    def __init__(self, atoms: list[Atom]):
-        self._atoms = atoms
-        self._calculate_properties()
-
-    def _calculate_properties(self):
-        """
-        Calculate the properties of the complex atom.
-
-        This method computes the average position, residue, and chain of the complex atom,
-        or uses the properties of the central atom.
-
-        Customize this method based on your specific needs.
-
-        """
-        self._atom = self._atoms[0].atom  # Choose a representative atom
-        self._residue = self._atoms[0].residue
-        self._chain = self._atoms[0].chain
-
+    
     @property
-    def atom(self):
+    def symmetry(self):
         """
-        Get the representative atom of the complex atom.
+        Returns if the atom comes from the symmetry.
 
         Returns:
-            Atom: The representative atom.
-
+            bool: The symmetry copy of the atom.
         """
-        return self._atom
-
-    @property
-    def residue(self):
-        """
-        Get the residue of the complex atom.
-
-        Returns:
-            str: The residue.
-
-        """
-        return self._residue
-
-    @property
-    def chain(self):
-        """
-        Get the chain of the complex atom.
-
-        Returns:
-            str: The chain.
-
-        """
-        return self._chain
-
-    def get_initial_atoms(self):
-        """
-        Get the list of atoms that make up the complex atom.
-
-        Returns:
-            list[Atom]: The list of atoms.
-
-        """
-        return self._atoms
-
-    def __str__(self):
-        return f"ComplexAtom: {', '.join([atom.atom.name for atom in self._atoms])}"
+        return self._symmetry
 
 
 class Ligand:
@@ -168,7 +99,7 @@ class Ligand:
         _extra_ligands (list): List of additional atom not from ligands associated with the metal.
     """
 
-    def __init__(self, metal, residue, chain) -> None:
+    def __init__(self, metal: gemmi.Atom, residue: gemmi.Residue, chain: gemmi.Chain) -> None:
         self._metal = metal
         self._residue = residue
         self._chain = chain
@@ -294,6 +225,8 @@ class Ligand:
         """
         return self._chain
 
+
+
     @property
     def ligands(self):
         """
@@ -344,9 +277,10 @@ class Ligand:
         Args:
             ligand (Atom): The ligand to add.
         """
+        if self.metal.occ < 1 and ligand.symmetry and (ligand.atom.occ +  self.metal.occ) <= 1.0:
+            return
 
-        if all([distance(l.atom, ligand.atom) > 0.1 for l in self._ligands]):
-            self._ligands.append(ligand)
+        self._ligands.append(ligand)
 
     def add_extra_ligand(self, ligand: Atom):
         """
@@ -355,9 +289,8 @@ class Ligand:
         Args:
             ligand (Atom): The extra ligand to add.
         """
-        if all([distance(l.atom, ligand.atom) > 0.1 for l in self._extra_ligands]):
-            self._extra_ligands.append(ligand)
-        
+  
+        self._extra_ligands.append(ligand)
 
     def elements(self):
         """
@@ -442,8 +375,6 @@ class Ligand:
         if to_delete:
             self._ligands = [atom for i, atom in enumerate(
                 self._ligands) if i not in to_delete]
-            
-
 
     def mean_occ(self):
         """
@@ -581,49 +512,47 @@ def get_ligands(st, ligand, bonds=None, max_dist=10, only_best=False) -> list[Li
                     metal_name = atom.name
                     metal_bonds = set(bonds.get(metal_name, []))
                     ligand_obj = Ligand(atom, residue, chain)
-
-                    if Config().simple:
-                        marks = ns.find_neighbors(
+                    
+                    marks = ns.find_neighbors(
                             atom, min_dist=0.1, max_dist=max_dist)
+                    if Config().simple:
                         for mark in marks:
                             cra = mark.to_cra(st[0])
                             if cra.atom.element.is_metal:
                                 continue
                             if ligand_obj.contains(cra.atom):
                                 continue
-
+                            
+                            
                             if bonds:
                                 if cra.residue.name == ligand and cra.residue.seqid.num == residue.seqid.num and cra.chain.name == chain.name:
                                     # if cra.residue.name == ligand:
                                     if cra.atom.name in metal_bonds:
                                         ligand_obj.add_ligand(
-                                            Atom(cra.atom, cra.residue, cra.chain))
+                                            Atom(cra.atom, cra.residue, cra.chain, mark.image_idx))
                                 elif distance(atom, cra.atom) <= (covalent_radii(atom.element.name) + covalent_radii(cra.atom.element.name)) * scale:
                                     ligand_obj.add_extra_ligand(
-                                        Atom(cra.atom, cra.residue, cra.chain))
+                                        Atom(cra.atom, cra.residue, cra.chain,  mark.image_idx))
                             elif distance(atom, cra.atom) <= (covalent_radii(atom.element.name) + covalent_radii(cra.atom.element.name)) * scale:
                                 if cra.residue.name == ligand and cra.residue.seqid.num == residue.seqid.num and cra.chain.name == chain.name:
                                     ligand_obj.add_ligand(
-                                        Atom(cra.atom, cra.residue, cra.chain))
+                                        Atom(cra.atom, cra.residue, cra.chain,  mark.image_idx))
                                 else:
                                     ligand_obj.add_extra_ligand(
-                                        Atom(cra.atom, cra.residue, cra.chain))
+                                        Atom(cra.atom, cra.residue, cra.chain,  mark.image_idx))
                     else:
                         k = 2
                         # Step 1: Select all atoms for which d(m, i) < alpha * (r_m + r_i). Denote this set as n1.
-                        marks = ns.find_neighbors(
-                            atom, min_dist=0.1, max_dist=max_dist)
+                        
 
                         neighbour_atoms = [
                             mark.to_cra(st[0]) for mark in marks]
-                        
 
                         n1 = [
                             neighbour_atom for neighbour_atom in neighbour_atoms
                             if not neighbour_atom.atom.element.is_metal and distance(atom, neighbour_atom.atom) < (covalent_radii(atom.element.name) + covalent_radii(neighbour_atom.atom.element.name)) * alpha
                             and distance(atom, neighbour_atom.atom) <= (covalent_radii(atom.element.name) + covalent_radii(neighbour_atom.atom.element.name)) * alpha1
                         ]
-      
 
                         # Step 2: Select all atoms for which d(m, i) <= alpha1 * (r_m + r_i). Denote this set n0.
                         n0 = [
@@ -634,8 +563,6 @@ def get_ligands(st, ligand, bonds=None, max_dist=10, only_best=False) -> list[Li
                         # Step 3: Remove atoms in n0 from n1
                         n1 = [a for a in n1 if a not in n0]
 
-                        
-                            
                         if bonds:
                             for a in n1:
                                 if a.atom.name in metal_bonds and a.residue.name == ligand and a.residue.seqid.num == residue.seqid.num and a.chain.name == chain.name:
@@ -654,17 +581,21 @@ def get_ligands(st, ligand, bonds=None, max_dist=10, only_best=False) -> list[Li
 
                         # Add atoms to ligand_obj
                         for a in n0:
+                            idx = [i for i, x in enumerate(neighbour_atoms) if x == a][0]
+                            mark = marks[idx]
+                            if mark.image_idx:
+                                Logger().info(f"This atom {a.atom.name} in {chain.name} - {residue.name} - {residue.seqid.num} come from symmetry copy {mark.image_idx}") 
                             if a.residue.name == ligand and a.residue.seqid.num == residue.seqid.num and a.chain.name == chain.name:
                                 ligand_obj.add_ligand(
-                                    Atom(a.atom, a.residue, a.chain))
-                                
+                                    Atom(a.atom, a.residue, a.chain,  mark.image_idx))
+
                             else:
                                 ligand_obj.add_extra_ligand(
-                                    Atom(a.atom, a.residue, a.chain))
+                                    Atom(a.atom, a.residue, a.chain, mark.image_idx))
 
                     # ligand_obj.filter_base()
                     ligand_obj.filter_extra()
-                
+
                     if Config().max_coordination_number and ligand_obj.coordination() > Config().max_coordination_number:
                         ligand_obj = ligand_obj.clean_the_farthest(
                             free=bool(bonds), n=ligand_obj.coordination() - Config().max_coordination_number)

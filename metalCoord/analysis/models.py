@@ -22,6 +22,7 @@ class Ligand():
         self._sequence = ligand.residue.seqid.num
         self._icode = ligand.residue.seqid.icode.strip().replace('\x00', '')
         self._altloc = ligand.atom.altloc.strip().replace('\x00', '')
+        self._symmetry = ligand.symmetry
 
     @property
     def name(self):
@@ -85,6 +86,16 @@ class Ligand():
         if self._icode == "\u0000":
             return "."
         return self._icode if self._icode else "."
+    
+    @property
+    def symmetry(self):
+        """
+        Returns the symmetry of the atom.
+
+        Returns:
+            str: The symmetry of the atom.
+        """
+        return self._symmetry
 
     def equals(self, other):
         """
@@ -128,7 +139,7 @@ class Ligand():
         Returns:
             dict: A dictionary representation of the object.
         """
-        return {"name": self.name, "element": self.element, "chain": self.chain, "residue": self.residue, "sequence": self.sequence, "icode": self.insertion_code, "altloc": self.altloc}
+        return {"name": self.name, "element": self.element, "chain": self.chain, "residue": self.residue, "sequence": self.sequence, "icode": self.insertion_code, "altloc": self.altloc, "image": self.symmetry}
 
 
 class DistanceStats():
