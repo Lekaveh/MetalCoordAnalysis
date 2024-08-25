@@ -1,5 +1,6 @@
 import numpy as np
 
+
 class Ligand():
     """
     Represents a ligand atom in a molecular structure.
@@ -23,6 +24,7 @@ class Ligand():
         self._icode = ligand.residue.seqid.icode.strip().replace('\x00', '')
         self._altloc = ligand.atom.altloc.strip().replace('\x00', '')
         self._symmetry = ligand.symmetry
+        self._pos = ligand.pos
 
     @property
     def name(self):
@@ -78,7 +80,7 @@ class Ligand():
     def insertion_code(self):
         """
         Returns the insertion code of the atom.
-        
+
 
         Returns:
             str: The insertion code of the atom.
@@ -86,7 +88,7 @@ class Ligand():
         if self._icode == "\u0000":
             return "."
         return self._icode if self._icode else "."
-    
+
     @property
     def symmetry(self):
         """
@@ -139,7 +141,7 @@ class Ligand():
         Returns:
             dict: A dictionary representation of the object.
         """
-        return {"name": self.name, "element": self.element, "chain": self.chain, "residue": self.residue, "sequence": self.sequence, "icode": self.insertion_code, "altloc": self.altloc, "symmetry": self.symmetry}
+        return {"name": self.name, "element": self.element, "chain": self.chain, "residue": self.residue, "sequence": self.sequence, "icode": self.insertion_code, "altloc": self.altloc, "symmetry": self.symmetry, "pos": self._pos.tolist()}
 
 
 class DistanceStats():
@@ -446,15 +448,15 @@ class LigandStats():
 
     @property
     def cods(self):
-            """
-            Generator function that yields the key-value pairs of the _cod_files dictionary.
+        """
+        Generator function that yields the key-value pairs of the _cod_files dictionary.
 
-            Yields:
-                tuple: A tuple containing the key and value of each item in the _cod_files dictionary.
-            """
-            for key, value in self._cod_files.items():
-                yield key, value
-    
+        Yields:
+            tuple: A tuple containing the key and value of each item in the _cod_files dictionary.
+        """
+        for key, value in self._cod_files.items():
+            yield key, value
+
     @property
     def bond_count(self):
         """
@@ -597,7 +599,7 @@ class LigandStats():
 
 
 class MetalStats():
-    def __init__(self, metal, metal_element, chain, residue, sequence, altloc, icode, mean_occ, mean_b) -> None:
+    def __init__(self, structure) -> None:
         """
         Initialize a MetalStats object.
 
@@ -612,15 +614,19 @@ class MetalStats():
             altloc (str): The alternative location identifier.
             icode (str): The insertion code.
         """
-        self._metal = metal
-        self._metal_element = metal_element
-        self._chain = chain
-        self._residue = residue
-        self._sequence = sequence
-        self._mean_occ = mean_occ
-        self._mean_b = mean_b
-        self._icode = icode.replace('\x00', '')
-        self._altloc = altloc.replace('\x00', '')
+
+        self._metal = structure.metal.atom.name
+        self._metal_element = str(structure.metal.element),
+        if isinstance(self._metal_element, tuple):
+            self._metal_element = self._metal_element[0]
+        self._chain = structure.chain.name
+        self._residue = structure.residue.name
+        self._sequence = structure.residue.seqid.num
+        self._mean_occ = structure.mean_occ()
+        self._mean_b = structure.mean_b()
+        self._icode = structure.residue.seqid.icode.strip().replace('\x00', '')
+        self._altloc = structure.metal.atom.altloc.strip().replace('\x00', '')
+        self._pos = structure.metal.pos
         self._ligands = []
 
     @property
@@ -692,7 +698,7 @@ class MetalStats():
             str: The alternative location identifier.
         """
         return self._altloc
-    
+
     @property
     def insertion_code(self):
         """
@@ -899,7 +905,7 @@ class MetalStats():
         """
         metal = {"chain": self.chain, "residue": self.residue, "sequence": self.sequence, "metal": self.metal,
                  "metalElement": self.metal_element, "icode": self.insertion_code, "altloc": self.altloc, "ligands": []}
-        
+
         for l in sorted(self.ligands, key=lambda x: (-x.coordination, x.procrustes)):
             metal["ligands"].append(l.to_dict())
 

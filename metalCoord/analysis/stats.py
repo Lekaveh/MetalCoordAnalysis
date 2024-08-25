@@ -175,7 +175,7 @@ class StatsFinder(ABC):
             DistanceStats: The covalent distance statistics.
 
         """
-        return DistanceStats(Ligand(l), np.array([gemmi.Element(l.atom.element.name).covalent_r + gemmi.Element(structure.metal.element.name).covalent_r]), np.array([0.2]), description=description)
+        return DistanceStats(Ligand(l), np.array([gemmi.Element(l.atom.element.name).covalent_r + gemmi.Element(structure.metal.atom.element.name).covalent_r]), np.array([0.2]), description=description)
 
 
 class FileStatsFinder(StatsFinder):
@@ -246,7 +246,7 @@ def create_gemmi_structure(df, coords):
 
 class StrictCorrespondenceStatsFinder(FileStatsFinder):
     def _calculate(self, structure, class_result):
-        o_ligand_atoms = np.array([structure.metal.name] + structure.atoms())
+        o_ligand_atoms = np.array([structure.metal.atom.name] + structure.atoms())
 
         if class_result.clazz in self._classes:
             files = self._files[class_result.clazz]
@@ -270,7 +270,7 @@ class StrictCorrespondenceStatsFinder(FileStatsFinder):
                 file_data = self._finder.data(file)
                 m_ligand_coord = get_coordinate(file_data)
                 m_ligand_atoms = np.insert(
-                    file_data[["Ligand"]].values.ravel(), 0, structure.metal.name)
+                    file_data[["Ligand"]].values.ravel(), 0, structure.metal.atom.name)
 
                 groups = get_groups(o_ligand_atoms,  m_ligand_atoms)
 
@@ -421,7 +421,7 @@ class OnlyDistanceStatsFinder(StatsFinder):
 
         for l in structure.ligands:
             dist, std, count = DB.get_distance_stats(
-                structure.metal.element.name, l.atom.element.name)
+                structure.metal.atom.element.name, l.atom.element.name)
             if count > 0:
                 clazz_stats.add_bond(DistanceStats(
                     Ligand(l), np.array([dist]), np.array([std])))
@@ -431,7 +431,7 @@ class OnlyDistanceStatsFinder(StatsFinder):
 
         for l in structure.extra_ligands:
             dist, std, count = DB.get_distance_stats(
-                structure.metal.element.name, l.atom.element.name)
+                structure.metal.atom.element.name, l.atom.element.name)
             if count > 0:
                 clazz_stats.add_pdb_bond(DistanceStats(
                     Ligand(l), np.array([dist]), np.array([std])))

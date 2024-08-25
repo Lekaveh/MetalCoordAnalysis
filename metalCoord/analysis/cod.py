@@ -206,7 +206,7 @@ class AnyElementCandidateFinder(CandidateFinder):
         """
         code = elements(self._structure.code())[1:]
         coordination_data = self._data[(self._data.Coordination == self._structure.coordination()) & (
-            self._data.Metal == self._structure.metal.element.name)]
+            self._data.Metal == self._structure.metal.atom.element.name)]
         self._selection = coordination_data[np.any(
             [coordination_data.ElementCode.str.contains(x) for x in code], axis=0)]
 
@@ -230,7 +230,7 @@ class NoCoordinationCandidateFinder(CandidateFinder):
 
         """
         self._selection = self._data[(
-            self._data.Metal == self._structure.metal.element.name)]
+            self._data.Metal == self._structure.metal.atom.element.name)]
 
 
 class CovalentCandidateFinder(CandidateFinder):
@@ -257,4 +257,4 @@ class CovalentCandidateFinder(CandidateFinder):
             None
         """
         self._selection = self._data[self._data.Metal ==
-                                     self._structure.metal.element.name]
+                                     self._structure.metal.atom.element.name]

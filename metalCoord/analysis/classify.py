@@ -80,7 +80,7 @@ def find_classes(ligand: str, pdb_name: str, bonds: dict = None, only_best: bool
     structures = get_structures(ligand, pdb_name, bonds, only_best)
     for structure in tqdm(structures):
         Logger().info(
-            f"Structure for {structure} found. Coordination number: {structure.coordination()}")
+            f"Structure for {structure} found. Coordination number: {structure.coordination()}. {structure.name_code_with_symmetries()}")
     Logger().info(f"{len(structures)} structures found.")
     results = PdbStats()
     classificator = Classificator()
@@ -93,7 +93,7 @@ def find_classes(ligand: str, pdb_name: str, bonds: dict = None, only_best: bool
             structure_classes.append(class_result)
 
         if not structure_classes:
-            new_structure = structure.clean_the_farthest(bonds == {}) 
+            new_structure = structure.clean_the_farthest(len(bonds)) 
             for class_result in tqdm(classificator.classify(new_structure), desc="Coordination", position=1, leave=False, disable=Logger().disabled):
                 structure_classes.append(class_result)
             if structure_classes:
@@ -107,8 +107,7 @@ def find_classes(ligand: str, pdb_name: str, bonds: dict = None, only_best: bool
         Logger().info(f"Candidates for {structure} : {candidantes}")
 
     for structure in tqdm(classes.keys(), desc="Structures", position=0, disable=Logger().disabled):
-        metal_stats = MetalStats(structure.metal.name, structure.metal.element.name, structure.chain.name,
-                                structure.residue.name, structure.residue.seqid.num, structure.metal.altloc, structure.residue.seqid.icode.strip(), structure.mean_occ(), structure.mean_b())
+        metal_stats = MetalStats(structure)
         if classes[structure]:
             for class_result in classes[structure]:
                 for strategy in tqdm(strategies, desc="Strategies", position=1, leave=False, disable=Logger().disabled):
