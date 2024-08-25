@@ -141,7 +141,7 @@ class Ligand():
         Returns:
             dict: A dictionary representation of the object.
         """
-        return {"name": self.name, "element": self.element, "chain": self.chain, "residue": self.residue, "sequence": self.sequence, "icode": self.insertion_code, "altloc": self.altloc, "symmetry": self.symmetry, "pos": self._pos.tolist()}
+        return {"name": self.name, "element": self.element, "chain": self.chain, "residue": self.residue, "sequence": self.sequence, "icode": self.insertion_code, "altloc": self.altloc, "symmetry": self.symmetry}
 
 
 class DistanceStats():
