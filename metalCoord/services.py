@@ -282,12 +282,6 @@ def update_cif(output_path, path, pdb):
         Logger().error("No block found for <name>|comp_<name>. Please check the CIF file.")
         return
 
-    if not doc.find_block("comp_list"):
-        list_block = doc.add_new_block("comp_list", 0)
-        x="."
-        list_block.set_mmcif_category(COMP_CATEGORY, {ID: [name], THREE_LETTER_CODE: [name], NAME: [name.lower()], 
-            GROUP: ["."], NUMBER_ATOMS_ALL: ["1"], NUMBER_ATOMS_NH: ["1"], DESC_LEVEL: ["."]})
-
 
     block = doc.find_block(f"comp_{name}") if doc.find_block(f"comp_{name}") is not None else doc.find_block(f"{name}")
     
@@ -319,7 +313,9 @@ def update_cif(output_path, path, pdb):
     if not atoms:
         Logger().error(f"mmcif category {ATOM_CATEGORY} not found. Please check the CIF file.")
         return
-    
+    n_atoms = len(atoms[ATOM_ID])
+    n_nhatoms = len([x for x in atoms[TYPE_SYMBOL] if x != "H" ])
+
     new_atoms = dict()
     if ENERGY not in atoms:
         for key, value in atoms.items():
@@ -435,10 +431,10 @@ def update_cif(output_path, path, pdb):
                 if not gemmi.Element(get_element_name(atoms, metal_name)).is_metal:
                     continue
 
-                angleStat = pdb_stats.get_ligand_angle(metal_name, ligand1_name, ligand2_name)
-                if angleStat:
-                    angles[VALUE_ANGLE][i] = str(round(angleStat.angle, 3))
-                    angles[VALUE_ANGLE_ESD][i] = str(round(angleStat.std, 3))
+                angle_stat = pdb_stats.get_ligand_angle(metal_name, ligand1_name, ligand2_name)
+                if angle_stat:
+                    angles[VALUE_ANGLE][i] = str(round(angle_stat.angle, 3))
+                    angles[VALUE_ANGLE_ESD][i] = str(round(angle_stat.std, 3))
                     update_angles.append(code(ligand1_name, metal_name, ligand2_name))
             
             
@@ -510,6 +506,15 @@ def update_cif(output_path, path, pdb):
 
         block.set_mmcif_category(ANGLE_CATEGORY, angles)
         Logger().info("Angles updated")
+
+        if not doc.find_block("comp_list"):
+            list_block = doc.add_new_block("comp_list", 0)
+            x="."
+            list_block.set_mmcif_category(COMP_CATEGORY, {ID: [name], THREE_LETTER_CODE: [name], NAME: [name.lower()], 
+                GROUP: ["."], NUMBER_ATOMS_ALL: [str(n_atoms)], NUMBER_ATOMS_NH: [str(n_nhatoms)], DESC_LEVEL: ["."]})
+  
+
+        
         Logger().info("Ligand update completed")
 
         Path(os.path.split(output_path)[0]).mkdir(exist_ok=True, parents=True)
