@@ -1,5 +1,5 @@
 """
-Author: "Kaveh Babai, Garib N. Murshudov, Keitaro Yamashita"
+Author: "Kaveh Babai, Garib N. Murshudov, Keitaro Yamashita, Fei Long"
 
 This script is used to set up the MetalCoordAnalysis package. It includes the necessary information such as the author, version, required packages, and entry points.
 
@@ -16,7 +16,7 @@ from metalCoord import __version__
 
 setup(name='MetalCoordAnalysis',
       version=__version__,
-      author='Kaveh Babai, Garib N. Murshudov, Keitaro Yamashita',
+      author='Kaveh Babai, Garib N. Murshudov, Keitaro Yamashita, Fei Long',
       author_email='lekaveh@gmail.com, garib@mrc-lmb.cam.ac.uk',
       
       packages=find_packages(include=['metalCoord', 'metalCoord.*']),
