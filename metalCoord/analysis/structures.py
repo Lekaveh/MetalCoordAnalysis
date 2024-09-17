@@ -585,7 +585,8 @@ def get_ligands(st, ligand, bonds=None, max_dist=10, only_best=False) -> list[Li
                 if atom.element.is_metal:
                     metal_name = atom.name
                     metal_bonds = set(bonds.get(metal_name, []))
-                    ligand_obj = Ligand(Atom(atom, residue, chain, None, st))
+                    metal = Atom(atom, residue, chain, None, st)
+                    ligand_obj = Ligand(metal)
 
                     marks = ns.find_neighbors(
                         atom, min_dist=0.1, max_dist=max_dist)
@@ -619,9 +620,9 @@ def get_ligands(st, ligand, bonds=None, max_dist=10, only_best=False) -> list[Li
                                 if cra.residue.name == ligand and cra.residue.seqid.num == residue.seqid.num and cra.chain.name == chain.name:
                                     if cra.atom.name in metal_bonds:
                                         ligand_obj.add_ligand(l)
-                                elif distance(atom, l) <= (covalent_radii(atom.element.name) + covalent_radii(cra.atom.element.name)) * scale:
+                                elif distance(metal, l) <= (covalent_radii(metal.atom.element.name) + covalent_radii(cra.atom.element.name)) * scale:
                                     ligand_obj.add_extra_ligand(l)
-                            elif distance(atom, l) <= (covalent_radii(atom.element.name) + covalent_radii(cra.atom.element.name)) * scale:
+                            elif distance(metal, l) <= (covalent_radii(metal.atom.element.name) + covalent_radii(cra.atom.element.name)) * scale:
                                 if cra.residue.name == ligand and cra.residue.seqid.num == residue.seqid.num and cra.chain.name == chain.name:
                                     ligand_obj.add_ligand(l)
                                 else:
@@ -638,14 +639,14 @@ def get_ligands(st, ligand, bonds=None, max_dist=10, only_best=False) -> list[Li
 
                         n1 = [
                             neighbour_atom for neighbour_atom in neighbour_atoms
-                            if not neighbour_atom.atom.element.is_metal and distance(atom, neighbour_atom.atom) < (covalent_radii(atom.element.name) + covalent_radii(neighbour_atom.atom.element.name)) * alpha
-                            and distance(atom, neighbour_atom.atom) > (covalent_radii(atom.element.name) + covalent_radii(neighbour_atom.atom.element.name)) * alpha1
+                            if not neighbour_atom.atom.element.is_metal and distance(metal, neighbour_atom) < (covalent_radii(metal.atom.element.name) + covalent_radii(neighbour_atom.atom.element.name)) * alpha
+                            and distance(metal, neighbour_atom) > (covalent_radii(metal.atom.element.name) + covalent_radii(neighbour_atom.atom.element.name)) * alpha1
                         ]
 
                         # Step 2: Select all atoms for which d(m, i) <= alpha1 * (r_m + r_i). Denote this set n0.
                         n0 = [
                             neighbour_atom for neighbour_atom in neighbour_atoms
-                            if not neighbour_atom.atom.element.is_metal and distance(atom, neighbour_atom.atom) <= (covalent_radii(atom.element.name) + covalent_radii(neighbour_atom.atom.element.name)) * alpha1
+                            if not neighbour_atom.atom.element.is_metal and distance(metal, neighbour_atom) <= (covalent_radii(metal.atom.element.name) + covalent_radii(neighbour_atom.atom.element.name)) * alpha1
                         ]
 
                         # Step 3: Remove atoms in n0 from n1
