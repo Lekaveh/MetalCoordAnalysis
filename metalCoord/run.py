@@ -91,7 +91,7 @@ def create_parser():
     update_parser.add_argument('-p', '--pdb', type=str, required=False,
                                help='PDB code or pdb file.', metavar='<PDB CODE|PDB FILE>')
     update_parser.add_argument('-d', '--dist', type=float, required=False, help='Distance threshold.',
-                               metavar='<DISTANCE THRESHOLD>', default=0.2, choices=[Range(0, 1)])
+                               metavar='<DISTANCE THRESHOLD>', default=0.5, choices=[Range(0, 1)])
     update_parser.add_argument('-t', '--threshold', type=float, required=False, help='Procrustes distance threshold.',
                                metavar='<PROCRUSTES DISTANCE THRESHOLD>', default=0.3, choices=[Range(0, 1)])
     update_parser.add_argument('-m', '--min_size', required=False, help='Minimum sample size for statistics.',
@@ -117,7 +117,7 @@ def create_parser():
     stats_parser.add_argument('-o', '--output', type=str, required=True,
                               help='Output json file.', metavar='<OUTPUT JSON FILE>')
     stats_parser.add_argument('-d', '--dist', type=float, required=False, help='Distance threshold.',
-                              metavar='<DISTANCE THRESHOLD>', default=0.2, choices=[Range(0, 1)])
+                              metavar='<DISTANCE THRESHOLD>', default=0.5, choices=[Range(0, 1)])
     stats_parser.add_argument('-t', '--threshold', type=float, required=False, help='Procrustes distance threshold.',
                               metavar='<PROCRUSTES DISTANCE THRESHOLD>', default=0.3, choices=[Range(0, 1)])
     stats_parser.add_argument('-m', '--min_size', required=False, help='Minimum sample size for statistics.',

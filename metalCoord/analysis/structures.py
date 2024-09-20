@@ -526,8 +526,9 @@ def get_ligands(st, ligand, bonds=None, max_dist=10, only_best=False) -> list[Li
         A list of Ligand objects representing the ligands associated with the metal.
     """
     scale = Config().scale()
-    alpha = 1.5
+    alpha = Config().distance_threshold + 1
     beta1 = [1.2, 1.3, 1.4]
+    beta1 = [b for b in beta1 if b < alpha]
     alpha1 = 1.1
     angle1 = 60
 
@@ -628,7 +629,7 @@ def get_ligands(st, ligand, bonds=None, max_dist=10, only_best=False) -> list[Li
                                 else:
                                     ligand_obj.add_extra_ligand(l)
                     else:
-                        k = 2
+                        k = len(beta1) - 1
                         # Step 1: Select all atoms for which d(m, i) < alpha * (r_m + r_i). Denote this set as n1.
 
                         neighbour_atoms = []
