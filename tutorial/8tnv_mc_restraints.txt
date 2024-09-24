@@ -1,0 +1,47 @@
+### RESTRAINTS FROM METALCOORD - BEGINNING ###
+# Note that this file is not compatible with Coot 
+# A402/CU1  CUO; class: tetrahedral; procrustes: 0.091; coordination: 4; count: 252; description: Strict correspondence
+exte dist first chain A resi 402 inse . atom CU1 second chain A resi 402 inse . atom O1 value 2.04 sigma 0.21 type 0 # variant 1
+exte dist first chain A resi 402 inse . atom CU1 second chain A resi 402 inse . atom O1 value 2.38 sigma 0.15 type 1 # variant 2
+exte dist first chain A resi 402 inse . atom CU1 second chain A resi 402 inse . atom O2 value 2.04 sigma 0.21 type 0 # variant 1
+exte dist first chain A resi 402 inse . atom CU1 second chain A resi 402 inse . atom O2 value 2.38 sigma 0.15 type 1 # variant 2
+exte dist first chain A resi 402 inse . atom CU1 second chain A resi 170 inse . atom NE2 value 2.01 sigma 0.07 type 0
+exte dist first chain A resi 402 inse . atom CU1 second chain A resi 201 inse . atom NE2 value 2.01 sigma 0.07 type 0
+exte dist first chain A resi 402 inse . atom CU1 second chain A resi 174 inse . atom NE2 value 2.01 sigma 0.07 type 0
+exte angle first chain A resi 170 inse . atom NE2 next chain A resi 402 inse . atom CU1 next chain A resi 201 inse . atom NE2 value 115.52 sigma 14.69 type 0
+exte angle first chain A resi 170 inse . atom NE2 next chain A resi 402 inse . atom CU1 next chain A resi 174 inse . atom NE2 value 115.52 sigma 14.69 type 0
+exte angle first chain A resi 201 inse . atom NE2 next chain A resi 402 inse . atom CU1 next chain A resi 174 inse . atom NE2 value 115.52 sigma 14.69 type 0
+# A402/CU2  CUO; class: tetrahedral; procrustes: 0.102; coordination: 4; count: 252; description: Strict correspondence
+exte dist first chain A resi 402 inse . atom CU2 second chain A resi 402 inse . atom O1 value 2.04 sigma 0.21 type 0 # variant 1
+exte dist first chain A resi 402 inse . atom CU2 second chain A resi 402 inse . atom O1 value 2.38 sigma 0.15 type 1 # variant 2
+exte dist first chain A resi 402 inse . atom CU2 second chain A resi 402 inse . atom O2 value 2.04 sigma 0.21 type 0 # variant 1
+exte dist first chain A resi 402 inse . atom CU2 second chain A resi 402 inse . atom O2 value 2.38 sigma 0.15 type 1 # variant 2
+exte dist first chain A resi 402 inse . atom CU2 second chain A resi 68 inse . atom NE2 value 2.01 sigma 0.07 type 0
+exte dist first chain A resi 402 inse . atom CU2 second chain A resi 59 inse . atom NE2 value 2.01 sigma 0.07 type 0
+exte dist first chain A resi 402 inse . atom CU2 second chain A resi 41 inse . atom NE2 value 2.01 sigma 0.07 type 0
+exte angle first chain A resi 68 inse . atom NE2 next chain A resi 402 inse . atom CU2 next chain A resi 59 inse . atom NE2 value 115.52 sigma 14.69 type 0
+exte angle first chain A resi 68 inse . atom NE2 next chain A resi 402 inse . atom CU2 next chain A resi 41 inse . atom NE2 value 115.52 sigma 14.69 type 0
+exte angle first chain A resi 59 inse . atom NE2 next chain A resi 402 inse . atom CU2 next chain A resi 41 inse . atom NE2 value 115.52 sigma 14.69 type 0
+# B406/CU1  CUO; class: tetrahedral; procrustes: 0.095; coordination: 4; count: 252; description: Strict correspondence
+exte dist first chain B resi 406 inse . atom CU1 second chain B resi 406 inse . atom O2 value 2.04 sigma 0.21 type 0 # variant 1
+exte dist first chain B resi 406 inse . atom CU1 second chain B resi 406 inse . atom O2 value 2.38 sigma 0.15 type 1 # variant 2
+exte dist first chain B resi 406 inse . atom CU1 second chain B resi 406 inse . atom O1 value 2.04 sigma 0.21 type 0 # variant 1
+exte dist first chain B resi 406 inse . atom CU1 second chain B resi 406 inse . atom O1 value 2.38 sigma 0.15 type 1 # variant 2
+exte dist first chain B resi 406 inse . atom CU1 second chain B resi 201 inse . atom NE2 value 2.01 sigma 0.07 type 0
+exte dist first chain B resi 406 inse . atom CU1 second chain B resi 170 inse . atom NE2 value 2.01 sigma 0.07 type 0
+exte dist first chain B resi 406 inse . atom CU1 second chain B resi 174 inse . atom NE2 value 2.01 sigma 0.07 type 0
+exte angle first chain B resi 201 inse . atom NE2 next chain B resi 406 inse . atom CU1 next chain B resi 170 inse . atom NE2 value 115.52 sigma 14.69 type 0
+exte angle first chain B resi 201 inse . atom NE2 next chain B resi 406 inse . atom CU1 next chain B resi 174 inse . atom NE2 value 115.52 sigma 14.69 type 0
+exte angle first chain B resi 170 inse . atom NE2 next chain B resi 406 inse . atom CU1 next chain B resi 174 inse . atom NE2 value 115.52 sigma 14.69 type 0
+# B406/CU2  CUO; class: tetrahedral; procrustes: 0.103; coordination: 4; count: 252; description: Strict correspondence
+exte dist first chain B resi 406 inse . atom CU2 second chain B resi 406 inse . atom O2 value 2.04 sigma 0.21 type 0 # variant 1
+exte dist first chain B resi 406 inse . atom CU2 second chain B resi 406 inse . atom O2 value 2.38 sigma 0.15 type 1 # variant 2
+exte dist first chain B resi 406 inse . atom CU2 second chain B resi 406 inse . atom O1 value 2.04 sigma 0.21 type 0 # variant 1
+exte dist first chain B resi 406 inse . atom CU2 second chain B resi 406 inse . atom O1 value 2.38 sigma 0.15 type 1 # variant 2
+exte dist first chain B resi 406 inse . atom CU2 second chain B resi 41 inse . atom NE2 value 2.01 sigma 0.07 type 0
+exte dist first chain B resi 406 inse . atom CU2 second chain B resi 59 inse . atom NE2 value 2.01 sigma 0.07 type 0
+exte dist first chain B resi 406 inse . atom CU2 second chain B resi 68 inse . atom NE2 value 2.01 sigma 0.07 type 0
+exte angle first chain B resi 41 inse . atom NE2 next chain B resi 406 inse . atom CU2 next chain B resi 59 inse . atom NE2 value 115.52 sigma 14.69 type 0
+exte angle first chain B resi 41 inse . atom NE2 next chain B resi 406 inse . atom CU2 next chain B resi 68 inse . atom NE2 value 115.52 sigma 14.69 type 0
+exte angle first chain B resi 59 inse . atom NE2 next chain B resi 406 inse . atom CU2 next chain B resi 68 inse . atom NE2 value 115.52 sigma 14.69 type 0
+### RESTRAINTS FROM METALCOORD - END ###

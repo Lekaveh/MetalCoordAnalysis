@@ -1,0 +1,1894 @@
+[
+    {
+        "chain": "A",
+        "residue": "CUO",
+        "sequence": 402,
+        "metal": "CU1",
+        "metalElement": "Cu",
+        "icode": ".",
+        "altloc": "",
+        "ligands": [
+            {
+                "class": "tetrahedral",
+                "procrustes": 0.091,
+                "coordination": 4,
+                "count": 252,
+                "description": "Strict correspondence",
+                "base": [
+                    {
+                        "ligand": {
+                            "name": "O1",
+                            "element": "O",
+                            "chain": "A",
+                            "residue": "CUO",
+                            "sequence": 402,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0
+                        },
+                        "distance": [
+                            2.04,
+                            2.38
+                        ],
+                        "std": [
+                            0.21,
+                            0.15
+                        ]
+                    }
+                ],
+                "angles": [
+                    {
+                        "ligand1": {
+                            "name": "O1",
+                            "element": "O",
+                            "chain": "A",
+                            "residue": "CUO",
+                            "sequence": 402,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0
+                        },
+                        "ligand2": {
+                            "name": "NE2",
+                            "element": "N",
+                            "chain": "A",
+                            "residue": "HIS",
+                            "sequence": 170,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0
+                        },
+                        "angle": 99.47703090257356,
+                        "std": 10.447877151389177
+                    },
+                    {
+                        "ligand1": {
+                            "name": "O1",
+                            "element": "O",
+                            "chain": "A",
+                            "residue": "CUO",
+                            "sequence": 402,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0
+                        },
+                        "ligand2": {
+                            "name": "NE2",
+                            "element": "N",
+                            "chain": "A",
+                            "residue": "HIS",
+                            "sequence": 201,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0
+                        },
+                        "angle": 99.47703090257356,
+                        "std": 10.447877151389177
+                    },
+                    {
+                        "ligand1": {
+                            "name": "O1",
+                            "element": "O",
+                            "chain": "A",
+                            "residue": "CUO",
+                            "sequence": 402,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0
+                        },
+                        "ligand2": {
+                            "name": "NE2",
+                            "element": "N",
+                            "chain": "A",
+                            "residue": "HIS",
+                            "sequence": 174,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0
+                        },
+                        "angle": 99.47703090257356,
+                        "std": 10.447877151389134
+                    },
+                    {
+                        "ligand1": {
+                            "name": "NE2",
+                            "element": "N",
+                            "chain": "A",
+                            "residue": "HIS",
+                            "sequence": 170,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0
+                        },
+                        "ligand2": {
+                            "name": "NE2",
+                            "element": "N",
+                            "chain": "A",
+                            "residue": "HIS",
+                            "sequence": 201,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0
+                        },
+                        "angle": 115.51810996291657,
+                        "std": 14.692648044485233
+                    },
+                    {
+                        "ligand1": {
+                            "name": "NE2",
+                            "element": "N",
+                            "chain": "A",
+                            "residue": "HIS",
+                            "sequence": 170,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0
+                        },
+                        "ligand2": {
+                            "name": "NE2",
+                            "element": "N",
+                            "chain": "A",
+                            "residue": "HIS",
+                            "sequence": 174,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0
+                        },
+                        "angle": 115.51810996291657,
+                        "std": 14.692648044485233
+                    },
+                    {
+                        "ligand1": {
+                            "name": "NE2",
+                            "element": "N",
+                            "chain": "A",
+                            "residue": "HIS",
+                            "sequence": 201,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0
+                        },
+                        "ligand2": {
+                            "name": "NE2",
+                            "element": "N",
+                            "chain": "A",
+                            "residue": "HIS",
+                            "sequence": 174,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0
+                        },
+                        "angle": 115.51810996291657,
+                        "std": 14.692648044485233
+                    }
+                ],
+                "pdb": [
+                    {
+                        "ligand": {
+                            "name": "NE2",
+                            "element": "N",
+                            "chain": "A",
+                            "residue": "HIS",
+                            "sequence": 170,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0
+                        },
+                        "distance": [
+                            2.01
+                        ],
+                        "std": [
+                            0.07
+                        ]
+                    },
+                    {
+                        "ligand": {
+                            "name": "NE2",
+                            "element": "N",
+                            "chain": "A",
+                            "residue": "HIS",
+                            "sequence": 201,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0
+                        },
+                        "distance": [
+                            2.01
+                        ],
+                        "std": [
+                            0.07
+                        ]
+                    },
+                    {
+                        "ligand": {
+                            "name": "NE2",
+                            "element": "N",
+                            "chain": "A",
+                            "residue": "HIS",
+                            "sequence": 174,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0
+                        },
+                        "distance": [
+                            2.01
+                        ],
+                        "std": [
+                            0.07
+                        ]
+                    }
+                ]
+            },
+            {
+                "class": "trigonal-pyramid",
+                "procrustes": 0.164,
+                "coordination": 4,
+                "count": 72,
+                "description": "Strict correspondence",
+                "base": [
+                    {
+                        "ligand": {
+                            "name": "O1",
+                            "element": "O",
+                            "chain": "A",
+                            "residue": "CUO",
+                            "sequence": 402,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0
+                        },
+                        "distance": [
+                            2.28,
+                            2.47
+                        ],
+                        "std": [
+                            0.08,
+                            0.03
+                        ]
+                    }
+                ],
+                "angles": [
+                    {
+                        "ligand1": {
+                            "name": "O1",
+                            "element": "O",
+                            "chain": "A",
+                            "residue": "CUO",
+                            "sequence": 402,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0
+                        },
+                        "ligand2": {
+                            "name": "NE2",
+                            "element": "N",
+                            "chain": "A",
+                            "residue": "HIS",
+                            "sequence": 170,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0
+                        },
+                        "angle": 92.22723383647292,
+                        "std": 6.4405073056025
+                    },
+                    {
+                        "ligand1": {
+                            "name": "O1",
+                            "element": "O",
+                            "chain": "A",
+                            "residue": "CUO",
+                            "sequence": 402,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0
+                        },
+                        "ligand2": {
+                            "name": "NE2",
+                            "element": "N",
+                            "chain": "A",
+                            "residue": "HIS",
+                            "sequence": 201,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0
+                        },
+                        "angle": 95.07448584881588,
+                        "std": 6.738285937599283
+                    },
+                    {
+                        "ligand1": {
+                            "name": "O1",
+                            "element": "O",
+                            "chain": "A",
+                            "residue": "CUO",
+                            "sequence": 402,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0
+                        },
+                        "ligand2": {
+                            "name": "NE2",
+                            "element": "N",
+                            "chain": "A",
+                            "residue": "HIS",
+                            "sequence": 174,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0
+                        },
+                        "angle": 95.07448584881588,
+                        "std": 6.738285937599283
+                    },
+                    {
+                        "ligand1": {
+                            "name": "NE2",
+                            "element": "N",
+                            "chain": "A",
+                            "residue": "HIS",
+                            "sequence": 170,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0
+                        },
+                        "ligand2": {
+                            "name": "NE2",
+                            "element": "N",
+                            "chain": "A",
+                            "residue": "HIS",
+                            "sequence": 201,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0
+                        },
+                        "angle": 116.85010183908915,
+                        "std": 11.993552030356875
+                    },
+                    {
+                        "ligand1": {
+                            "name": "NE2",
+                            "element": "N",
+                            "chain": "A",
+                            "residue": "HIS",
+                            "sequence": 170,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0
+                        },
+                        "ligand2": {
+                            "name": "NE2",
+                            "element": "N",
+                            "chain": "A",
+                            "residue": "HIS",
+                            "sequence": 174,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0
+                        },
+                        "angle": 116.85010183908915,
+                        "std": 11.993552030356875
+                    },
+                    {
+                        "ligand1": {
+                            "name": "NE2",
+                            "element": "N",
+                            "chain": "A",
+                            "residue": "HIS",
+                            "sequence": 201,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0
+                        },
+                        "ligand2": {
+                            "name": "NE2",
+                            "element": "N",
+                            "chain": "A",
+                            "residue": "HIS",
+                            "sequence": 174,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0
+                        },
+                        "angle": 122.90628505311916,
+                        "std": 12.69288613498378
+                    }
+                ],
+                "pdb": [
+                    {
+                        "ligand": {
+                            "name": "NE2",
+                            "element": "N",
+                            "chain": "A",
+                            "residue": "HIS",
+                            "sequence": 170,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0
+                        },
+                        "distance": [
+                            2.01
+                        ],
+                        "std": [
+                            0.06
+                        ]
+                    },
+                    {
+                        "ligand": {
+                            "name": "NE2",
+                            "element": "N",
+                            "chain": "A",
+                            "residue": "HIS",
+                            "sequence": 201,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0
+                        },
+                        "distance": [
+                            1.99
+                        ],
+                        "std": [
+                            0.04
+                        ]
+                    },
+                    {
+                        "ligand": {
+                            "name": "NE2",
+                            "element": "N",
+                            "chain": "A",
+                            "residue": "HIS",
+                            "sequence": 174,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0
+                        },
+                        "distance": [
+                            1.99
+                        ],
+                        "std": [
+                            0.04
+                        ]
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        "chain": "A",
+        "residue": "CUO",
+        "sequence": 402,
+        "metal": "CU2",
+        "metalElement": "Cu",
+        "icode": ".",
+        "altloc": "",
+        "ligands": [
+            {
+                "class": "tetrahedral",
+                "procrustes": 0.102,
+                "coordination": 4,
+                "count": 252,
+                "description": "Strict correspondence",
+                "base": [
+                    {
+                        "ligand": {
+                            "name": "O1",
+                            "element": "O",
+                            "chain": "A",
+                            "residue": "CUO",
+                            "sequence": 402,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0
+                        },
+                        "distance": [
+                            2.04,
+                            2.38
+                        ],
+                        "std": [
+                            0.21,
+                            0.15
+                        ]
+                    }
+                ],
+                "angles": [
+                    {
+                        "ligand1": {
+                            "name": "O1",
+                            "element": "O",
+                            "chain": "A",
+                            "residue": "CUO",
+                            "sequence": 402,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0
+                        },
+                        "ligand2": {
+                            "name": "NE2",
+                            "element": "N",
+                            "chain": "A",
+                            "residue": "HIS",
+                            "sequence": 68,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0
+                        },
+                        "angle": 99.47703090257356,
+                        "std": 10.447877151389177
+                    },
+                    {
+                        "ligand1": {
+                            "name": "O1",
+                            "element": "O",
+                            "chain": "A",
+                            "residue": "CUO",
+                            "sequence": 402,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0
+                        },
+                        "ligand2": {
+                            "name": "NE2",
+                            "element": "N",
+                            "chain": "A",
+                            "residue": "HIS",
+                            "sequence": 59,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0
+                        },
+                        "angle": 99.47703090257356,
+                        "std": 10.447877151389177
+                    },
+                    {
+                        "ligand1": {
+                            "name": "O1",
+                            "element": "O",
+                            "chain": "A",
+                            "residue": "CUO",
+                            "sequence": 402,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0
+                        },
+                        "ligand2": {
+                            "name": "NE2",
+                            "element": "N",
+                            "chain": "A",
+                            "residue": "HIS",
+                            "sequence": 41,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0
+                        },
+                        "angle": 99.47703090257356,
+                        "std": 10.447877151389134
+                    },
+                    {
+                        "ligand1": {
+                            "name": "NE2",
+                            "element": "N",
+                            "chain": "A",
+                            "residue": "HIS",
+                            "sequence": 68,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0
+                        },
+                        "ligand2": {
+                            "name": "NE2",
+                            "element": "N",
+                            "chain": "A",
+                            "residue": "HIS",
+                            "sequence": 59,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0
+                        },
+                        "angle": 115.51810996291657,
+                        "std": 14.692648044485233
+                    },
+                    {
+                        "ligand1": {
+                            "name": "NE2",
+                            "element": "N",
+                            "chain": "A",
+                            "residue": "HIS",
+                            "sequence": 68,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0
+                        },
+                        "ligand2": {
+                            "name": "NE2",
+                            "element": "N",
+                            "chain": "A",
+                            "residue": "HIS",
+                            "sequence": 41,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0
+                        },
+                        "angle": 115.51810996291657,
+                        "std": 14.692648044485233
+                    },
+                    {
+                        "ligand1": {
+                            "name": "NE2",
+                            "element": "N",
+                            "chain": "A",
+                            "residue": "HIS",
+                            "sequence": 59,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0
+                        },
+                        "ligand2": {
+                            "name": "NE2",
+                            "element": "N",
+                            "chain": "A",
+                            "residue": "HIS",
+                            "sequence": 41,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0
+                        },
+                        "angle": 115.51810996291657,
+                        "std": 14.692648044485233
+                    }
+                ],
+                "pdb": [
+                    {
+                        "ligand": {
+                            "name": "NE2",
+                            "element": "N",
+                            "chain": "A",
+                            "residue": "HIS",
+                            "sequence": 68,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0
+                        },
+                        "distance": [
+                            2.01
+                        ],
+                        "std": [
+                            0.07
+                        ]
+                    },
+                    {
+                        "ligand": {
+                            "name": "NE2",
+                            "element": "N",
+                            "chain": "A",
+                            "residue": "HIS",
+                            "sequence": 59,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0
+                        },
+                        "distance": [
+                            2.01
+                        ],
+                        "std": [
+                            0.07
+                        ]
+                    },
+                    {
+                        "ligand": {
+                            "name": "NE2",
+                            "element": "N",
+                            "chain": "A",
+                            "residue": "HIS",
+                            "sequence": 41,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0
+                        },
+                        "distance": [
+                            2.01
+                        ],
+                        "std": [
+                            0.07
+                        ]
+                    }
+                ]
+            },
+            {
+                "class": "trigonal-pyramid",
+                "procrustes": 0.171,
+                "coordination": 4,
+                "count": 72,
+                "description": "Strict correspondence",
+                "base": [
+                    {
+                        "ligand": {
+                            "name": "O1",
+                            "element": "O",
+                            "chain": "A",
+                            "residue": "CUO",
+                            "sequence": 402,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0
+                        },
+                        "distance": [
+                            2.28,
+                            2.47
+                        ],
+                        "std": [
+                            0.08,
+                            0.03
+                        ]
+                    }
+                ],
+                "angles": [
+                    {
+                        "ligand1": {
+                            "name": "O1",
+                            "element": "O",
+                            "chain": "A",
+                            "residue": "CUO",
+                            "sequence": 402,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0
+                        },
+                        "ligand2": {
+                            "name": "NE2",
+                            "element": "N",
+                            "chain": "A",
+                            "residue": "HIS",
+                            "sequence": 68,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0
+                        },
+                        "angle": 92.22723383647292,
+                        "std": 6.4405073056025
+                    },
+                    {
+                        "ligand1": {
+                            "name": "O1",
+                            "element": "O",
+                            "chain": "A",
+                            "residue": "CUO",
+                            "sequence": 402,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0
+                        },
+                        "ligand2": {
+                            "name": "NE2",
+                            "element": "N",
+                            "chain": "A",
+                            "residue": "HIS",
+                            "sequence": 59,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0
+                        },
+                        "angle": 95.07448584881588,
+                        "std": 6.738285937599283
+                    },
+                    {
+                        "ligand1": {
+                            "name": "O1",
+                            "element": "O",
+                            "chain": "A",
+                            "residue": "CUO",
+                            "sequence": 402,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0
+                        },
+                        "ligand2": {
+                            "name": "NE2",
+                            "element": "N",
+                            "chain": "A",
+                            "residue": "HIS",
+                            "sequence": 41,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0
+                        },
+                        "angle": 95.07448584881588,
+                        "std": 6.738285937599283
+                    },
+                    {
+                        "ligand1": {
+                            "name": "NE2",
+                            "element": "N",
+                            "chain": "A",
+                            "residue": "HIS",
+                            "sequence": 68,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0
+                        },
+                        "ligand2": {
+                            "name": "NE2",
+                            "element": "N",
+                            "chain": "A",
+                            "residue": "HIS",
+                            "sequence": 59,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0
+                        },
+                        "angle": 116.85010183908915,
+                        "std": 11.993552030356875
+                    },
+                    {
+                        "ligand1": {
+                            "name": "NE2",
+                            "element": "N",
+                            "chain": "A",
+                            "residue": "HIS",
+                            "sequence": 68,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0
+                        },
+                        "ligand2": {
+                            "name": "NE2",
+                            "element": "N",
+                            "chain": "A",
+                            "residue": "HIS",
+                            "sequence": 41,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0
+                        },
+                        "angle": 116.85010183908915,
+                        "std": 11.993552030356875
+                    },
+                    {
+                        "ligand1": {
+                            "name": "NE2",
+                            "element": "N",
+                            "chain": "A",
+                            "residue": "HIS",
+                            "sequence": 59,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0
+                        },
+                        "ligand2": {
+                            "name": "NE2",
+                            "element": "N",
+                            "chain": "A",
+                            "residue": "HIS",
+                            "sequence": 41,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0
+                        },
+                        "angle": 122.90628505311916,
+                        "std": 12.69288613498378
+                    }
+                ],
+                "pdb": [
+                    {
+                        "ligand": {
+                            "name": "NE2",
+                            "element": "N",
+                            "chain": "A",
+                            "residue": "HIS",
+                            "sequence": 68,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0
+                        },
+                        "distance": [
+                            2.01
+                        ],
+                        "std": [
+                            0.06
+                        ]
+                    },
+                    {
+                        "ligand": {
+                            "name": "NE2",
+                            "element": "N",
+                            "chain": "A",
+                            "residue": "HIS",
+                            "sequence": 59,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0
+                        },
+                        "distance": [
+                            1.99
+                        ],
+                        "std": [
+                            0.04
+                        ]
+                    },
+                    {
+                        "ligand": {
+                            "name": "NE2",
+                            "element": "N",
+                            "chain": "A",
+                            "residue": "HIS",
+                            "sequence": 41,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0
+                        },
+                        "distance": [
+                            1.99
+                        ],
+                        "std": [
+                            0.04
+                        ]
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        "chain": "B",
+        "residue": "CUO",
+        "sequence": 406,
+        "metal": "CU1",
+        "metalElement": "Cu",
+        "icode": ".",
+        "altloc": "",
+        "ligands": [
+            {
+                "class": "tetrahedral",
+                "procrustes": 0.095,
+                "coordination": 4,
+                "count": 252,
+                "description": "Strict correspondence",
+                "base": [
+                    {
+                        "ligand": {
+                            "name": "O2",
+                            "element": "O",
+                            "chain": "B",
+                            "residue": "CUO",
+                            "sequence": 406,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0
+                        },
+                        "distance": [
+                            2.04,
+                            2.38
+                        ],
+                        "std": [
+                            0.21,
+                            0.15
+                        ]
+                    }
+                ],
+                "angles": [
+                    {
+                        "ligand1": {
+                            "name": "O2",
+                            "element": "O",
+                            "chain": "B",
+                            "residue": "CUO",
+                            "sequence": 406,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0
+                        },
+                        "ligand2": {
+                            "name": "NE2",
+                            "element": "N",
+                            "chain": "B",
+                            "residue": "HIS",
+                            "sequence": 201,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0
+                        },
+                        "angle": 99.47703090257356,
+                        "std": 10.447877151389177
+                    },
+                    {
+                        "ligand1": {
+                            "name": "O2",
+                            "element": "O",
+                            "chain": "B",
+                            "residue": "CUO",
+                            "sequence": 406,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0
+                        },
+                        "ligand2": {
+                            "name": "NE2",
+                            "element": "N",
+                            "chain": "B",
+                            "residue": "HIS",
+                            "sequence": 170,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0
+                        },
+                        "angle": 99.47703090257356,
+                        "std": 10.447877151389177
+                    },
+                    {
+                        "ligand1": {
+                            "name": "O2",
+                            "element": "O",
+                            "chain": "B",
+                            "residue": "CUO",
+                            "sequence": 406,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0
+                        },
+                        "ligand2": {
+                            "name": "NE2",
+                            "element": "N",
+                            "chain": "B",
+                            "residue": "HIS",
+                            "sequence": 174,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0
+                        },
+                        "angle": 99.47703090257356,
+                        "std": 10.447877151389134
+                    },
+                    {
+                        "ligand1": {
+                            "name": "NE2",
+                            "element": "N",
+                            "chain": "B",
+                            "residue": "HIS",
+                            "sequence": 201,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0
+                        },
+                        "ligand2": {
+                            "name": "NE2",
+                            "element": "N",
+                            "chain": "B",
+                            "residue": "HIS",
+                            "sequence": 170,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0
+                        },
+                        "angle": 115.51810996291657,
+                        "std": 14.692648044485233
+                    },
+                    {
+                        "ligand1": {
+                            "name": "NE2",
+                            "element": "N",
+                            "chain": "B",
+                            "residue": "HIS",
+                            "sequence": 201,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0
+                        },
+                        "ligand2": {
+                            "name": "NE2",
+                            "element": "N",
+                            "chain": "B",
+                            "residue": "HIS",
+                            "sequence": 174,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0
+                        },
+                        "angle": 115.51810996291657,
+                        "std": 14.692648044485233
+                    },
+                    {
+                        "ligand1": {
+                            "name": "NE2",
+                            "element": "N",
+                            "chain": "B",
+                            "residue": "HIS",
+                            "sequence": 170,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0
+                        },
+                        "ligand2": {
+                            "name": "NE2",
+                            "element": "N",
+                            "chain": "B",
+                            "residue": "HIS",
+                            "sequence": 174,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0
+                        },
+                        "angle": 115.51810996291657,
+                        "std": 14.692648044485233
+                    }
+                ],
+                "pdb": [
+                    {
+                        "ligand": {
+                            "name": "NE2",
+                            "element": "N",
+                            "chain": "B",
+                            "residue": "HIS",
+                            "sequence": 201,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0
+                        },
+                        "distance": [
+                            2.01
+                        ],
+                        "std": [
+                            0.07
+                        ]
+                    },
+                    {
+                        "ligand": {
+                            "name": "NE2",
+                            "element": "N",
+                            "chain": "B",
+                            "residue": "HIS",
+                            "sequence": 170,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0
+                        },
+                        "distance": [
+                            2.01
+                        ],
+                        "std": [
+                            0.07
+                        ]
+                    },
+                    {
+                        "ligand": {
+                            "name": "NE2",
+                            "element": "N",
+                            "chain": "B",
+                            "residue": "HIS",
+                            "sequence": 174,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0
+                        },
+                        "distance": [
+                            2.01
+                        ],
+                        "std": [
+                            0.07
+                        ]
+                    }
+                ]
+            },
+            {
+                "class": "trigonal-pyramid",
+                "procrustes": 0.179,
+                "coordination": 4,
+                "count": 72,
+                "description": "Strict correspondence",
+                "base": [
+                    {
+                        "ligand": {
+                            "name": "O2",
+                            "element": "O",
+                            "chain": "B",
+                            "residue": "CUO",
+                            "sequence": 406,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0
+                        },
+                        "distance": [
+                            2.28,
+                            2.47
+                        ],
+                        "std": [
+                            0.08,
+                            0.03
+                        ]
+                    }
+                ],
+                "angles": [
+                    {
+                        "ligand1": {
+                            "name": "O2",
+                            "element": "O",
+                            "chain": "B",
+                            "residue": "CUO",
+                            "sequence": 406,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0
+                        },
+                        "ligand2": {
+                            "name": "NE2",
+                            "element": "N",
+                            "chain": "B",
+                            "residue": "HIS",
+                            "sequence": 201,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0
+                        },
+                        "angle": 95.07448584881588,
+                        "std": 6.738285937599283
+                    },
+                    {
+                        "ligand1": {
+                            "name": "O2",
+                            "element": "O",
+                            "chain": "B",
+                            "residue": "CUO",
+                            "sequence": 406,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0
+                        },
+                        "ligand2": {
+                            "name": "NE2",
+                            "element": "N",
+                            "chain": "B",
+                            "residue": "HIS",
+                            "sequence": 170,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0
+                        },
+                        "angle": 92.22723383647292,
+                        "std": 6.4405073056025
+                    },
+                    {
+                        "ligand1": {
+                            "name": "O2",
+                            "element": "O",
+                            "chain": "B",
+                            "residue": "CUO",
+                            "sequence": 406,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0
+                        },
+                        "ligand2": {
+                            "name": "NE2",
+                            "element": "N",
+                            "chain": "B",
+                            "residue": "HIS",
+                            "sequence": 174,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0
+                        },
+                        "angle": 95.07448584881588,
+                        "std": 6.738285937599283
+                    },
+                    {
+                        "ligand1": {
+                            "name": "NE2",
+                            "element": "N",
+                            "chain": "B",
+                            "residue": "HIS",
+                            "sequence": 201,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0
+                        },
+                        "ligand2": {
+                            "name": "NE2",
+                            "element": "N",
+                            "chain": "B",
+                            "residue": "HIS",
+                            "sequence": 170,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0
+                        },
+                        "angle": 116.85010183908915,
+                        "std": 11.993552030356875
+                    },
+                    {
+                        "ligand1": {
+                            "name": "NE2",
+                            "element": "N",
+                            "chain": "B",
+                            "residue": "HIS",
+                            "sequence": 201,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0
+                        },
+                        "ligand2": {
+                            "name": "NE2",
+                            "element": "N",
+                            "chain": "B",
+                            "residue": "HIS",
+                            "sequence": 174,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0
+                        },
+                        "angle": 122.90628505311916,
+                        "std": 12.69288613498378
+                    },
+                    {
+                        "ligand1": {
+                            "name": "NE2",
+                            "element": "N",
+                            "chain": "B",
+                            "residue": "HIS",
+                            "sequence": 170,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0
+                        },
+                        "ligand2": {
+                            "name": "NE2",
+                            "element": "N",
+                            "chain": "B",
+                            "residue": "HIS",
+                            "sequence": 174,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0
+                        },
+                        "angle": 116.85010183908915,
+                        "std": 11.993552030356875
+                    }
+                ],
+                "pdb": [
+                    {
+                        "ligand": {
+                            "name": "NE2",
+                            "element": "N",
+                            "chain": "B",
+                            "residue": "HIS",
+                            "sequence": 201,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0
+                        },
+                        "distance": [
+                            1.99
+                        ],
+                        "std": [
+                            0.04
+                        ]
+                    },
+                    {
+                        "ligand": {
+                            "name": "NE2",
+                            "element": "N",
+                            "chain": "B",
+                            "residue": "HIS",
+                            "sequence": 170,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0
+                        },
+                        "distance": [
+                            2.01
+                        ],
+                        "std": [
+                            0.06
+                        ]
+                    },
+                    {
+                        "ligand": {
+                            "name": "NE2",
+                            "element": "N",
+                            "chain": "B",
+                            "residue": "HIS",
+                            "sequence": 174,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0
+                        },
+                        "distance": [
+                            1.99
+                        ],
+                        "std": [
+                            0.04
+                        ]
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        "chain": "B",
+        "residue": "CUO",
+        "sequence": 406,
+        "metal": "CU2",
+        "metalElement": "Cu",
+        "icode": ".",
+        "altloc": "",
+        "ligands": [
+            {
+                "class": "tetrahedral",
+                "procrustes": 0.103,
+                "coordination": 4,
+                "count": 252,
+                "description": "Strict correspondence",
+                "base": [
+                    {
+                        "ligand": {
+                            "name": "O2",
+                            "element": "O",
+                            "chain": "B",
+                            "residue": "CUO",
+                            "sequence": 406,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0
+                        },
+                        "distance": [
+                            2.04,
+                            2.38
+                        ],
+                        "std": [
+                            0.21,
+                            0.15
+                        ]
+                    }
+                ],
+                "angles": [
+                    {
+                        "ligand1": {
+                            "name": "O2",
+                            "element": "O",
+                            "chain": "B",
+                            "residue": "CUO",
+                            "sequence": 406,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0
+                        },
+                        "ligand2": {
+                            "name": "NE2",
+                            "element": "N",
+                            "chain": "B",
+                            "residue": "HIS",
+                            "sequence": 41,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0
+                        },
+                        "angle": 99.47703090257356,
+                        "std": 10.447877151389177
+                    },
+                    {
+                        "ligand1": {
+                            "name": "O2",
+                            "element": "O",
+                            "chain": "B",
+                            "residue": "CUO",
+                            "sequence": 406,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0
+                        },
+                        "ligand2": {
+                            "name": "NE2",
+                            "element": "N",
+                            "chain": "B",
+                            "residue": "HIS",
+                            "sequence": 59,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0
+                        },
+                        "angle": 99.47703090257356,
+                        "std": 10.447877151389177
+                    },
+                    {
+                        "ligand1": {
+                            "name": "O2",
+                            "element": "O",
+                            "chain": "B",
+                            "residue": "CUO",
+                            "sequence": 406,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0
+                        },
+                        "ligand2": {
+                            "name": "NE2",
+                            "element": "N",
+                            "chain": "B",
+                            "residue": "HIS",
+                            "sequence": 68,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0
+                        },
+                        "angle": 99.47703090257356,
+                        "std": 10.447877151389134
+                    },
+                    {
+                        "ligand1": {
+                            "name": "NE2",
+                            "element": "N",
+                            "chain": "B",
+                            "residue": "HIS",
+                            "sequence": 41,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0
+                        },
+                        "ligand2": {
+                            "name": "NE2",
+                            "element": "N",
+                            "chain": "B",
+                            "residue": "HIS",
+                            "sequence": 59,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0
+                        },
+                        "angle": 115.51810996291657,
+                        "std": 14.692648044485233
+                    },
+                    {
+                        "ligand1": {
+                            "name": "NE2",
+                            "element": "N",
+                            "chain": "B",
+                            "residue": "HIS",
+                            "sequence": 41,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0
+                        },
+                        "ligand2": {
+                            "name": "NE2",
+                            "element": "N",
+                            "chain": "B",
+                            "residue": "HIS",
+                            "sequence": 68,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0
+                        },
+                        "angle": 115.51810996291657,
+                        "std": 14.692648044485233
+                    },
+                    {
+                        "ligand1": {
+                            "name": "NE2",
+                            "element": "N",
+                            "chain": "B",
+                            "residue": "HIS",
+                            "sequence": 59,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0
+                        },
+                        "ligand2": {
+                            "name": "NE2",
+                            "element": "N",
+                            "chain": "B",
+                            "residue": "HIS",
+                            "sequence": 68,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0
+                        },
+                        "angle": 115.51810996291657,
+                        "std": 14.692648044485233
+                    }
+                ],
+                "pdb": [
+                    {
+                        "ligand": {
+                            "name": "NE2",
+                            "element": "N",
+                            "chain": "B",
+                            "residue": "HIS",
+                            "sequence": 41,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0
+                        },
+                        "distance": [
+                            2.01
+                        ],
+                        "std": [
+                            0.07
+                        ]
+                    },
+                    {
+                        "ligand": {
+                            "name": "NE2",
+                            "element": "N",
+                            "chain": "B",
+                            "residue": "HIS",
+                            "sequence": 59,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0
+                        },
+                        "distance": [
+                            2.01
+                        ],
+                        "std": [
+                            0.07
+                        ]
+                    },
+                    {
+                        "ligand": {
+                            "name": "NE2",
+                            "element": "N",
+                            "chain": "B",
+                            "residue": "HIS",
+                            "sequence": 68,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0
+                        },
+                        "distance": [
+                            2.01
+                        ],
+                        "std": [
+                            0.07
+                        ]
+                    }
+                ]
+            },
+            {
+                "class": "trigonal-pyramid",
+                "procrustes": 0.174,
+                "coordination": 4,
+                "count": 72,
+                "description": "Strict correspondence",
+                "base": [
+                    {
+                        "ligand": {
+                            "name": "O2",
+                            "element": "O",
+                            "chain": "B",
+                            "residue": "CUO",
+                            "sequence": 406,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0
+                        },
+                        "distance": [
+                            2.28,
+                            2.47
+                        ],
+                        "std": [
+                            0.08,
+                            0.03
+                        ]
+                    }
+                ],
+                "angles": [
+                    {
+                        "ligand1": {
+                            "name": "O2",
+                            "element": "O",
+                            "chain": "B",
+                            "residue": "CUO",
+                            "sequence": 406,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0
+                        },
+                        "ligand2": {
+                            "name": "NE2",
+                            "element": "N",
+                            "chain": "B",
+                            "residue": "HIS",
+                            "sequence": 41,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0
+                        },
+                        "angle": 95.07448584881588,
+                        "std": 6.738285937599283
+                    },
+                    {
+                        "ligand1": {
+                            "name": "O2",
+                            "element": "O",
+                            "chain": "B",
+                            "residue": "CUO",
+                            "sequence": 406,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0
+                        },
+                        "ligand2": {
+                            "name": "NE2",
+                            "element": "N",
+                            "chain": "B",
+                            "residue": "HIS",
+                            "sequence": 59,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0
+                        },
+                        "angle": 95.07448584881588,
+                        "std": 6.738285937599283
+                    },
+                    {
+                        "ligand1": {
+                            "name": "O2",
+                            "element": "O",
+                            "chain": "B",
+                            "residue": "CUO",
+                            "sequence": 406,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0
+                        },
+                        "ligand2": {
+                            "name": "NE2",
+                            "element": "N",
+                            "chain": "B",
+                            "residue": "HIS",
+                            "sequence": 68,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0
+                        },
+                        "angle": 92.22723383647292,
+                        "std": 6.4405073056025
+                    },
+                    {
+                        "ligand1": {
+                            "name": "NE2",
+                            "element": "N",
+                            "chain": "B",
+                            "residue": "HIS",
+                            "sequence": 41,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0
+                        },
+                        "ligand2": {
+                            "name": "NE2",
+                            "element": "N",
+                            "chain": "B",
+                            "residue": "HIS",
+                            "sequence": 59,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0
+                        },
+                        "angle": 122.90628505311916,
+                        "std": 12.69288613498378
+                    },
+                    {
+                        "ligand1": {
+                            "name": "NE2",
+                            "element": "N",
+                            "chain": "B",
+                            "residue": "HIS",
+                            "sequence": 41,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0
+                        },
+                        "ligand2": {
+                            "name": "NE2",
+                            "element": "N",
+                            "chain": "B",
+                            "residue": "HIS",
+                            "sequence": 68,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0
+                        },
+                        "angle": 116.85010183908915,
+                        "std": 11.993552030356875
+                    },
+                    {
+                        "ligand1": {
+                            "name": "NE2",
+                            "element": "N",
+                            "chain": "B",
+                            "residue": "HIS",
+                            "sequence": 59,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0
+                        },
+                        "ligand2": {
+                            "name": "NE2",
+                            "element": "N",
+                            "chain": "B",
+                            "residue": "HIS",
+                            "sequence": 68,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0
+                        },
+                        "angle": 116.85010183908915,
+                        "std": 11.993552030356875
+                    }
+                ],
+                "pdb": [
+                    {
+                        "ligand": {
+                            "name": "NE2",
+                            "element": "N",
+                            "chain": "B",
+                            "residue": "HIS",
+                            "sequence": 41,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0
+                        },
+                        "distance": [
+                            1.99
+                        ],
+                        "std": [
+                            0.04
+                        ]
+                    },
+                    {
+                        "ligand": {
+                            "name": "NE2",
+                            "element": "N",
+                            "chain": "B",
+                            "residue": "HIS",
+                            "sequence": 59,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0
+                        },
+                        "distance": [
+                            1.99
+                        ],
+                        "std": [
+                            0.04
+                        ]
+                    },
+                    {
+                        "ligand": {
+                            "name": "NE2",
+                            "element": "N",
+                            "chain": "B",
+                            "residue": "HIS",
+                            "sequence": 68,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0
+                        },
+                        "distance": [
+                            2.01
+                        ],
+                        "std": [
+                            0.06
+                        ]
+                    }
+                ]
+            }
+        ]
+    }
+]

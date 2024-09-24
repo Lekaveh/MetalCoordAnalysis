@@ -1,0 +1,535 @@
+[
+    {
+        "chain": "A",
+        "residue": "NA",
+        "sequence": 512,
+        "metal": "NA",
+        "metalElement": "Na",
+        "icode": ".",
+        "altloc": "",
+        "ligands": [
+            {
+                "class": "trigonal-pyramid",
+                "procrustes": 0.158,
+                "coordination": 4,
+                "count": 684,
+                "description": "Strict correspondence",
+                "base": [],
+                "angles": [
+                    {
+                        "ligand1": {
+                            "name": "O3",
+                            "element": "O",
+                            "chain": "A",
+                            "residue": "PGE",
+                            "sequence": 612,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0
+                        },
+                        "ligand2": {
+                            "name": "O",
+                            "element": "O",
+                            "chain": "A",
+                            "residue": "GLU",
+                            "sequence": 80,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0
+                        },
+                        "angle": 98.11579770579903,
+                        "std": 15.497415176897636
+                    },
+                    {
+                        "ligand1": {
+                            "name": "O3",
+                            "element": "O",
+                            "chain": "A",
+                            "residue": "PGE",
+                            "sequence": 612,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0
+                        },
+                        "ligand2": {
+                            "name": "O1",
+                            "element": "O",
+                            "chain": "A",
+                            "residue": "PGE",
+                            "sequence": 612,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0
+                        },
+                        "angle": 113.54586257652899,
+                        "std": 18.83202762996558
+                    },
+                    {
+                        "ligand1": {
+                            "name": "O3",
+                            "element": "O",
+                            "chain": "A",
+                            "residue": "PGE",
+                            "sequence": 612,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0
+                        },
+                        "ligand2": {
+                            "name": "O",
+                            "element": "O",
+                            "chain": "A",
+                            "residue": "HOH",
+                            "sequence": 783,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0
+                        },
+                        "angle": 113.54586257652899,
+                        "std": 18.83202762996558
+                    },
+                    {
+                        "ligand1": {
+                            "name": "O",
+                            "element": "O",
+                            "chain": "A",
+                            "residue": "GLU",
+                            "sequence": 80,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0
+                        },
+                        "ligand2": {
+                            "name": "O1",
+                            "element": "O",
+                            "chain": "A",
+                            "residue": "PGE",
+                            "sequence": 612,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0
+                        },
+                        "angle": 98.11579770579903,
+                        "std": 15.497415176897636
+                    },
+                    {
+                        "ligand1": {
+                            "name": "O",
+                            "element": "O",
+                            "chain": "A",
+                            "residue": "GLU",
+                            "sequence": 80,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0
+                        },
+                        "ligand2": {
+                            "name": "O",
+                            "element": "O",
+                            "chain": "A",
+                            "residue": "HOH",
+                            "sequence": 783,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0
+                        },
+                        "angle": 98.11579770579903,
+                        "std": 15.497415176897636
+                    },
+                    {
+                        "ligand1": {
+                            "name": "O1",
+                            "element": "O",
+                            "chain": "A",
+                            "residue": "PGE",
+                            "sequence": 612,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0
+                        },
+                        "ligand2": {
+                            "name": "O",
+                            "element": "O",
+                            "chain": "A",
+                            "residue": "HOH",
+                            "sequence": 783,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0
+                        },
+                        "angle": 113.545862576529,
+                        "std": 18.8320276299655
+                    }
+                ],
+                "pdb": [
+                    {
+                        "ligand": {
+                            "name": "O3",
+                            "element": "O",
+                            "chain": "A",
+                            "residue": "PGE",
+                            "sequence": 612,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0
+                        },
+                        "distance": [
+                            2.35
+                        ],
+                        "std": [
+                            0.1
+                        ]
+                    },
+                    {
+                        "ligand": {
+                            "name": "O",
+                            "element": "O",
+                            "chain": "A",
+                            "residue": "GLU",
+                            "sequence": 80,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0
+                        },
+                        "distance": [
+                            2.37
+                        ],
+                        "std": [
+                            0.08
+                        ]
+                    },
+                    {
+                        "ligand": {
+                            "name": "O1",
+                            "element": "O",
+                            "chain": "A",
+                            "residue": "PGE",
+                            "sequence": 612,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0
+                        },
+                        "distance": [
+                            2.35
+                        ],
+                        "std": [
+                            0.1
+                        ]
+                    },
+                    {
+                        "ligand": {
+                            "name": "O",
+                            "element": "O",
+                            "chain": "A",
+                            "residue": "HOH",
+                            "sequence": 783,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0
+                        },
+                        "distance": [
+                            2.35
+                        ],
+                        "std": [
+                            0.1
+                        ]
+                    }
+                ]
+            },
+            {
+                "class": "tetrahedral",
+                "procrustes": 0.299,
+                "coordination": 4,
+                "count": 1800,
+                "description": "Strict correspondence",
+                "base": [],
+                "angles": [
+                    {
+                        "ligand1": {
+                            "name": "O3",
+                            "element": "O",
+                            "chain": "A",
+                            "residue": "PGE",
+                            "sequence": 612,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0
+                        },
+                        "ligand2": {
+                            "name": "O",
+                            "element": "O",
+                            "chain": "A",
+                            "residue": "GLU",
+                            "sequence": 80,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0
+                        },
+                        "angle": 108.8227292391796,
+                        "std": 13.189538329656042
+                    },
+                    {
+                        "ligand1": {
+                            "name": "O3",
+                            "element": "O",
+                            "chain": "A",
+                            "residue": "PGE",
+                            "sequence": 612,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0
+                        },
+                        "ligand2": {
+                            "name": "O1",
+                            "element": "O",
+                            "chain": "A",
+                            "residue": "PGE",
+                            "sequence": 612,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0
+                        },
+                        "angle": 108.82272923917961,
+                        "std": 13.189538329656068
+                    },
+                    {
+                        "ligand1": {
+                            "name": "O3",
+                            "element": "O",
+                            "chain": "A",
+                            "residue": "PGE",
+                            "sequence": 612,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0
+                        },
+                        "ligand2": {
+                            "name": "O",
+                            "element": "O",
+                            "chain": "A",
+                            "residue": "HOH",
+                            "sequence": 783,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0
+                        },
+                        "angle": 108.82272923917961,
+                        "std": 13.189538329656068
+                    },
+                    {
+                        "ligand1": {
+                            "name": "O",
+                            "element": "O",
+                            "chain": "A",
+                            "residue": "GLU",
+                            "sequence": 80,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0
+                        },
+                        "ligand2": {
+                            "name": "O1",
+                            "element": "O",
+                            "chain": "A",
+                            "residue": "PGE",
+                            "sequence": 612,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0
+                        },
+                        "angle": 108.82272923917961,
+                        "std": 13.189538329656068
+                    },
+                    {
+                        "ligand1": {
+                            "name": "O",
+                            "element": "O",
+                            "chain": "A",
+                            "residue": "GLU",
+                            "sequence": 80,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0
+                        },
+                        "ligand2": {
+                            "name": "O",
+                            "element": "O",
+                            "chain": "A",
+                            "residue": "HOH",
+                            "sequence": 783,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0
+                        },
+                        "angle": 108.82272923917961,
+                        "std": 13.189538329656068
+                    },
+                    {
+                        "ligand1": {
+                            "name": "O1",
+                            "element": "O",
+                            "chain": "A",
+                            "residue": "PGE",
+                            "sequence": 612,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0
+                        },
+                        "ligand2": {
+                            "name": "O",
+                            "element": "O",
+                            "chain": "A",
+                            "residue": "HOH",
+                            "sequence": 783,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0
+                        },
+                        "angle": 108.82272923917961,
+                        "std": 13.189538329656068
+                    }
+                ],
+                "pdb": [
+                    {
+                        "ligand": {
+                            "name": "O3",
+                            "element": "O",
+                            "chain": "A",
+                            "residue": "PGE",
+                            "sequence": 612,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0
+                        },
+                        "distance": [
+                            2.3,
+                            2.44
+                        ],
+                        "std": [
+                            0.07,
+                            0.05
+                        ]
+                    },
+                    {
+                        "ligand": {
+                            "name": "O",
+                            "element": "O",
+                            "chain": "A",
+                            "residue": "GLU",
+                            "sequence": 80,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0
+                        },
+                        "distance": [
+                            2.3,
+                            2.44
+                        ],
+                        "std": [
+                            0.07,
+                            0.05
+                        ]
+                    },
+                    {
+                        "ligand": {
+                            "name": "O1",
+                            "element": "O",
+                            "chain": "A",
+                            "residue": "PGE",
+                            "sequence": 612,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0
+                        },
+                        "distance": [
+                            2.3,
+                            2.44
+                        ],
+                        "std": [
+                            0.07,
+                            0.05
+                        ]
+                    },
+                    {
+                        "ligand": {
+                            "name": "O",
+                            "element": "O",
+                            "chain": "A",
+                            "residue": "HOH",
+                            "sequence": 783,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0
+                        },
+                        "distance": [
+                            2.3,
+                            2.44
+                        ],
+                        "std": [
+                            0.07,
+                            0.05
+                        ]
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        "chain": "A",
+        "residue": "NA",
+        "sequence": 513,
+        "metal": "NA",
+        "metalElement": "Na",
+        "icode": ".",
+        "altloc": "",
+        "ligands": [
+            {
+                "class": "",
+                "procrustes": -1.0,
+                "coordination": 2,
+                "count": -1,
+                "description": "Based on covalent distances",
+                "base": [],
+                "angles": [],
+                "pdb": [
+                    {
+                        "ligand": {
+                            "name": "O1",
+                            "element": "O",
+                            "chain": "A",
+                            "residue": "PGE",
+                            "sequence": 613,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0
+                        },
+                        "distance": [
+                            2.32
+                        ],
+                        "std": [
+                            0.2
+                        ]
+                    },
+                    {
+                        "ligand": {
+                            "name": "O2",
+                            "element": "O",
+                            "chain": "A",
+                            "residue": "PGE",
+                            "sequence": 613,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0
+                        },
+                        "distance": [
+                            2.32
+                        ],
+                        "std": [
+                            0.2
+                        ]
+                    }
+                ]
+            }
+        ]
+    }
+]
