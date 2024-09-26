@@ -61,4 +61,9 @@ pip install git+https://github.com/Lekaveh/MetalCoordAnalysis
 - **Coordination List**: 
     - metalCoord coord [-n <COORDINATION_NUMBER>]
         - -n, --number: Coordination number.
+- **List of PDBs**: 
+    - metalCoord pdb -l LIGAND_CODE -o OUTPUT_JSON_FILE
+        - -l, --ligand: Ligand code.
+        - -o, --output: Output JSON file
+
 
