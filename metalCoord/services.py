@@ -43,6 +43,7 @@ PROGRAM_NAME = "program_name"
 PROGRAM_VERSION = "program_version"
 TYPE = "type"
 
+
 def decompose(values, n):
     """
     Decompose a list of values into sublists of size n.
@@ -59,6 +60,7 @@ def decompose(values, n):
         result.append(values[i*n:i*n + n])
     return result
 
+
 def pack(values):
     """
     Pack a list of values into sublists, grouping them by index.
@@ -69,7 +71,8 @@ def pack(values):
     Returns:
         list: A list of sublists, each containing the values at the same index.
     """
-    return [list(x) for x in zip(*values)]  
+    return [list(x) for x in zip(*values)]
+
 
 d = os.path.dirname(sys.modules["metalCoord"].__file__)
 mons = json.load(open(os.path.join(d, "data/mons.json"), encoding="utf-8"))
@@ -143,16 +146,16 @@ def get_angles(clazz, ligand_name1, ligand_name2):
         return angle, std, cl, procrustes, coordination
 
     for ligand in clazz["angles"]:
-        if ((ligand["ligand1"]["name"] == ligand_name1) and (ligand["ligand2"]["name"]  == ligand_name2)) or ((ligand["ligand2"]["name"]  == ligand_name1) and (ligand["ligand1"]["name"]  == ligand_name2)):
-            coordination =  clazz["coordination"]
-            procrustes   =  float(clazz["procrustes"])
+        if ((ligand["ligand1"]["name"] == ligand_name1) and (ligand["ligand2"]["name"] == ligand_name2)) or ((ligand["ligand2"]["name"] == ligand_name1) and (ligand["ligand1"]["name"] == ligand_name2)):
+            coordination = clazz["coordination"]
+            procrustes = float(clazz["procrustes"])
             angle = ligand["angle"]
             std = ligand["std"]
             cl = clazz["class"]
             break
-                        
-                        
+
     return angle, std, cl, procrustes, coordination
+
 
 def code(ligand1_name, metal_name, ligand2_name):
     """
@@ -166,7 +169,8 @@ def code(ligand1_name, metal_name, ligand2_name):
     Returns:
     - code (str): The generated code.
     """
-    return ''.join(sorted([ligand1_name, metal_name, ligand2_name]))  
+    return ''.join(sorted([ligand1_name, metal_name, ligand2_name]))
+
 
 def get_element_name(mmcif_atom_category, name):
     """
@@ -183,6 +187,7 @@ def get_element_name(mmcif_atom_category, name):
         if _ == name:
             return mmcif_atom_category[TYPE_SYMBOL][i]
 
+
 def contains_metal(mmcif_atom_category):
     """
     Check if the mmcif atom category contains any metal atoms.
@@ -198,6 +203,7 @@ def contains_metal(mmcif_atom_category):
             return True
     return False
 
+
 def find_minimal_cycles(bonds):
     """
     Find the minimal cycles in a graph represented by a list of bonds.
@@ -209,11 +215,12 @@ def find_minimal_cycles(bonds):
     - cycle_basis (list): A list of minimal cycles in the graph.
     """
     graph = nx.Graph()
-    graph.add_edges_from([[a1, a2] for a1, a2 in bonds])    
+    graph.add_edges_from([[a1, a2] for a1, a2 in bonds])
     # Find the cycle basis of the graph
     cycle_basis = nx.simple_cycles(graph)
 
     return cycle_basis
+
 
 def bond_exist(bonds, atom1, atom2):
     """
@@ -232,6 +239,7 @@ def bond_exist(bonds, atom1, atom2):
             return True
     return False
 
+
 def save_cods(pdb_stats: PdbStats, path: str):
     """
     Save COD files for ligands in the given PdbStats object.
@@ -247,7 +255,8 @@ def save_cods(pdb_stats: PdbStats, path: str):
     for monomer in pdb_stats.monomers():
         for metal_stats in monomer.metals:
             for ligand_stats in metal_stats.ligands:
-                output_folder = os.path.join(output, metal_stats.residue, metal_stats.chain, str(metal_stats.sequence), metal_stats.metal, ligand_stats.clazz)
+                output_folder = os.path.join(output, metal_stats.residue, metal_stats.chain, str(
+                    metal_stats.sequence), metal_stats.metal, ligand_stats.clazz)
                 Path(output_folder).mkdir(exist_ok=True, parents=True)
                 for file, st in ligand_stats.cods:
                     st.write_pdb(os.path.join(output_folder, file))
@@ -270,7 +279,7 @@ def update_cif(output_path, path, pdb):
     folder = os.path.split(folder)[1]
     doc = gemmi.cif.read_file(path)
 
-    name = None    
+    name = None
     for block in doc:
         matches = re.findall(r"^(?:comp_)?([A-Za-z0-9]{3}$)", block.name)
         if matches:
@@ -282,16 +291,16 @@ def update_cif(output_path, path, pdb):
         Logger().error("No block found for <name>|comp_<name>. Please check the CIF file.")
         return
 
-
-    block = doc.find_block(f"comp_{name}") if doc.find_block(f"comp_{name}") is not None else doc.find_block(f"{name}")
-    
+    block = doc.find_block(f"comp_{name}") if doc.find_block(
+        f"comp_{name}") is not None else doc.find_block(f"{name}")
 
     if block is None:
-        Logger().error(f"No block found for {name}|comp_{name}. Please check the CIF file.")
+        Logger().error(
+            f"No block found for {name}|comp_{name}. Please check the CIF file.")
         return
-    
+
     block.name = f"comp_{name}"
-    
+
     ace_drg = block.get_mmcif_category(ACEDRG_CATEGORY)
     if not ace_drg:
         ace_drg[COMP_ID] = list()
@@ -311,10 +320,11 @@ def update_cif(output_path, path, pdb):
     angles = block.get_mmcif_category(ANGLE_CATEGORY)
 
     if not atoms:
-        Logger().error(f"mmcif category {ATOM_CATEGORY} not found. Please check the CIF file.")
+        Logger().error(
+            f"mmcif category {ATOM_CATEGORY} not found. Please check the CIF file.")
         return
     n_atoms = len(atoms[ATOM_ID])
-    n_nhatoms = len([x for x in atoms[TYPE_SYMBOL] if x != "H" ])
+    n_nhatoms = len([x for x in atoms[TYPE_SYMBOL] if x != "H"])
 
     new_atoms = dict()
     if ENERGY not in atoms:
@@ -325,9 +335,10 @@ def update_cif(output_path, path, pdb):
         block.set_mmcif_category(ATOM_CATEGORY, new_atoms)
 
     if not bonds:
-        Logger().error(f"mmcif category {BOND_CATEGORY} not found. Please check the CIF file.")
+        Logger().error(
+            f"mmcif category {BOND_CATEGORY} not found. Please check the CIF file.")
         return
-    
+
     if contains_metal(atoms):
         if pdb is None:
             if name not in mons:
@@ -337,52 +348,55 @@ def update_cif(output_path, path, pdb):
             all_candidates = sorted(mons[name], key=lambda x: x[1])
 
             candidates = [mon for mon in all_candidates if mon[2]]
-            
+
             if len(candidates) == 0:
                 mon = all_candidates[0]
             else:
                 mon = candidates[0]
             if mon[1] > 2:
                 if len(candidates) == 0:
-                    Logger().warning("There is no PDB with necessary resolution and occupancy in our Ligand-PDB database. Please specify the PDB file")       
+                    Logger().warning("There is no PDB with necessary resolution and occupancy in our Ligand-PDB database. Please specify the PDB file")
                 else:
-                    Logger().warning("There is no PDB with necessary resolution in our Ligand-PDB database. Please specify the PDB file")   
+                    Logger().warning("There is no PDB with necessary resolution in our Ligand-PDB database. Please specify the PDB file")
             else:
                 if len(candidates) == 0:
-                    Logger().warning("There is no PDB with necessary occupancy in our Ligand-PDB database. Please specify the PDB file")   
+                    Logger().warning("There is no PDB with necessary occupancy in our Ligand-PDB database. Please specify the PDB file")
 
             pdb = mon[0]
             Logger().info(f"Best PDB file is {pdb}")
 
         def get_bonds(atoms, bonds):
             result = {}
-            for atom1, atom2  in zip(bonds[ATOM_ID_1], bonds[ATOM_ID_2]):
+            for atom1, atom2 in zip(bonds[ATOM_ID_1], bonds[ATOM_ID_2]):
                 if not gemmi.Element(get_element_name(atoms, atom1)).is_metal and not gemmi.Element(get_element_name(atoms, atom2)).is_metal:
                     continue
-                if  gemmi.Element(get_element_name(atoms, atom1)).is_metal and gemmi.Element(get_element_name(atoms, atom2)).is_metal:
+                if gemmi.Element(get_element_name(atoms, atom1)).is_metal and gemmi.Element(get_element_name(atoms, atom2)).is_metal:
                     continue
 
                 if gemmi.Element(get_element_name(atoms, atom2)).is_metal:
                     atom1, atom2 = atom2, atom1
 
                 result.setdefault(atom1, []).append(atom2)
-            
+
             return result
-                    
-        
-        pdb_stats = find_classes(name, pdb, get_bonds(atoms, bonds), only_best=True)
+
+        pdb_stats = find_classes(
+            name, pdb, get_bonds(atoms, bonds), only_best=True)
 
         if pdb_stats.is_empty():
             # Logger().info(f"No coordination found for {name}  in {pdb}. Please check the PDB file")
             return
-        
+
         Logger().info("Ligand updating started")
         if VALUE_DIST not in bonds:
             bonds[VALUE_DIST] = [None for x in range(len(bonds[ATOM_ID_1]))]
-            bonds[VALUE_DIST_ESD] = [None for x in range(len(bonds[ATOM_ID_1]))]
-            bonds[VALUE_DIST_NUCLEUS] = [None for x in range(len(bonds[ATOM_ID_1]))]
-            bonds[VALUE_DIST_NUCLEUS_ESD] = [None for x in range(len(bonds[ATOM_ID_1]))]
-        
+            bonds[VALUE_DIST_ESD] = [
+                None for x in range(len(bonds[ATOM_ID_1]))]
+            bonds[VALUE_DIST_NUCLEUS] = [
+                None for x in range(len(bonds[ATOM_ID_1]))]
+            bonds[VALUE_DIST_NUCLEUS_ESD] = [
+                None for x in range(len(bonds[ATOM_ID_1]))]
+
         for i, _atoms in enumerate(zip(bonds[ATOM_ID_1], bonds[ATOM_ID_2])):
             metal_name, ligand_name = _atoms
 
@@ -392,16 +406,15 @@ def update_cif(output_path, path, pdb):
             if gemmi.Element(get_element_name(atoms, ligand_name)).is_metal:
                 metal_name, ligand_name = ligand_name, metal_name
 
-
             bondStat = pdb_stats.get_ligand_distance(metal_name, ligand_name)
-            if  bondStat:
-                bonds[VALUE_DIST][i] = bonds[VALUE_DIST_NUCLEUS][i] = str(round(bondStat.distance[0], 3))
-                bonds[VALUE_DIST_ESD][i] = bonds[VALUE_DIST_NUCLEUS_ESD][i] = str(round(bondStat.std[0], 3))
-            
+            if bondStat:
+                bonds[VALUE_DIST][i] = bonds[VALUE_DIST_NUCLEUS][i] = str(
+                    round(bondStat.distance[0], 3))
+                bonds[VALUE_DIST_ESD][i] = bonds[VALUE_DIST_NUCLEUS_ESD][i] = str(
+                    round(bondStat.std[0], 3))
 
         block.set_mmcif_category(BOND_CATEGORY, bonds)
         Logger().info("Distances updated")
-
 
         if not angles:
             Logger().info("Creating mmcif category {ANGLE_CATEGORY}.")
@@ -431,13 +444,14 @@ def update_cif(output_path, path, pdb):
                 if not gemmi.Element(get_element_name(atoms, metal_name)).is_metal:
                     continue
 
-                angle_stat = pdb_stats.get_ligand_angle(metal_name, ligand1_name, ligand2_name)
+                angle_stat = pdb_stats.get_ligand_angle(
+                    metal_name, ligand1_name, ligand2_name)
                 if angle_stat:
                     angles[VALUE_ANGLE][i] = str(round(angle_stat.angle, 3))
                     angles[VALUE_ANGLE_ESD][i] = str(round(angle_stat.std, 3))
-                    update_angles.append(code(ligand1_name, metal_name, ligand2_name))
-            
-            
+                    update_angles.append(
+                        code(ligand1_name, metal_name, ligand2_name))
+
             for metal_name in pdb_stats.metal_names():
                 for angle in pdb_stats.get_ligand_angles(metal_name):
                     if code(angle.ligand1.name, metal_name, angle.ligand2.name) in update_angles:
@@ -451,13 +465,13 @@ def update_cif(output_path, path, pdb):
                     angles[ATOM_ID_3].append(angle.ligand2.name)
                     angles[VALUE_ANGLE].append(str(round(angle.angle, 3)))
                     angles[VALUE_ANGLE_ESD].append(str(round(angle.std, 3)))
-            
+
         v = []
         monomer = list(pdb_stats.monomers())[-1]
         for metal_stat in monomer.metals:
             for bond in metal_stat.get_all_distances():
                 v.append((metal_stat.code, bond.ligand.code))
-        
+
         for cycle in find_minimal_cycles(v):
             if len(cycle) == 4:
                 if gemmi.Element(cycle[0][1]).is_metal:
@@ -470,17 +484,18 @@ def update_cif(output_path, path, pdb):
                     metal2 = cycle[3]
                     ligand1 = cycle[0]
                     ligand2 = cycle[2]
-                
-                              
+
                 angle1 = monomer.get_angle(metal1[0], ligand1, ligand2)
                 angle2 = monomer.get_angle(metal2[0], ligand1, ligand2)
 
                 if not angle1 or not angle2:
                     if not angle1:
-                        Logger().warning(f"Angle {ligand1[0]}- {metal1[0]}-{ligand2[0]} not found in {monomer.code}")
+                        Logger().warning(
+                            f"Angle {ligand1[0]}- {metal1[0]}-{ligand2[0]} not found in {monomer.code}")
 
                     if not angle2:
-                        Logger().warning(f"Angle {ligand1[0]}- {metal2[0]}-{ligand2[0]} not found in {monomer.code}")
+                        Logger().warning(
+                            f"Angle {ligand1[0]}- {metal2[0]}-{ligand2[0]} not found in {monomer.code}")
                     continue
 
                 val = (360 - angle1.angle - angle2.angle)/2
@@ -491,7 +506,7 @@ def update_cif(output_path, path, pdb):
                         found = False
                         for i, _atoms in enumerate(zip(angles[ATOM_ID_1], angles[ATOM_ID_2], angles[ATOM_ID_3])):
                             metal1_name, ligand_name, metal2_name = _atoms
-                            if (metal1_name == metal1[0] and ligand_name == ligand[0] and metal2_name == metal2[0]) or (metal1_name == metal2[0] and ligand_name == ligand[0] and metal2_name == metal1[0]) :
+                            if (metal1_name == metal1[0] and ligand_name == ligand[0] and metal2_name == metal2[0]) or (metal1_name == metal2[0] and ligand_name == ligand[0] and metal2_name == metal1[0]):
                                 angles[VALUE_ANGLE][i] = str(round(val, 3))
                                 angles[VALUE_ANGLE_ESD][i] = str(round(std, 3))
                                 found = True
@@ -502,19 +517,17 @@ def update_cif(output_path, path, pdb):
                             angles[ATOM_ID_2].append(ligand[0])
                             angles[ATOM_ID_3].append(metal2[0])
                             angles[VALUE_ANGLE].append(str(round(val, 3)))
-                            angles[VALUE_ANGLE_ESD].append(str(round(std, 3)))       
+                            angles[VALUE_ANGLE_ESD].append(str(round(std, 3)))
 
         block.set_mmcif_category(ANGLE_CATEGORY, angles)
         Logger().info("Angles updated")
 
         if not doc.find_block("comp_list"):
             list_block = doc.add_new_block("comp_list", 0)
-            x="."
-            list_block.set_mmcif_category(COMP_CATEGORY, {ID: [name], THREE_LETTER_CODE: [name], NAME: [name.lower()], 
-                GROUP: ["."], NUMBER_ATOMS_ALL: [str(n_atoms)], NUMBER_ATOMS_NH: [str(n_nhatoms)], DESC_LEVEL: ["."]})
-  
+            x = "."
+            list_block.set_mmcif_category(COMP_CATEGORY, {ID: [name], THREE_LETTER_CODE: [name], NAME: [name.lower()],
+                                                          GROUP: ["."], NUMBER_ATOMS_ALL: [str(n_atoms)], NUMBER_ATOMS_NH: [str(n_nhatoms)], DESC_LEVEL: ["."]})
 
-        
         Logger().info("Ligand update completed")
 
         Path(os.path.split(output_path)[0]).mkdir(exist_ok=True, parents=True)
@@ -522,16 +535,15 @@ def update_cif(output_path, path, pdb):
         report_path = output_path + ".json"
         Logger().info(f"Update written to {output_path}")
         with open(report_path, 'w', encoding="utf-8") as json_file:
-            json.dump(pdb_stats.json(), json_file, 
-                                indent=4,  
-                                separators=(',',': '))
-        
+            json.dump(pdb_stats.json(), json_file,
+                      indent=4,
+                      separators=(',', ': '))
+
         if Config().save:
             save_cods(pdb_stats, os.path.dirname(output_path))
         Logger().info(f"Report written to {report_path}")
     else:
         Logger().info(f"No metal found in {name}")
-
 
 
 def get_stats(ligand, pdb, output):
@@ -546,20 +558,20 @@ def get_stats(ligand, pdb, output):
     Returns:
         None
     """
-    pdb_stats = find_classes(ligand, pdb) 
+    pdb_stats = find_classes(ligand, pdb)
     results = pdb_stats.json()
-    
+
     with open(output, 'w', encoding="utf-8") as json_file:
-        json.dump(results, json_file, 
-                            indent=4,  
-                            separators=(',',': '))
+        json.dump(results, json_file,
+                  indent=4,
+                  separators=(',', ': '))
     if Config().save:
         save_cods(pdb_stats, os.path.dirname(output))
 
     Logger().info(f"Report written to {output}")
 
 
-def get_coordinations(coordination_num:int = None) -> list:
+def get_coordinations(coordination_num: int = None) -> list:
     """
     Retrieves the ideal coordination classes based on the given coordination number.
 
@@ -573,3 +585,25 @@ def get_coordinations(coordination_num:int = None) -> list:
     if coordination_num:
         return idealClasses.get_ideal_classes_by_coordination(coordination_num)
     return idealClasses.get_ideal_classes()
+
+
+def get_pdbs(ligand: str, output: str) -> list:
+    """
+    Retrieves the PDB files containing the given ligand.
+
+    Parameters:
+    ligand (str): The name of the ligand.
+
+    Returns:
+    list: A list of PDB files containing the ligand.
+
+    """
+    pdbs = {ligand: []}
+    if ligand in mons:
+        pdbs = {ligand: sorted(mons[ligand], key=lambda x: (not x[2], x[1]))}
+    with open(output, 'w', encoding="utf-8") as json_file:
+        json.dump(pdbs, json_file,
+                  indent=4,
+                  separators=(',', ': '))
+        Logger().info(f"List of pdbs for {ligand} written to {output}")
+   

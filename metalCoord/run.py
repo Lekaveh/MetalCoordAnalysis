@@ -5,7 +5,7 @@ import os
 
 import metalCoord
 from metalCoord.logging import Logger
-from metalCoord.services import update_cif, get_stats, get_coordinations
+from metalCoord.services import update_cif, get_stats, get_coordinations, get_pdbs
 from metalCoord.config import Config
 
 
@@ -139,6 +139,15 @@ def create_parser():
         'coord', help='List of coordinations.')
     coordination_parser.add_argument('-n', '--number', type=int, required=False,
                                      help='Coordination number.', metavar='<COORDINATION NUMBER>')
+    
+
+    # App4
+    pdb_parser = subparsers.add_parser(
+        'pdb', help='Get list of PDBs containing the ligand.')
+    pdb_parser.add_argument('-l', '--ligand', type=str,
+                               required=True, help='Ligand code.', metavar='<LIGAND CODE>')
+    pdb_parser.add_argument('-o', '--output', type=str, required=True,
+                               help='Output json file.', metavar='<OUTPUT JSON FILE>')
     return parser
 
 
@@ -182,6 +191,8 @@ def main_func():
         
         elif args.command == 'coord':
             print(f"List of coordinations: {get_coordinations(args.number)}")
+        elif args.command == 'pdb':
+            get_pdbs(args.ligand, args.output)
         else:
             parser.print_help()
         
