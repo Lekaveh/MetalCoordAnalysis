@@ -638,6 +638,12 @@ def get_ligands(st, ligand, bonds=None, max_dist=10, only_best=False) -> list[Li
                             neighbour_atoms.append(
                                 Atom(cra.atom, cra.residue, cra.chain, mark, st, atom))
 
+
+                        ligand_atoms = []
+                        if bonds:
+                            ligand_atoms = [a for a in neighbour_atoms if a.atom.name in metal_bonds and a.residue.name == ligand and a.residue.seqid.num == residue.seqid.num and a.chain.name == chain.name]
+                            neighbour_atoms = [a for a in neighbour_atoms if a not in ligand_atoms]
+                
                         n1 = [
                             neighbour_atom for neighbour_atom in neighbour_atoms
                             if not neighbour_atom.atom.element.is_metal and distance(metal, neighbour_atom) < (covalent_radii(metal.atom.element.name) + covalent_radii(neighbour_atom.atom.element.name)) * alpha
@@ -648,18 +654,12 @@ def get_ligands(st, ligand, bonds=None, max_dist=10, only_best=False) -> list[Li
                         n0 = [
                             neighbour_atom for neighbour_atom in neighbour_atoms
                             if not neighbour_atom.atom.element.is_metal and distance(metal, neighbour_atom) <= (covalent_radii(metal.atom.element.name) + covalent_radii(neighbour_atom.atom.element.name)) * alpha1
-                        ]
+                        ] + ligand_atoms
 
                         # Step 3: Remove atoms in n0 from n1
                         n1 = [a for a in n1 if a not in n0]
-                        # for i in n1:
-                        #     print(i.atom.name, i.residue.name, i.residue.seqid.num, i.chain.name,i.atom.occ, distance(i.atom, atom), covalent_radii(i.atom.element.name), covalent_radii(atom.element.name), distance(i.atom, atom) / (covalent_radii(i.atom.element.name) + covalent_radii(atom.element.name)))
 
-                        if bonds:
-                            for a in n1:
-                                if a.atom.name in metal_bonds and a.residue.name == ligand and a.residue.seqid.num == residue.seqid.num and a.chain.name == chain.name:
-                                    n0.append(a)
-                                    n1.remove(a)
+
 
                         # Step 4-9: Apply the logic iteratively
                         beta_c = beta1[k]
@@ -672,6 +672,7 @@ def get_ligands(st, ligand, bonds=None, max_dist=10, only_best=False) -> list[Li
                         n0.extend(n1)
 
                         # Add atoms to ligand_obj
+                        neighbour_atoms = neighbour_atoms + ligand_atoms
                         for a in n0:
                             idx = [i for i, x in enumerate(
                                 neighbour_atoms) if x == a][0]
