@@ -1,0 +1,46 @@
+[
+    [
+        {
+            "name": "O2",
+            "element": "O",
+            "chain": "A",
+            "residue": "CUO",
+            "sequence": 402,
+            "icode": ".",
+            "altloc": "",
+            "symmetry": 0
+        },
+        {
+            "name": "O1",
+            "element": "O",
+            "chain": "A",
+            "residue": "CUO",
+            "sequence": 402,
+            "icode": ".",
+            "altloc": "",
+            "symmetry": 0
+        }
+    ],
+    [
+        {
+            "name": "O2",
+            "element": "O",
+            "chain": "B",
+            "residue": "CUO",
+            "sequence": 406,
+            "icode": ".",
+            "altloc": "",
+            "symmetry": 0
+        },
+        {
+            "name": "O1",
+            "element": "O",
+            "chain": "B",
+            "residue": "CUO",
+            "sequence": 406,
+            "icode": ".",
+            "altloc": "",
+            "symmetry": 0
+        }
+    ]
+]

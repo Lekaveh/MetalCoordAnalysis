@@ -1,0 +1,84 @@
+exte dist first chain A resi 302 inse . atom AL second chain A resi 302 inse . atom F2 value 1.82 sigma 0.05
+exte dist first chain A resi 302 inse . atom AL second chain A resi 302 inse . atom F1 value 1.82 sigma 0.05
+exte dist first chain A resi 302 inse . atom AL second chain A resi 302 inse . atom F3 value 1.82 sigma 0.05
+exte dist first chain A resi 302 inse . atom AL second chain A resi 303 inse . atom O1 value 1.88 sigma 0.04
+exte dist first chain A resi 302 inse . atom AL second chain A resi 401 inse . atom O value 1.88 sigma 0.04
+exte dist first chain A resi 302 inse . atom AL second chain A resi 301 inse . atom OP1 value 1.88 sigma 0.04
+exte angle first chain A resi 302 inse . atom F2 next chain A resi 302 inse . atom AL next chain A resi 302 inse . atom F1 value 90.0 sigma 5.0
+exte angle first chain A resi 302 inse . atom F2 next chain A resi 302 inse . atom AL next chain A resi 302 inse . atom F3 value 180.0 sigma 5.0
+exte angle first chain A resi 302 inse . atom F2 next chain A resi 302 inse . atom AL next chain A resi 303 inse . atom O1 value 90.0 sigma 5.0
+exte angle first chain A resi 302 inse . atom F2 next chain A resi 302 inse . atom AL next chain A resi 401 inse . atom O value 90.0 sigma 5.0
+exte angle first chain A resi 302 inse . atom F2 next chain A resi 302 inse . atom AL next chain A resi 301 inse . atom OP1 value 90.0 sigma 5.0
+exte angle first chain A resi 302 inse . atom F1 next chain A resi 302 inse . atom AL next chain A resi 302 inse . atom F3 value 90.0 sigma 5.0
+exte angle first chain A resi 302 inse . atom F1 next chain A resi 302 inse . atom AL next chain A resi 303 inse . atom O1 value 180.0 sigma 5.0
+exte angle first chain A resi 302 inse . atom F1 next chain A resi 302 inse . atom AL next chain A resi 401 inse . atom O value 90.0 sigma 5.0
+exte angle first chain A resi 302 inse . atom F1 next chain A resi 302 inse . atom AL next chain A resi 301 inse . atom OP1 value 90.0 sigma 5.0
+exte angle first chain A resi 302 inse . atom F3 next chain A resi 302 inse . atom AL next chain A resi 303 inse . atom O1 value 90.0 sigma 5.0
+exte angle first chain A resi 302 inse . atom F3 next chain A resi 302 inse . atom AL next chain A resi 401 inse . atom O value 90.0 sigma 5.0
+exte angle first chain A resi 302 inse . atom F3 next chain A resi 302 inse . atom AL next chain A resi 301 inse . atom OP1 value 90.0 sigma 5.0
+exte angle first chain A resi 303 inse . atom O1 next chain A resi 302 inse . atom AL next chain A resi 401 inse . atom O value 90.0 sigma 5.0
+exte angle first chain A resi 303 inse . atom O1 next chain A resi 302 inse . atom AL next chain A resi 301 inse . atom OP1 value 90.0 sigma 5.0
+exte angle first chain A resi 401 inse . atom O next chain A resi 302 inse . atom AL next chain A resi 301 inse . atom OP1 value 180.0 sigma 5.0
+exte dist first chain A resi 304 inse . atom MG second chain A resi 48 inse . atom OE2 value 2.07 sigma 0.04
+exte dist first chain A resi 304 inse . atom MG second chain A resi 51 inse . atom OE2 value 2.07 sigma 0.04
+exte dist first chain A resi 304 inse . atom MG second chain A resi 301 inse . atom OP2 value 2.07 sigma 0.04
+exte dist first chain A resi 304 inse . atom MG second chain A resi 302 inse . atom F3 value 2.06 sigma 0.12
+exte dist first chain A resi 304 inse . atom MG second chain A resi 437 inse . atom O value 2.07 sigma 0.04
+exte dist first chain A resi 304 inse . atom MG second chain A resi 303 inse . atom O2 value 2.07 sigma 0.04
+exte angle first chain A resi 48 inse . atom OE2 next chain A resi 304 inse . atom MG next chain A resi 51 inse . atom OE2 value 90.0 sigma 5.0
+exte angle first chain A resi 48 inse . atom OE2 next chain A resi 304 inse . atom MG next chain A resi 301 inse . atom OP2 value 90.0 sigma 5.0
+exte angle first chain A resi 48 inse . atom OE2 next chain A resi 304 inse . atom MG next chain A resi 302 inse . atom F3 value 90.0 sigma 5.0
+exte angle first chain A resi 48 inse . atom OE2 next chain A resi 304 inse . atom MG next chain A resi 437 inse . atom O value 90.0 sigma 5.0
+exte angle first chain A resi 48 inse . atom OE2 next chain A resi 304 inse . atom MG next chain A resi 303 inse . atom O2 value 180.0 sigma 5.0
+exte angle first chain A resi 51 inse . atom OE2 next chain A resi 304 inse . atom MG next chain A resi 301 inse . atom OP2 value 180.0 sigma 5.0
+exte angle first chain A resi 51 inse . atom OE2 next chain A resi 304 inse . atom MG next chain A resi 302 inse . atom F3 value 90.0 sigma 5.0
+exte angle first chain A resi 51 inse . atom OE2 next chain A resi 304 inse . atom MG next chain A resi 437 inse . atom O value 90.0 sigma 5.0
+exte angle first chain A resi 51 inse . atom OE2 next chain A resi 304 inse . atom MG next chain A resi 303 inse . atom O2 value 90.0 sigma 5.0
+exte angle first chain A resi 301 inse . atom OP2 next chain A resi 304 inse . atom MG next chain A resi 302 inse . atom F3 value 90.0 sigma 5.0
+exte angle first chain A resi 301 inse . atom OP2 next chain A resi 304 inse . atom MG next chain A resi 437 inse . atom O value 90.0 sigma 5.0
+exte angle first chain A resi 301 inse . atom OP2 next chain A resi 304 inse . atom MG next chain A resi 303 inse . atom O2 value 90.0 sigma 5.0
+exte angle first chain A resi 302 inse . atom F3 next chain A resi 304 inse . atom MG next chain A resi 437 inse . atom O value 180.0 sigma 5.0
+exte angle first chain A resi 302 inse . atom F3 next chain A resi 304 inse . atom MG next chain A resi 303 inse . atom O2 value 90.0 sigma 5.0
+exte angle first chain A resi 437 inse . atom O next chain A resi 304 inse . atom MG next chain A resi 303 inse . atom O2 value 90.0 sigma 5.0
+exte dist first chain A resi 305 inse . atom MG second chain A resi 79 inse . atom OD2 value 2.07 sigma 0.04
+exte dist first chain A resi 305 inse . atom MG second chain A resi 48 inse . atom OE1 value 2.07 sigma 0.04
+exte dist first chain A resi 305 inse . atom MG second chain A resi 51 inse . atom OE1 value 2.07 sigma 0.04
+exte dist first chain A resi 305 inse . atom MG second chain A resi 76 inse . atom OE1 value 2.07 sigma 0.04
+exte dist first chain A resi 305 inse . atom MG second chain A resi 401 inse . atom O value 2.07 sigma 0.04
+exte dist first chain A resi 305 inse . atom MG second chain A resi 302 inse . atom F3 value 2.06 sigma 0.12
+exte angle first chain A resi 79 inse . atom OD2 next chain A resi 305 inse . atom MG next chain A resi 48 inse . atom OE1 value 90.0 sigma 5.0
+exte angle first chain A resi 79 inse . atom OD2 next chain A resi 305 inse . atom MG next chain A resi 51 inse . atom OE1 value 180.0 sigma 5.0
+exte angle first chain A resi 79 inse . atom OD2 next chain A resi 305 inse . atom MG next chain A resi 76 inse . atom OE1 value 90.0 sigma 5.0
+exte angle first chain A resi 79 inse . atom OD2 next chain A resi 305 inse . atom MG next chain A resi 401 inse . atom O value 90.0 sigma 5.0
+exte angle first chain A resi 79 inse . atom OD2 next chain A resi 305 inse . atom MG next chain A resi 302 inse . atom F3 value 90.0 sigma 5.0
+exte angle first chain A resi 48 inse . atom OE1 next chain A resi 305 inse . atom MG next chain A resi 51 inse . atom OE1 value 90.0 sigma 5.0
+exte angle first chain A resi 48 inse . atom OE1 next chain A resi 305 inse . atom MG next chain A resi 76 inse . atom OE1 value 90.0 sigma 5.0
+exte angle first chain A resi 48 inse . atom OE1 next chain A resi 305 inse . atom MG next chain A resi 401 inse . atom O value 180.0 sigma 5.0
+exte angle first chain A resi 48 inse . atom OE1 next chain A resi 305 inse . atom MG next chain A resi 302 inse . atom F3 value 90.0 sigma 5.0
+exte angle first chain A resi 51 inse . atom OE1 next chain A resi 305 inse . atom MG next chain A resi 76 inse . atom OE1 value 90.0 sigma 5.0
+exte angle first chain A resi 51 inse . atom OE1 next chain A resi 305 inse . atom MG next chain A resi 401 inse . atom O value 90.0 sigma 5.0
+exte angle first chain A resi 51 inse . atom OE1 next chain A resi 305 inse . atom MG next chain A resi 302 inse . atom F3 value 90.0 sigma 5.0
+exte angle first chain A resi 76 inse . atom OE1 next chain A resi 305 inse . atom MG next chain A resi 401 inse . atom O value 90.0 sigma 5.0
+exte angle first chain A resi 76 inse . atom OE1 next chain A resi 305 inse . atom MG next chain A resi 302 inse . atom F3 value 180.0 sigma 5.0
+exte angle first chain A resi 401 inse . atom O next chain A resi 305 inse . atom MG next chain A resi 302 inse . atom F3 value 90.0 sigma 5.0
+exte dist first chain A resi 306 inse . atom NA second chain A resi 76 inse . atom OE2 value 2.42 sigma 0.09
+exte dist first chain A resi 306 inse . atom NA second chain A resi 402 inse . atom O value 2.42 sigma 0.09
+exte dist first chain A resi 306 inse . atom NA second chain A resi 403 inse . atom O value 2.42 sigma 0.09
+exte dist first chain A resi 306 inse . atom NA second chain A resi 51 inse . atom OE1 value 2.42 sigma 0.09
+exte dist first chain A resi 306 inse . atom NA second chain A resi 401 inse . atom O value 2.42 sigma 0.09
+exte dist first chain A resi 306 inse . atom NA second chain A resi 485 inse . atom O value 2.42 sigma 0.09
+exte angle first chain A resi 76 inse . atom OE2 next chain A resi 306 inse . atom NA next chain A resi 402 inse . atom O value 90.05 sigma 8.59
+exte angle first chain A resi 76 inse . atom OE2 next chain A resi 306 inse . atom NA next chain A resi 403 inse . atom O value 90.05 sigma 8.59
+exte angle first chain A resi 76 inse . atom OE2 next chain A resi 306 inse . atom NA next chain A resi 51 inse . atom OE1 value 90.05 sigma 8.59
+exte angle first chain A resi 76 inse . atom OE2 next chain A resi 306 inse . atom NA next chain A resi 401 inse . atom O value 90.05 sigma 8.59
+exte angle first chain A resi 76 inse . atom OE2 next chain A resi 306 inse . atom NA next chain A resi 485 inse . atom O value 170.75 sigma 9.36
+exte angle first chain A resi 402 inse . atom O next chain A resi 306 inse . atom NA next chain A resi 403 inse . atom O value 90.05 sigma 8.59
+exte angle first chain A resi 402 inse . atom O next chain A resi 306 inse . atom NA next chain A resi 51 inse . atom OE1 value 90.05 sigma 8.59
+exte angle first chain A resi 402 inse . atom O next chain A resi 306 inse . atom NA next chain A resi 401 inse . atom O value 170.75 sigma 9.36
+exte angle first chain A resi 402 inse . atom O next chain A resi 306 inse . atom NA next chain A resi 485 inse . atom O value 90.05 sigma 8.59
+exte angle first chain A resi 403 inse . atom O next chain A resi 306 inse . atom NA next chain A resi 51 inse . atom OE1 value 170.75 sigma 9.36
+exte angle first chain A resi 403 inse . atom O next chain A resi 306 inse . atom NA next chain A resi 401 inse . atom O value 90.05 sigma 8.59
+exte angle first chain A resi 403 inse . atom O next chain A resi 306 inse . atom NA next chain A resi 485 inse . atom O value 90.05 sigma 8.59
+exte angle first chain A resi 51 inse . atom OE1 next chain A resi 306 inse . atom NA next chain A resi 401 inse . atom O value 90.05 sigma 8.59
+exte angle first chain A resi 51 inse . atom OE1 next chain A resi 306 inse . atom NA next chain A resi 485 inse . atom O value 90.05 sigma 8.59
+exte angle first chain A resi 401 inse . atom O next chain A resi 306 inse . atom NA next chain A resi 485 inse . atom O value 90.05 sigma 8.59
