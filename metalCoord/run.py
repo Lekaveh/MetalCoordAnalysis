@@ -196,7 +196,7 @@ def main_func():
         else:
             parser.print_help()
         
-        if args.command == 'update' or args.command == 'stats':
+        if args.command == 'update' or args.command == 'stats' or args.command == 'pdb':
             with open(os.path.join(Config().output_folder, Config().output_file + ".status.json"), 'w', encoding="utf-8") as json_file:
                 json.dump({"status":"Success"}, json_file, 
                                     indent=4,  
