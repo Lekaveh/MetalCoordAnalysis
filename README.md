@@ -40,7 +40,7 @@ pip install git+https://github.com/Lekaveh/MetalCoordAnalysis
         - -d, --dist: Distance threshold (default: 0.5, range: 0-1).
         - -t, --threshold: Procrustes distance threshold (default: 0.3, range: 0-1).
         - -m, --min_size: Minimum sample size for statistics (default: 30).
-        - --ideal_angles: Provide only ideal angles.
+        - --ideal-angles: Provide only ideal angles.
         - -s, --simple: Simple distance-based filtering.
         - --save: Save COD files used in statistics.
         - --use-pdb Use COD structures based on pdb coordinates.
@@ -53,7 +53,7 @@ pip install git+https://github.com/Lekaveh/MetalCoordAnalysis
         - -d, --dist: Distance threshold (default: 0.5, range: 0-1).
         - -t, --threshold: Procrustes distance threshold (default: 0.3, range: 0-1).
         - -m, --min_size: Minimum sample size for statistics (default: 30).
-        - --ideal_angles: Provide only ideal angles.
+        - --ideal-angles: Provide only ideal angles.
         - -s, --simple: Simple distance-based filtering.
         - --save: Save COD files used in statistics.
         - --use-pdb Use COD structures based on pdb coordinates.
