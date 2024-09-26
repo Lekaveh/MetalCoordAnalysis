@@ -33,7 +33,7 @@ pip install git+https://github.com/Lekaveh/MetalCoordAnalysis
 
 ### Usage
 - **Metal Coordination Analysis**: 
-    - metalCoord stats -l LIGAND_CODE -p <PDB_CODE|PDB_FILE> -o OUTPUT_JSON_FILE [-d <DISTANCE_THRESHOLD>] [-t <PROCRUSTES_DISTANCE_THRESHOLD>] [-m <MINIMUM_SAMPLE_SIZE>] [--ideal_angles] [-s] [--save]
+    - metalCoord stats -l <LIGAND_CODE> -p <PDB_CODE|PDB_FILE> -o OUTPUT_JSON_FILE [-d <DISTANCE_THRESHOLD>] [-t <PROCRUSTES_DISTANCE_THRESHOLD>] [-m <MINIMUM_SAMPLE_SIZE>] [--ideal_angles] [-s] [--save]
         - -l, --ligand: Ligand code.
         - -o, --output: Output JSON file.
         - -p, --pdb: PDB code or PDB file.
@@ -46,7 +46,7 @@ pip install git+https://github.com/Lekaveh/MetalCoordAnalysis
         - --use-pdb Use COD structures based on pdb coordinates.
         - -c, --coordination: Defines maximum coordination number.
 - **Ligand Update**: 
-    - metalCoord update -i INPUT_CIF_FILE -o OUTPUT_CIF_FILE [-p <PDB_CODE|PDB_FILE>] [-d <DISTANCE_THRESHOLD>] [-t <PROCRUSTES_DISTANCE_THRESHOLD>] [-m <MINIMUM_SAMPLE_SIZE>] [--ideal_angles] [-s] [--save]
+    - metalCoord update -i <INPUT_CIF_FILE> -o <OUTPUT_CIF_FILE> [-p <PDB_CODE|PDB_FILE>] [-d <DISTANCE_THRESHOLD>] [-t <PROCRUSTES_DISTANCE_THRESHOLD>] [-m <MINIMUM_SAMPLE_SIZE>] [--ideal_angles] [-s] [--save]
         - -i, --input: CIF file.
         - -o, --output: Output CIF file.
         - -p, --pdb: PDB code or PDB file.
@@ -62,7 +62,7 @@ pip install git+https://github.com/Lekaveh/MetalCoordAnalysis
     - metalCoord coord [-n <COORDINATION_NUMBER>]
         - -n, --number: Coordination number.
 - **List of PDBs**: 
-    - metalCoord pdb -l LIGAND_CODE -o OUTPUT_JSON_FILE
+    - metalCoord pdb -l <LIGAND_CODE> -o <OUTPUT_JSON_FILE>
         - -l, --ligand: Ligand code.
         - -o, --output: Output JSON file
 
