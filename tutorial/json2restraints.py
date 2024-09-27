@@ -57,8 +57,8 @@ if args.p:
         connections_kept = gemmi.ConnectionList()
         for connection in st.connections:
             if not (connection.type == gemmi.ConnectionType.MetalC or \
-                    connection.partner1.atom.element.is_metal or \
-                    connection.partner2.atom.element.is_metal):
+                    st.find_cra(connection.partner1).atom.element.is_metal or \
+                    st.find_cra(connection.partner2).atom.element.is_metal):
                 connections_kept.append(connection)
         n_links_old = len(st.connections)
         n_links_kept = len(connections_kept)
