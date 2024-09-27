@@ -238,9 +238,9 @@ In these cases, the non-metal atom pairs (oxygen atoms O1 and O2 in the example 
 
    https://files.rcsb.org/download/8tnv-sf.cif
 
-   The first two steps are automated in an extra script ``traingles.py``::
+   The first two steps are automated in an extra script ``triangles.py``::
 
-    python traingles.py 8tnv.cif
+    python triangles.py 8tnv.cif
 
 3) Then *MetalCoord* can be run using the temporary structure as input::
 
@@ -259,6 +259,6 @@ Now it is possible to refine the structure in *Servalcat* while taking the exter
 
    servalcat refine_xtal_norefmac --hklin 8tnv-sf.cif --model 8tnv_mc_restraints.mmcif -s xray --ncsr --ligand CUO_out_final.cif --keyword_file 8tnv_mc_restraints.txt -o 8tnv_servalcat_restraints --adp aniso
 
-Other examples of monomers with such traingles are `C4R <https://www.rcsb.org/ligand/C4R>`_, `DVW <https://www.rcsb.org/ligand/DVW>`_, `J9H <https://www.rcsb.org/ligand/J9H>`_, `RMD <https://www.rcsb.org/ligand/RMD>`_. A special case is `PLL <https://www.rcsb.org/ligand/PLL>`_ where three atoms would need to be replaced with one.
+Other examples of monomers with such triangles are `C4R <https://www.rcsb.org/ligand/C4R>`_, `DVW <https://www.rcsb.org/ligand/DVW>`_, `J9H <https://www.rcsb.org/ligand/J9H>`_, `RMD <https://www.rcsb.org/ligand/RMD>`_. A special case is `PLL <https://www.rcsb.org/ligand/PLL>`_ where three atoms would need to be replaced with one.
 
 Note: From these considerations, we exclude *sandwich*-like metal containing ligands or cases where both non-metal atoms involved above are members of the same ring, *e.g.* monomer codes `JSC <https://www.rcsb.org/ligand/JSC>`_ or `4IR <https://www.rcsb.org/ligand/4IR>`_.
