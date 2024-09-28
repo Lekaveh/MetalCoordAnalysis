@@ -3,6 +3,7 @@ import json
 import os
 from pathlib import Path
 import sys
+from uu import Error
 import gemmi
 import networkx as nx
 import metalCoord
@@ -288,16 +289,14 @@ def update_cif(output_path, path, pdb):
             break
 
     if not name:
-        Logger().error("No block found for <name>|comp_<name>. Please check the CIF file.")
-        return
+        raise Error("No block found for <name>|comp_<name>. Please check the CIF file.")
 
     block = doc.find_block(f"comp_{name}") if doc.find_block(
         f"comp_{name}") is not None else doc.find_block(f"{name}")
 
     if block is None:
-        Logger().error(
+        raise Error(
             f"No block found for {name}|comp_{name}. Please check the CIF file.")
-        return
 
     block.name = f"comp_{name}"
 
@@ -320,9 +319,8 @@ def update_cif(output_path, path, pdb):
     angles = block.get_mmcif_category(ANGLE_CATEGORY)
 
     if not atoms:
-        Logger().error(
+        raise Error(
             f"mmcif category {ATOM_CATEGORY} not found. Please check the CIF file.")
-        return
     n_atoms = len(atoms[ATOM_ID])
     n_nhatoms = len([x for x in atoms[TYPE_SYMBOL] if x != "H"])
 
@@ -335,15 +333,12 @@ def update_cif(output_path, path, pdb):
         block.set_mmcif_category(ATOM_CATEGORY, new_atoms)
 
     if not bonds:
-        Logger().error(
-            f"mmcif category {BOND_CATEGORY} not found. Please check the CIF file.")
-        return
+        raise Error(f"mmcif category {BOND_CATEGORY} not found. Please check the CIF file.")
 
     if contains_metal(atoms):
         if pdb is None:
             if name not in mons:
-                Logger().info("There is no PDB in our Ligand-PDB database. Please specify the PDB file")
-                return
+                raise Error("There is no PDB in our Ligand-PDB database. Please specify the PDB file")
             Logger().info("Choosing best PDB file")
             all_candidates = sorted(mons[name], key=lambda x: x[1])
 
