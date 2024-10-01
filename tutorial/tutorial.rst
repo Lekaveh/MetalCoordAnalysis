@@ -122,10 +122,11 @@ We can now generate external bond length and angle restraints for *Refmacat* or 
 
    python json2restraints.py -i 4dl8_AF3_mc.json 4dl8_MG_mc.json 4dl8_NA_mc.json -p 4dl8.cif -o 4dl8_mc_restraints
 
-The script creates four files:
+The script creates five files:
 
  - 4dl8_mc_restraints.txt is a keyword file for *Servalcat* or *Refmacat* containing the external bond length and angle restraints based on a coordination class with the lowest procrustes score.
- - 4dl8_mc_restraints_coot.txt is the same keyword file in a simplified format which is compatible with *Coot*. It can be loaded in Coot using Calculate -> Modules -> Restraints and then Restraints -> Read Refmac Extra Restraints.
+ - 4dl8_mc_restraints_coot.txt is the same keyword file in a simplified format which is compatible with *Coot*. It can be loaded in Coot using Calculate -> Modules -> Restraints and then Restraints -> Read Refmac Extra Restraints. The file does not include restraints for atoms with alternative conformations and atoms from symmetry-related molecules.
+ - 4dl8_mc_restraints.def is a keyword file compatible with *Phenix.refine*. The file does not include restraints for atoms from symmetry-related molecules.
  - 4dl8_mc_restraints.mmcif and 4dl8_mc_restraints.pdb are structure models with updated connection/link records related to the interactions with metals. Note that the script deletes all the connection/link records specified in the input PDB/mmCIF file - this behaviour can be turned off using an extra option ``--keep-links`` but a user should be very careful and check the result to avoid inconsistencies in the connection/link records.
 
 Now we can refine the structure model in *Servalcat* using the external restraints::
@@ -238,9 +239,9 @@ In these cases, the non-metal atom pairs (oxygen atoms O1 and O2 in the example 
 
    https://files.rcsb.org/download/8tnv-sf.cif
 
-   The first two steps are automated in an extra script ``triangles.py``::
+   The first two steps are automated in an extra script ``traingles.py``::
 
-    python triangles.py 8tnv.cif
+    python traingles.py 8tnv.cif
 
 3) Then *MetalCoord* can be run using the temporary structure as input::
 
@@ -259,6 +260,6 @@ Now it is possible to refine the structure in *Servalcat* while taking the exter
 
    servalcat refine_xtal_norefmac --hklin 8tnv-sf.cif --model 8tnv_mc_restraints.mmcif -s xray --ncsr --ligand CUO_out_final.cif --keyword_file 8tnv_mc_restraints.txt -o 8tnv_servalcat_restraints --adp aniso
 
-Other examples of monomers with such triangles are `C4R <https://www.rcsb.org/ligand/C4R>`_, `DVW <https://www.rcsb.org/ligand/DVW>`_, `J9H <https://www.rcsb.org/ligand/J9H>`_, `RMD <https://www.rcsb.org/ligand/RMD>`_. A special case is `PLL <https://www.rcsb.org/ligand/PLL>`_ where three atoms would need to be replaced with one.
+Other examples of monomers with such traingles are `C4R <https://www.rcsb.org/ligand/C4R>`_, `DVW <https://www.rcsb.org/ligand/DVW>`_, `J9H <https://www.rcsb.org/ligand/J9H>`_, `RMD <https://www.rcsb.org/ligand/RMD>`_. A special case is `PLL <https://www.rcsb.org/ligand/PLL>`_ where three atoms would need to be replaced with one.
 
 Note: From these considerations, we exclude *sandwich*-like metal containing ligands or cases where both non-metal atoms involved above are members of the same ring, *e.g.* monomer codes `JSC <https://www.rcsb.org/ligand/JSC>`_ or `4IR <https://www.rcsb.org/ligand/4IR>`_.

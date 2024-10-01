@@ -4,7 +4,7 @@ import argparse
 
 
 parser = argparse.ArgumentParser(
-    description="Convert JSON files from metalCoord to external restraints keywords for servalcat / refmac5 / coot"
+    description="Convert JSON files from metalCoord to external restraint keywords for servalcat / refmac5 / coot / phenix.refine"
 )
 parser.add_argument(
     "-i",
@@ -47,19 +47,23 @@ jsonEquivalentsPath = args.e
 
 outputRestraintsPath = outputPrefix + ".txt"
 outputRestraintsCootPath = outputPrefix + "_coot.txt"
+outputRestraintsPhenixPath = outputPrefix + ".def"
 outputMmcifPath = outputPrefix + ".mmcif"
 outputPdbPath = outputPrefix + ".pdb"
 
-# Delete LINK connection records of a type of MetalC
+# Delete LINK connection records of a type of MetalC or involving metal atoms
 if args.p:
     st = gemmi.read_structure(stPath)
     if not args.keep_links:
         connections_kept = gemmi.ConnectionList()
         for connection in st.connections:
-            if not (connection.type == gemmi.ConnectionType.MetalC or \
-                    st.find_cra(connection.partner1).atom.element.is_metal or \
-                    st.find_cra(connection.partner2).atom.element.is_metal):
-                connections_kept.append(connection)
+            partner1_atom = st[0].find_cra(connection.partner1, ignore_segment=True).atom
+            partner2_atom = st[0].find_cra(connection.partner2, ignore_segment=True).atom
+            if partner1_atom and partner2_atom:  # check if atoms exist
+                if not (connection.type == gemmi.ConnectionType.MetalC or \
+                        partner1_atom.element.is_metal or \
+                        partner2_atom.element.is_metal):
+                    connections_kept.append(connection)
         n_links_old = len(st.connections)
         n_links_kept = len(connections_kept)
         st.connections.clear()
@@ -87,7 +91,6 @@ if jsonEquivalentsPath:
             for l, ligand in enumerate(atom_metal['ligands']):
                 for base_or_pdb in ["base", "pdb"]:
                     for j, atom_ligand in enumerate(ligand[base_or_pdb]):
-                        # pprint.pprint(d[m]['ligands'][l]['base'][j]['ligand'])
                             if atom_pairs[0] == d[m]['ligands'][l][base_or_pdb][j]['ligand']:
                                 print("Bond length: Template atom:", atom_pairs[0])
                                 d[m]['ligands'][l][base_or_pdb].append(d[m]['ligands'][l][base_or_pdb][j].copy())
@@ -104,9 +107,11 @@ if jsonEquivalentsPath:
                         [i for j, i in enumerate(d[m]['ligands'][l]['angles']) if j not in angle_restraints_to_delete]
 outputLines = []
 outputLinesCoot = []
+outputLinesPhenix = []
 i_con = 1
 outputLines.append("### RESTRAINTS FROM METALCOORD - BEGINNING ###\n")
 outputLines.append("# Note that this file is not compatible with Coot \n")
+outputLinesPhenix.append("refinement.geometry_restraints.edits {\n")
 for atom_metal in d:  # for every metal atom
     if not atom_metal['icode']: atom_metal['icode'] = "."
     if atom_metal['icode'] != ".":
@@ -126,12 +131,16 @@ for atom_metal in d:  # for every metal atom
             for i in range(len(atom_ligand['distance'])):
                 line = f"exte dist first chain {atom_metal['chain']} resi {atom_metal['sequence']} inse {atom_metal['icode']} atom {atom_metal['metal']} "
                 line_coot = line
+                atom_selection_1_phenix = f"chain {atom_metal['chain']} and resname {atom_metal['residue']} and resid {atom_metal['sequence_icode']} and name {atom_metal['metal']}"
                 if atom_metal['altloc']: # not for Coot
                     line += f"altecode {atom_metal['altloc']} "
+                    atom_selection_1_phenix += f" and altloc {atom_metal['altloc']}"
                 line += f"second chain {atom_ligand['ligand']['chain']} resi {atom_ligand['ligand']['sequence']} inse {atom_ligand['ligand']['icode']} atom {atom_ligand['ligand']['name']} "
                 line_coot += f"second chain {atom_ligand['ligand']['chain']} resi {atom_ligand['ligand']['sequence']} inse {atom_ligand['ligand']['icode']} atom {atom_ligand['ligand']['name']} "
+                atom_selection_2_phenix = f"chain {atom_ligand['ligand']['chain']} and resname {atom_ligand['ligand']['residue']} and resid {atom_ligand['ligand']['sequence_icode']} and name {atom_ligand['ligand']['name']}"
                 if atom_ligand['ligand']['altloc']: # not for Coot
                     line += f"altecode {atom_ligand['ligand']['altloc']} "
+                    atom_selection_2_phenix += f" and altloc {atom_ligand['ligand']['altloc']}"
                 line += f"value {atom_ligand['distance'][i]} sigma {atom_ligand['std'][i]}"
                 line_coot += f"value {atom_ligand['distance'][i]} sigma {atom_ligand['std'][i]}"
                 if atom_ligand['ligand']['symmetry']:
@@ -144,10 +153,20 @@ for atom_metal in d:  # for every metal atom
                     line += f" # variant {str(i + 1)}"
                 # print(line)
                 outputLines.append(line + "\n")
+                # restaints for Coot cannot include atoms with altloc and symmetry identifiers
                 if not atom_metal['altloc'] and \
                         not atom_ligand['ligand']['altloc'] and \
                         not atom_ligand['ligand']['symmetry']:
                     outputLinesCoot.append(line_coot + "\n")
+                # restaints for phenix.refine: atoms with symmetry records are not included
+                if not atom_ligand['ligand']['symmetry']:
+                    outputLinesPhenix.append("  bond {\n")
+                    outputLinesPhenix.append(f"    action = *add\n")
+                    outputLinesPhenix.append(f"    atom_selection_1 = {atom_selection_1_phenix}\n")
+                    outputLinesPhenix.append(f"    atom_selection_2 = {atom_selection_2_phenix}\n")
+                    outputLinesPhenix.append(f"    distance_ideal = {atom_ligand['distance'][i]}\n")
+                    outputLinesPhenix.append(f"    sigma = {atom_ligand['std'][i]}\n")
+                    outputLinesPhenix.append("  }\n")
                 if j >= len(ligand['base']) and args.p:
                     # create a mmCIF link, it's from 'pdb', i.e. neighbourhood
                     con = gemmi.Connection()
@@ -182,24 +201,38 @@ for atom_metal in d:  # for every metal atom
         for atom_ligands in ligand['angles']:  # if any angles specified in ligand['angles']
             if not atom_ligands['ligand1']['icode']: atom_ligands['ligand1']['icode'] = "."
             if not atom_ligands['ligand2']['icode']: atom_ligands['ligand2']['icode'] = "."
+            if atom_ligands['ligand1']['icode'] != ".":
+                atom_ligands['ligand1']['sequence_icode'] = str(atom_ligands['ligand1']['sequence']) + str(atom_ligands['ligand1']['icode'])
+            else:
+                atom_ligands['ligand1']['sequence_icode'] = str(atom_ligands['ligand1']['sequence'])
+            if atom_ligands['ligand2']['icode'] != ".":
+                atom_ligands['ligand2']['sequence_icode'] = str(atom_ligands['ligand2']['sequence']) + str(atom_ligands['ligand2']['icode'])
+            else:
+                atom_ligands['ligand2']['sequence_icode'] = str(atom_ligands['ligand2']['sequence'])
             line = f"exte angle "
             # ligand1
             line += f"first chain {atom_ligands['ligand1']['chain']} resi {atom_ligands['ligand1']['sequence']} inse {atom_ligands['ligand1']['icode']} atom {atom_ligands['ligand1']['name']} "
             line_coot = line
+            atom_selection_1_phenix = f"chain {atom_ligands['ligand1']['chain']} and resname {atom_ligands['ligand1']['residue']} and resid {atom_ligands['ligand1']['sequence_icode']} and name {atom_ligands['ligand1']['name']}"
             if atom_ligands['ligand1']['altloc']:
                 line += f"altecode {atom_ligands['ligand1']['altloc']} "
+                atom_selection_1_phenix += f" and altloc {atom_ligands['ligand1']['altloc']}"
             if atom_ligands['ligand1']['symmetry']:
                 line += "symm y "
             # metal
             line += f"next chain {atom_metal['chain']} resi {atom_metal['sequence']} inse {atom_metal['icode']} atom {atom_metal['metal']} "
             line_coot += f"next chain {atom_metal['chain']} resi {atom_metal['sequence']} inse {atom_metal['icode']} atom {atom_metal['metal']} "
+            atom_selection_2_phenix = f"chain {atom_metal['chain']} and resname {atom_metal['residue']} and resid {atom_metal['sequence_icode']} and name {atom_metal['metal']}"
             if atom_metal['altloc']:
                 line += f"altecode {atom_metal['altloc']} "
+                atom_selection_2_phenix += f" and altloc {atom_metal['altloc']}"
             # ligand2
             line += f"next chain {atom_ligands['ligand2']['chain']} resi {atom_ligands['ligand2']['sequence']} inse {atom_ligands['ligand2']['icode']} atom {atom_ligands['ligand2']['name']} "
             line_coot += f"next chain {atom_ligands['ligand2']['chain']} resi {atom_ligands['ligand2']['sequence']} inse {atom_ligands['ligand2']['icode']} atom {atom_ligands['ligand2']['name']} "
+            atom_selection_3_phenix = f"chain {atom_ligands['ligand2']['chain']} and resname {atom_ligands['ligand2']['residue']} and resid {atom_ligands['ligand2']['sequence_icode']} and name {atom_ligands['ligand2']['name']}"
             if atom_ligands['ligand2']['altloc']:
                 line += f"altecode {atom_ligands['ligand2']['altloc']} "
+                atom_selection_3_phenix += f" and altloc {atom_ligands['ligand2']['altloc']}"
             if atom_ligands['ligand2']['symmetry']:
                 line += "symm y "
             line += f"value {round(atom_ligands['angle'], 2)} sigma {round(atom_ligands['std'], 2)}"
@@ -207,17 +240,32 @@ for atom_metal in d:  # for every metal atom
             line += f" type 0"
             # print(line)
             outputLines.append(line + "\n")
+            # restaints for Coot cannot include atoms with altloc and symmetry identifiers
             if not atom_metal['altloc'] and \
                     not atom_ligands['ligand1']['altloc'] and \
                     not atom_ligands['ligand1']['symmetry'] and \
                     not atom_ligands['ligand2']['altloc'] and \
                     not atom_ligands['ligand2']['symmetry']:
                 outputLinesCoot.append(line_coot + "\n")
+            # restaints for phenix.refine cannot include atoms with symmetry
+            if not atom_ligands['ligand1']['symmetry'] and \
+                    not atom_ligands['ligand2']['symmetry']:
+                outputLinesPhenix.append("  angle {\n")
+                outputLinesPhenix.append(f"    action = *add\n")
+                outputLinesPhenix.append(f"    atom_selection_1 = {atom_selection_1_phenix}\n")
+                outputLinesPhenix.append(f"    atom_selection_2 = {atom_selection_2_phenix}\n")
+                outputLinesPhenix.append(f"    atom_selection_3 = {atom_selection_3_phenix}\n")
+                outputLinesPhenix.append(f"    angle_ideal = {round(atom_ligands['angle'], 2)}\n")
+                outputLinesPhenix.append(f"    sigma = {round(atom_ligands['std'], 2)}\n")
+                outputLinesPhenix.append("  }\n")
 outputLines.append("### RESTRAINTS FROM METALCOORD - END ###\n")
+outputLinesPhenix.append("}\n")
 with open(outputRestraintsPath, "w") as f:
     f.writelines(outputLines)
 with open(outputRestraintsCootPath, "w") as f:
     f.writelines(outputLinesCoot)
+with open(outputRestraintsPhenixPath, "w") as f:
+    f.writelines(outputLinesPhenix)
 if args.p:
     if i_con == 1:
         print("No link added into the input structure file.")
