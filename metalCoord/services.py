@@ -282,9 +282,11 @@ def update_cif(output_path, path, pdb):
 
     name = None
     for block in doc:
-        matches = re.findall(r"^(?:comp_)?([A-Za-z0-9]{3}$)", block.name)
+        matches = re.findall(r"^(?:comp_)?([A-Za-z0-9]{3,}$)", block.name)
         if matches:
             name = matches[0]
+            if name == 'list':
+                continue
             Logger().info(f"Ligand {name} found")
             break
 
