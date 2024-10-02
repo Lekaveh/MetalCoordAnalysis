@@ -123,9 +123,7 @@ def find_classes(ligand: str, pdb_name: str, bonds: dict = None, only_best: bool
 
         if not metal_stats.is_empty():
             results.add_metal(metal_stats)
-    if results.is_empty() or results.len() == 0:
-        raise Exception("No ligands(metals) statistics found in the PDB file")
-    
+
     Logger().info(
         f"Analysis completed. Statistics for {int(results.len())} ligands(metals) found.")
     return results

@@ -321,6 +321,7 @@ def update_cif(output_path, path, pdb):
     if not atoms:
         raise Error(
             f"mmcif category {ATOM_CATEGORY} not found. Please check the CIF file.")
+    
     n_atoms = len(atoms[ATOM_ID])
     n_nhatoms = len([x for x in atoms[TYPE_SYMBOL] if x != "H"])
 
@@ -333,8 +334,8 @@ def update_cif(output_path, path, pdb):
         block.set_mmcif_category(ATOM_CATEGORY, new_atoms)
 
     if not bonds:
-        raise Error(f"mmcif category {BOND_CATEGORY} not found. Please check the CIF file.")
-
+        # raise Error(f"mmcif category {BOND_CATEGORY} not found. Please check the CIF file.")
+        Logger().warning(f"mmcif category {BOND_CATEGORY} not found. Please check the CIF file.")
     if contains_metal(atoms):
         if pdb is None:
             if name not in mons:
@@ -361,6 +362,8 @@ def update_cif(output_path, path, pdb):
             Logger().info(f"Best PDB file is {pdb}")
 
         def get_bonds(atoms, bonds):
+            if not bonds:
+                return {}
             result = {}
             for atom1, atom2 in zip(bonds[ATOM_ID_1], bonds[ATOM_ID_2]):
                 if not gemmi.Element(get_element_name(atoms, atom1)).is_metal and not gemmi.Element(get_element_name(atoms, atom2)).is_metal:
@@ -380,35 +383,36 @@ def update_cif(output_path, path, pdb):
 
         if pdb_stats.is_empty():
             # Logger().info(f"No coordination found for {name}  in {pdb}. Please check the PDB file")
-            return
+            raise Error(f"No coordination found for {name}  in {pdb}. Please check the PDB file")
 
         Logger().info("Ligand updating started")
-        if VALUE_DIST not in bonds:
-            bonds[VALUE_DIST] = [None for x in range(len(bonds[ATOM_ID_1]))]
-            bonds[VALUE_DIST_ESD] = [
-                None for x in range(len(bonds[ATOM_ID_1]))]
-            bonds[VALUE_DIST_NUCLEUS] = [
-                None for x in range(len(bonds[ATOM_ID_1]))]
-            bonds[VALUE_DIST_NUCLEUS_ESD] = [
-                None for x in range(len(bonds[ATOM_ID_1]))]
+        if bonds:
+            if VALUE_DIST not in bonds:
+                bonds[VALUE_DIST] = [None for x in range(len(bonds[ATOM_ID_1]))]
+                bonds[VALUE_DIST_ESD] = [
+                    None for x in range(len(bonds[ATOM_ID_1]))]
+                bonds[VALUE_DIST_NUCLEUS] = [
+                    None for x in range(len(bonds[ATOM_ID_1]))]
+                bonds[VALUE_DIST_NUCLEUS_ESD] = [
+                    None for x in range(len(bonds[ATOM_ID_1]))]
 
-        for i, _atoms in enumerate(zip(bonds[ATOM_ID_1], bonds[ATOM_ID_2])):
-            metal_name, ligand_name = _atoms
+            for i, _atoms in enumerate(zip(bonds[ATOM_ID_1], bonds[ATOM_ID_2])):
+                metal_name, ligand_name = _atoms
 
-            if not gemmi.Element(get_element_name(atoms, metal_name)).is_metal and not gemmi.Element(get_element_name(atoms, ligand_name)).is_metal:
-                continue
+                if not gemmi.Element(get_element_name(atoms, metal_name)).is_metal and not gemmi.Element(get_element_name(atoms, ligand_name)).is_metal:
+                    continue
 
-            if gemmi.Element(get_element_name(atoms, ligand_name)).is_metal:
-                metal_name, ligand_name = ligand_name, metal_name
+                if gemmi.Element(get_element_name(atoms, ligand_name)).is_metal:
+                    metal_name, ligand_name = ligand_name, metal_name
 
-            bondStat = pdb_stats.get_ligand_distance(metal_name, ligand_name)
-            if bondStat:
-                bonds[VALUE_DIST][i] = bonds[VALUE_DIST_NUCLEUS][i] = str(
-                    round(bondStat.distance[0], 3))
-                bonds[VALUE_DIST_ESD][i] = bonds[VALUE_DIST_NUCLEUS_ESD][i] = str(
-                    round(bondStat.std[0], 3))
+                bondStat = pdb_stats.get_ligand_distance(metal_name, ligand_name)
+                if bondStat:
+                    bonds[VALUE_DIST][i] = bonds[VALUE_DIST_NUCLEUS][i] = str(
+                        round(bondStat.distance[0], 3))
+                    bonds[VALUE_DIST_ESD][i] = bonds[VALUE_DIST_NUCLEUS_ESD][i] = str(
+                        round(bondStat.std[0], 3))
 
-        block.set_mmcif_category(BOND_CATEGORY, bonds)
+            block.set_mmcif_category(BOND_CATEGORY, bonds)
         Logger().info("Distances updated")
 
         if not angles:
