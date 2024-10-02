@@ -47,7 +47,7 @@ jsonEquivalentsPath = args.e
 
 outputRestraintsPath = outputPrefix + ".txt"
 outputRestraintsCootPath = outputPrefix + "_coot.txt"
-outputRestraintsPhenixPath = outputPrefix + ".def"
+outputRestraintsPhenixPath = outputPrefix + ".params"
 outputMmcifPath = outputPrefix + ".mmcif"
 outputPdbPath = outputPrefix + ".pdb"
 
@@ -57,13 +57,13 @@ if args.p:
     if not args.keep_links:
         connections_kept = gemmi.ConnectionList()
         for connection in st.connections:
-            partner1_atom = st[0].find_cra(connection.partner1, ignore_segment=True).atom
-            partner2_atom = st[0].find_cra(connection.partner2, ignore_segment=True).atom
-            if partner1_atom and partner2_atom:  # check if atoms exist
-                if not (connection.type == gemmi.ConnectionType.MetalC or \
-                        partner1_atom.element.is_metal or \
-                        partner2_atom.element.is_metal):
-                    connections_kept.append(connection)
+            for m in range(len(st)):
+                partner1_atom = st[m].find_cra(connection.partner1, ignore_segment=True).atom
+                partner2_atom = st[m].find_cra(connection.partner2, ignore_segment=True).atom
+                if partner1_atom and partner2_atom:  # check if atoms exist
+                    if not (partner1_atom.element.is_metal or \
+                            partner2_atom.element.is_metal):
+                        connections_kept.append(connection)
         n_links_old = len(st.connections)
         n_links_kept = len(connections_kept)
         st.connections.clear()
