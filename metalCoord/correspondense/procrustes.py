@@ -1,8 +1,12 @@
+import os
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3' 
 import itertools
 import numpy as np
 from scipy.linalg import helmert
 import tensorflow as tf
 from sklearn.cluster import DBSCAN
+
+# from metalCoord.config import Config
 
 tf.config.set_visible_devices([], 'GPU')
 
@@ -508,7 +512,7 @@ def fit(coords: np.ndarray, ideal_coords: np.ndarray, groups: tuple = None, all:
                         filtered_indices], r[filtered_indices], indices[filtered_indices], rotated[filtered_indices]
                 else:
                     distances, approxs, c, r, indices, rotated = np.ones(1), np.expand_dims(np.zeros_like(approxs[0]), axis=0),  np.expand_dims(np.zeros_like(
-                        c[0]), axis=0),  np.expand_dims(np.zeros_like(R[0]), axis=0),  np.expand_dims(np.zeros_like(indices[0]), axis=0),  np.expand_dims(np.zeros_like(rotated[0]), axis=0)
+                        c[0]), axis=0),  np.expand_dims(np.zeros_like(r[0]), axis=0),  np.expand_dims(np.zeros_like(indices[0]), axis=0),  np.expand_dims(np.zeros_like(rotated[0]), axis=0)
         else:
             return Procustes().fit(coords, ideal_coords, groups, all, center)
     else:
@@ -584,6 +588,11 @@ class Procustes:
             self._init(coords - coords[0], ideal_coords - ideal_coords[0])
         else:
             self._init(coords, ideal_coords)
+        
+        # if len(coords) >= 8:
+        #     dist = Procustes().fit(coords[:6], ideal_coords[:6], None, False, True)[0]
+        #     if dist > Config().procrustes_threshold:
+        #         return self._dummy(all)
 
         while not self.is_finished():
             self._get_next_combinations()

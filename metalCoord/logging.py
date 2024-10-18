@@ -17,6 +17,7 @@ class Logger:
         self.logger = logging.getLogger(name)
         self.logger.setLevel(level)
         self.__enabled = False
+        self.__progress_bars = False
 
     @property
     def enabled(self):
@@ -27,14 +28,21 @@ class Logger:
     def disabled(self):
         """Check if logger is disabled."""
         return not self.__enabled
+    
+    @property
+    def progress_bars(self):
+        """Check if progress bars are enabled."""
+        return self.__progress_bars
+    
 
-    def add_handler(self):
+    def add_handler(self, enable = True, progress_bars=True):
         """Add a stream handler to the logger with a standard format."""
         formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
         handler = logging.StreamHandler()
         handler.setFormatter(formatter)
         self.logger.addHandler(handler)
-        self.__enabled = True
+        self.__enabled = enable
+        self.__progress_bars = progress_bars
 
     def debug(self, message):
         """Log a debug message."""

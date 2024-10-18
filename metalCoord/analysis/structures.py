@@ -391,6 +391,7 @@ class Ligand:
         Returns:
             str: The name code of the metal coordination structure.
         """
+ 
         return " ".join([self._metal.atom.name] + self.symmetry_names())
 
     def get_coord(self):
@@ -527,7 +528,7 @@ def get_ligands(st, ligand, bonds=None, max_dist=10, only_best=False) -> list[Li
     """
     scale = Config().scale()
     alpha = Config().distance_threshold + 1
-    beta1 = [1.2, 1.3, 1.4]
+    beta1 = [1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 1.8, 1.9, 2.0]
     beta1 = [b for b in beta1 if b < alpha]
     alpha1 = 1.1
     angle1 = 60
@@ -612,13 +613,11 @@ def get_ligands(st, ligand, bonds=None, max_dist=10, only_best=False) -> list[Li
                             cra = mark.to_cra(st[0])
                             if cra.atom.element.is_metal:
                                 continue
-                            # if ligand_obj.contains(cra.atom):
-                            #     continue
-
+         
                             l = Atom(cra.atom, cra.residue,
                                      cra.chain, mark, st, atom)
                             if bonds:
-                                if cra.residue.name == ligand and cra.residue.seqid.num == residue.seqid.num and cra.chain.name == chain.name:
+                                if cra.residue.name == ligand and cra.residue.seqid.num == residue.seqid.num and cra.chain.name == chain.name and a.symmetry == 0:
                                     if cra.atom.name in metal_bonds:
                                         ligand_obj.add_ligand(l)
                                 elif distance(metal, l) <= (covalent_radii(metal.atom.element.name) + covalent_radii(cra.atom.element.name)) * scale:
@@ -641,7 +640,7 @@ def get_ligands(st, ligand, bonds=None, max_dist=10, only_best=False) -> list[Li
 
                         ligand_atoms = []
                         if bonds:
-                            ligand_atoms = [a for a in neighbour_atoms if a.atom.name in metal_bonds and a.residue.name == ligand and a.residue.seqid.num == residue.seqid.num and a.chain.name == chain.name]
+                            ligand_atoms = [a for a in neighbour_atoms if a.atom.name in metal_bonds and a.residue.name == ligand and a.residue.seqid.num == residue.seqid.num and a.chain.name == chain.name and a.symmetry == 0]
                             neighbour_atoms = [a for a in neighbour_atoms if a not in ligand_atoms]
                 
                         n1 = [
@@ -694,9 +693,9 @@ def get_ligands(st, ligand, bonds=None, max_dist=10, only_best=False) -> list[Li
                         ligand_obj = ligand_obj.clean_the_farthest(
                             free=bool(bonds), n=ligand_obj.coordination() - Config().max_coordination_number)
 
-                    if ligand_obj.ligands_len < len(bonds.get(metal_name, [])):
+                    if ligand_obj.ligands_len != len(bonds.get(metal_name, [])):
                         raise ValueError(
-                            f"There is inconsistency between ligand(s) in the PDB and monomer file. Metal {metal_name} in {chain.name} - {residue.name} - {residue.seqid.num} has fewer neighbours than expected. Expected: {sorted(bonds.get(metal_name, []))}, found: {sorted([l.atom.name for l in ligand_obj.ligands])}")
+                            f"There is inconsistency between ligand(s) in the PDB and monomer file. Metal {metal_name} in {chain.name} - {residue.name} - {residue.seqid.num} has different number of neighbours than expected. Expected: {sorted(bonds.get(metal_name, []))}, found: {sorted([l.atom.name for l in ligand_obj.ligands])}")
 
                     structures.append(ligand_obj)
 

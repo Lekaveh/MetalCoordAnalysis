@@ -33,7 +33,7 @@ pip install git+https://github.com/Lekaveh/MetalCoordAnalysis
 
 ### Usage
 - **Metal Coordination Analysis**: 
-    - metalCoord stats -l <LIGAND_CODE> -p <PDB_CODE|PDB_FILE> -o OUTPUT_JSON_FILE [-d <DISTANCE_THRESHOLD>] [-t <PROCRUSTES_DISTANCE_THRESHOLD>] [-m <MINIMUM_SAMPLE_SIZE>] [--ideal_angles] [-s] [--save]
+    - metalCoord [--no-progress] stats -l <LIGAND_CODE> -p <PDB_CODE|PDB_FILE> -o OUTPUT_JSON_FILE [-d <DISTANCE_THRESHOLD>] [-t <PROCRUSTES_DISTANCE_THRESHOLD>] [-m <MINIMUM_SAMPLE_SIZE>] [--ideal_angles] [-s] [--save]
         - -l, --ligand: Ligand code.
         - -o, --output: Output JSON file.
         - -p, --pdb: PDB code or PDB file.
@@ -45,8 +45,9 @@ pip install git+https://github.com/Lekaveh/MetalCoordAnalysis
         - --save: Save COD files used in statistics.
         - --use-pdb Use COD structures based on pdb coordinates.
         - -c, --coordination: Defines maximum coordination number.
+        --no_progress: Do not show progress bars
 - **Ligand Update**: 
-    - metalCoord update -i <INPUT_CIF_FILE> -o <OUTPUT_CIF_FILE> [-p <PDB_CODE|PDB_FILE>] [-d <DISTANCE_THRESHOLD>] [-t <PROCRUSTES_DISTANCE_THRESHOLD>] [-m <MINIMUM_SAMPLE_SIZE>] [--ideal_angles] [-s] [--save]
+    - metalCoord [--no-progress] update -i <INPUT_CIF_FILE> -o <OUTPUT_CIF_FILE> [-p <PDB_CODE|PDB_FILE>] [-d <DISTANCE_THRESHOLD>] [-t <PROCRUSTES_DISTANCE_THRESHOLD>] [-m <MINIMUM_SAMPLE_SIZE>] [--ideal_angles] [-s] [--save]
         - -i, --input: CIF file.
         - -o, --output: Output CIF file.
         - -p, --pdb: PDB code or PDB file.
@@ -58,12 +59,15 @@ pip install git+https://github.com/Lekaveh/MetalCoordAnalysis
         - --save: Save COD files used in statistics.
         - --use-pdb Use COD structures based on pdb coordinates.
         - -c, --coordination: Defines maximum coordination number.
+        --no_progress: Do not show progress bars
 - **Coordination List**: 
-    - metalCoord coord [-n <COORDINATION_NUMBER>]
+    - metalCoord [--no-progress] coord [-n <COORDINATION_NUMBER>]
         - -n, --number: Coordination number.
+        --no_progress: Do not show progress bars
 - **List of PDBs**: 
-    - metalCoord pdb -l <LIGAND_CODE> -o <OUTPUT_JSON_FILE>
+    - metalCoord [--no-progress] pdb -l <LIGAND_CODE> -o <OUTPUT_JSON_FILE>
         - -l, --ligand: Ligand code.
         - -o, --output: Output JSON file
+        --no_progress: Do not show progress bars
 
 

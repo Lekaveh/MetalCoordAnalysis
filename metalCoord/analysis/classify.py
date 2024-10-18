@@ -78,7 +78,7 @@ def find_classes(ligand: str, pdb_name: str, bonds: dict = None, only_best: bool
         bonds = {}
     Logger().info(f"Analyzing structures in {pdb_name} for patterns")
     structures = get_structures(ligand, pdb_name, bonds, only_best)
-    for structure in tqdm(structures):
+    for structure in tqdm(structures, disable=~Logger().progress_bars):
         Logger().info(
             f"Structure for {structure} found. Coordination number: {structure.coordination()}. {structure.name_code_with_symmetries()}")
     Logger().info(f"{len(structures)} structures found.")
@@ -86,15 +86,15 @@ def find_classes(ligand: str, pdb_name: str, bonds: dict = None, only_best: bool
     classificator = Classificator()
 
     classes = {}
-    for structure in tqdm(structures, desc="Structures", position=0, disable=Logger().disabled):
+    for structure in tqdm(structures, desc="Structures", position=0, disable=not Logger().progress_bars):
         structure_classes = []
 
-        for class_result in tqdm(classificator.classify(structure), desc="Coordination", position=1, leave=False, disable=Logger().disabled):
+        for class_result in tqdm(classificator.classify(structure), desc="Coordination", position=1, leave=False, disable=not Logger().progress_bars):
             structure_classes.append(class_result)
 
         if not structure_classes:
             new_structure = structure.clean_the_farthest(len(bonds)) 
-            for class_result in tqdm(classificator.classify(new_structure), desc="Coordination", position=1, leave=False, disable=Logger().disabled):
+            for class_result in tqdm(classificator.classify(new_structure), desc="Coordination", position=1, leave=False, disable=not Logger().progress_bars):
                 structure_classes.append(class_result)
             if structure_classes:
                 structure = new_structure
@@ -106,11 +106,11 @@ def find_classes(ligand: str, pdb_name: str, bonds: dict = None, only_best: bool
             candidantes.append(class_result.clazz)
         Logger().info(f"Candidates for {structure} : {candidantes}")
 
-    for structure in tqdm(classes.keys(), desc="Structures", position=0, disable=Logger().disabled):
+    for structure in tqdm(classes.keys(), desc="Structures", position=0, disable=not Logger().progress_bars):
         metal_stats = MetalStats(structure)
         if classes[structure]:
             for class_result in classes[structure]:
-                for strategy in tqdm(strategies, desc="Strategies", position=1, leave=False, disable=Logger().disabled):
+                for strategy in tqdm(strategies, desc="Strategies", position=1, leave=False, disable=not Logger().progress_bars):
                     ligand_stats = strategy.get_stats(
                         structure, DB.data(), class_result)
                     if ligand_stats:

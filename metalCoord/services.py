@@ -3,7 +3,6 @@ import json
 import os
 from pathlib import Path
 import sys
-from uu import Error
 import gemmi
 import networkx as nx
 import metalCoord
@@ -291,13 +290,13 @@ def update_cif(output_path, path, pdb):
             break
 
     if not name:
-        raise Error("No block found for <name>|comp_<name>. Please check the CIF file.")
+        raise ValueError("No block found for <name>|comp_<name>. Please check the CIF file.")
 
     block = doc.find_block(f"comp_{name}") if doc.find_block(
         f"comp_{name}") is not None else doc.find_block(f"{name}")
 
     if block is None:
-        raise Error(
+        raise ValueError(
             f"No block found for {name}|comp_{name}. Please check the CIF file.")
 
     block.name = f"comp_{name}"
@@ -321,7 +320,7 @@ def update_cif(output_path, path, pdb):
     angles = block.get_mmcif_category(ANGLE_CATEGORY)
 
     if not atoms:
-        raise Error(
+        raise ValueError(
             f"mmcif category {ATOM_CATEGORY} not found. Please check the CIF file.")
     
     n_atoms = len(atoms[ATOM_ID])
@@ -336,12 +335,12 @@ def update_cif(output_path, path, pdb):
         block.set_mmcif_category(ATOM_CATEGORY, new_atoms)
 
     if not bonds:
-        # raise Error(f"mmcif category {BOND_CATEGORY} not found. Please check the CIF file.")
+        # raise Exception(f"mmcif category {BOND_CATEGORY} not found. Please check the CIF file.")
         Logger().warning(f"mmcif category {BOND_CATEGORY} not found. Please check the CIF file.")
     if contains_metal(atoms):
         if pdb is None:
             if name not in mons:
-                raise Error("There is no PDB in our Ligand-PDB database. Please specify the PDB file")
+                raise Exception("There is no PDB in our Ligand-PDB database. Please specify the PDB file")
             Logger().info("Choosing best PDB file")
             all_candidates = sorted(mons[name], key=lambda x: x[1])
 
@@ -385,7 +384,7 @@ def update_cif(output_path, path, pdb):
 
         if pdb_stats.is_empty():
             # Logger().info(f"No coordination found for {name}  in {pdb}. Please check the PDB file")
-            raise Error(f"No coordination found for {name}  in {pdb}. Please check the PDB file")
+            raise ValueError(f"No coordination found for {name}  in {pdb}. Please check the PDB file")
 
         Logger().info("Ligand updating started")
         if bonds:
@@ -471,8 +470,11 @@ def update_cif(output_path, path, pdb):
         monomer = list(pdb_stats.monomers())[-1]
         for metal_stat in monomer.metals:
             for bond in metal_stat.get_all_distances():
+                # if bond.ligand.symmetry != 0:
+                #     continue
                 v.append((metal_stat.code, bond.ligand.code))
-
+        
+        Logger().info("update cycles")
         for cycle in find_minimal_cycles(v):
             if len(cycle) == 4:
                 if gemmi.Element(cycle[0][1]).is_metal:
@@ -535,6 +537,8 @@ def update_cif(output_path, path, pdb):
         doc.write_file(output_path)
         report_path = output_path + ".json"
         Logger().info(f"Update written to {output_path}")
+        directory = os.path.dirname(output_path)
+        Path(directory).mkdir(exist_ok=True, parents=True)
         with open(report_path, 'w', encoding="utf-8") as json_file:
             json.dump(pdb_stats.json(), json_file,
                       indent=4,
@@ -562,6 +566,8 @@ def get_stats(ligand, pdb, output):
     pdb_stats = find_classes(ligand, pdb)
     results = pdb_stats.json()
 
+    directory = os.path.dirname(output)
+    Path(directory).mkdir(exist_ok=True, parents=True)
     with open(output, 'w', encoding="utf-8") as json_file:
         json.dump(results, json_file,
                   indent=4,
@@ -602,6 +608,8 @@ def get_pdbs(ligand: str, output: str) -> list:
     pdbs = {ligand: []}
     if ligand in mons:
         pdbs = {ligand: sorted(mons[ligand], key=lambda x: (not x[2], x[1]))}
+    directory = os.path.dirname(output)
+    Path(directory).mkdir(exist_ok=True, parents=True)
     with open(output, 'w', encoding="utf-8") as json_file:
         json.dump(pdbs, json_file,
                   indent=4,
