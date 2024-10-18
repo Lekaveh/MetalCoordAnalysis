@@ -693,7 +693,7 @@ def get_ligands(st, ligand, bonds=None, max_dist=10, only_best=False) -> list[Li
                         ligand_obj = ligand_obj.clean_the_farthest(
                             free=bool(bonds), n=ligand_obj.coordination() - Config().max_coordination_number)
 
-                    if ligand_obj.ligands_len != len(bonds.get(metal_name, [])):
+                    if bonds and ligand_obj.ligands_len != len(bonds.get(metal_name, [])):
                         raise ValueError(
                             f"There is inconsistency between ligand(s) in the PDB and monomer file. Metal {metal_name} in {chain.name} - {residue.name} - {residue.seqid.num} has different number of neighbours than expected. Expected: {sorted(bonds.get(metal_name, []))}, found: {sorted([l.atom.name for l in ligand_obj.ligands])}")
 

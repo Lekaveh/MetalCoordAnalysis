@@ -78,7 +78,7 @@ def find_classes(ligand: str, pdb_name: str, bonds: dict = None, only_best: bool
         bonds = {}
     Logger().info(f"Analyzing structures in {pdb_name} for patterns")
     structures = get_structures(ligand, pdb_name, bonds, only_best)
-    for structure in tqdm(structures, disable=~Logger().progress_bars):
+    for structure in tqdm(structures, disable=not Logger().progress_bars):
         Logger().info(
             f"Structure for {structure} found. Coordination number: {structure.coordination()}. {structure.name_code_with_symmetries()}")
     Logger().info(f"{len(structures)} structures found.")
