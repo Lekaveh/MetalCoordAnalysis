@@ -1,4 +1,5 @@
 import logging
+import sys
 
 class Logger:
     """Singleton Logger class for unified logging across an application."""
@@ -38,7 +39,7 @@ class Logger:
     def add_handler(self, enable = True, progress_bars=True):
         """Add a stream handler to the logger with a standard format."""
         formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-        handler = logging.StreamHandler()
+        handler = logging.StreamHandler(sys.stdout)
         handler.setFormatter(formatter)
         self.logger.addHandler(handler)
         self.__enabled = enable
