@@ -122,10 +122,11 @@ We can now generate external bond length and angle restraints for *Refmacat* or 
 
    python json2restraints.py -i 4dl8_AF3_mc.json 4dl8_MG_mc.json 4dl8_NA_mc.json -p 4dl8.cif -o 4dl8_mc_restraints
 
-The script creates four files:
+The script creates five files:
 
  - 4dl8_mc_restraints.txt is a keyword file for *Servalcat* or *Refmacat* containing the external bond length and angle restraints based on a coordination class with the lowest procrustes score.
- - 4dl8_mc_restraints_coot.txt is the same keyword file in a simplified format which is compatible with *Coot*. It can be loaded in Coot using Calculate -> Modules -> Restraints and then Restraints -> Read Refmac Extra Restraints.
+ - 4dl8_mc_restraints_coot.txt is the same keyword file in a simplified format which is compatible with *Coot*. It can be loaded in Coot using Calculate -> Modules -> Restraints and then Restraints -> Read Refmac Extra Restraints. The file does not include restraints for atoms with alternative conformations and atoms from symmetry-related molecules.
+ - 4dl8_mc_restraints.def is a keyword file compatible with *Phenix.refine*. The file does not include restraints for atoms from symmetry-related molecules.
  - 4dl8_mc_restraints.mmcif and 4dl8_mc_restraints.pdb are structure models with updated connection/link records related to the interactions with metals. Note that the script deletes all the connection/link records specified in the input PDB/mmCIF file - this behaviour can be turned off using an extra option ``--keep-links`` but a user should be very careful and check the result to avoid inconsistencies in the connection/link records.
 
 Now we can refine the structure model in *Servalcat* using the external restraints::
