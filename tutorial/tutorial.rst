@@ -126,7 +126,7 @@ The script creates four files:
 
  - 4dl8_mc_restraints.txt is a keyword file for *Servalcat* or *Refmacat* containing the external bond length and angle restraints based on a coordination class with the lowest procrustes score.
  - 4dl8_mc_restraints_coot.txt is the same keyword file in a simplified format which is compatible with *Coot*. It can be loaded in Coot using Calculate -> Modules -> Restraints and then Restraints -> Read Refmac Extra Restraints.
- - 4dl8_mc_restraints.mmcif and 4dl8_mc_restraints.pdb are structure models with updated connection/link records related to the interactions with metals. Note that the script deletes all the connection/link records specified in the input PDB/mmCIF file - this behaviour can be turned off using an extra option ``--keep-links`` but a user should be very careful and check the result to avoid inconsistencies in the connection/link records.
+ - 4dl8_mc_restraints.mmcif and 4dl8_mc_restraints.pdb are structure models with updated connection/link records related to the interactions with metals. Note that the script deletes all the connection/link records to all metal atoms specified in the input PDB/mmCIF file - this behaviour can be turned off using an extra option ``--keep-links`` but a user should be very careful and check the result to avoid inconsistencies in the connection/link records.
 
 Now we can refine the structure model in *Servalcat* using the external restraints::
 
