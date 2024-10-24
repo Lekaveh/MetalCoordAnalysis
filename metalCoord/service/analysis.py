@@ -342,7 +342,7 @@ def update_cif(output_path, path, pdb):
             if name not in mons:
                 raise Exception("There is no PDB in our Ligand-PDB database. Please specify the PDB file")
             Logger().info("Choosing best PDB file")
-            all_candidates = sorted(mons[name], key=lambda x: x[1])
+            all_candidates = sorted(mons[name], key=lambda x: (not x[2], x[1] if x[1] else 10000))
 
             candidates = [mon for mon in all_candidates if mon[2]]
 
@@ -350,7 +350,7 @@ def update_cif(output_path, path, pdb):
                 mon = all_candidates[0]
             else:
                 mon = candidates[0]
-            if mon[1] > 2:
+            if mon[1] and mon[1] > 2:
                 if len(candidates) == 0:
                     Logger().warning("There is no PDB with necessary resolution and occupancy in our Ligand-PDB database. Please specify the PDB file")
                 else:

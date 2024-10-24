@@ -24,7 +24,7 @@ def get_pdbs(ligand: str, output: str) -> list:
     """
     pdbs = {ligand: []}
     if ligand in mons:
-        pdbs = {ligand: sorted(mons[ligand], key=lambda x: (not x[2], x[1]))}
+        pdbs = {ligand: sorted(mons[ligand], key=lambda x: (not x[2], x[1] if x[1] else 10000))}
     directory = os.path.dirname(output)
     Path(directory).mkdir(exist_ok=True, parents=True)
     with open(output, 'w', encoding="utf-8") as json_file:
