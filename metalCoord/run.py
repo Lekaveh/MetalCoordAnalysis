@@ -2,11 +2,8 @@ import argparse
 import json
 import os
 from pathlib import Path
-
-
 import metalCoord
 from metalCoord.logging import Logger
-from metalCoord.services import update_cif, get_stats, get_coordinations, get_pdbs
 from metalCoord.config import Config
 
 
@@ -186,14 +183,18 @@ def main_func():
             Config().max_coordination_number = args.coordination
 
         if args.command == 'update':
+            from metalCoord.service.analysis import update_cif
             update_cif(args.output, args.input, args.pdb)
 
         elif args.command == 'stats':
+            from metalCoord.service.analysis import get_stats
             get_stats(args.ligand, args.pdb, args.output)
 
         elif args.command == 'coord':
+            from metalCoord.service.info import get_coordinations
             print(f"List of coordinations: {get_coordinations(args.number)}")
         elif args.command == 'pdb':
+            from metalCoord.service.info import get_pdbs
             get_pdbs(args.ligand, args.output)
         else:
             parser.print_help()
