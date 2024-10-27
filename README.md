@@ -45,7 +45,8 @@ pip install git+https://github.com/Lekaveh/MetalCoordAnalysis
         - --save: Save COD files used in statistics.
         - --use-pdb Use COD structures based on pdb coordinates.
         - -c, --coordination: Defines maximum coordination number.
-        --no_progress: Do not show progress bars
+        - --cif: Read coordinates from mmCIF file
+        - --no_progress: Do not show progress bars
 - **Ligand Update**: 
     - metalCoord [--no-progress] update -i <INPUT_CIF_FILE> -o <OUTPUT_CIF_FILE> [-p <PDB_CODE|PDB_FILE>] [-d <DISTANCE_THRESHOLD>] [-t <PROCRUSTES_DISTANCE_THRESHOLD>] [-m <MINIMUM_SAMPLE_SIZE>] [--ideal_angles] [-s] [--save]
         - -i, --input: CIF file.
@@ -59,15 +60,15 @@ pip install git+https://github.com/Lekaveh/MetalCoordAnalysis
         - --save: Save COD files used in statistics.
         - --use-pdb Use COD structures based on pdb coordinates.
         - -c, --coordination: Defines maximum coordination number.
-        --no_progress: Do not show progress bars
+        - --no_progress: Do not show progress bars
 - **Coordination List**: 
     - metalCoord [--no-progress] coord [-n <COORDINATION_NUMBER>]
         - -n, --number: Coordination number.
-        --no_progress: Do not show progress bars
+        - --no_progress: Do not show progress bars
 - **List of PDBs**: 
     - metalCoord [--no-progress] pdb -l <LIGAND_CODE> -o <OUTPUT_JSON_FILE>
         - -l, --ligand: Ligand code.
         - -o, --output: Output JSON file
-        --no_progress: Do not show progress bars
+        - --no_progress: Do not show progress bars
 
 

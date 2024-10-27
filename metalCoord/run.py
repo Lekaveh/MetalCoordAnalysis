@@ -1,4 +1,5 @@
 import argparse
+from ast import arg
 import json
 import os
 from pathlib import Path
@@ -109,6 +110,8 @@ def create_parser():
                                help='Use COD structures based on pdb coordinates', default=argparse.SUPPRESS,  action='store_true')
     update_parser.add_argument('-c', '--coordination', type=check_positive_more_than_two, required=False,
                                      help='Maximum coordination number.', metavar='<MAXIMUM COORDINATION NUMBER>', default=1000)
+    update_parser.add_argument('--cif', required=False,
+                               help='Read coordinates from mmCIF file', default=argparse.SUPPRESS,  action='store_true')
 
     # App2
     stats_parser = subparsers.add_parser(
@@ -184,7 +187,7 @@ def main_func():
 
         if args.command == 'update':
             from metalCoord.service.analysis import update_cif
-            update_cif(args.output, args.input, args.pdb)
+            update_cif(args.output, args.input, args.pdb, args.cif if "cif" in args else False) 
 
         elif args.command == 'stats':
             from metalCoord.service.analysis import get_stats

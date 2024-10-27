@@ -1,10 +1,11 @@
 from abc import ABC, abstractmethod
-from token import AT
-
+from itertools import chain
+from arrow import get
 import numpy as np
 import gemmi
 from metalCoord.config import Config
 from metalCoord.logging import Logger
+from metalCoord.cif.utils import ATOM_ID, TYPE_SYMBOL, COORDS, ATOM_ID_1
 
 
 class IAtom(ABC):
@@ -30,18 +31,25 @@ class IAtom(ABC):
     def symmetry(self):
         """Get if the atom comes from the symmetry."""
 
+    @property
+    def pos(self):
+        """Get the position of the atom."""
+
 
 class Atom(IAtom):
     """
     Represents an atom in a molecular structure.
 
     Attributes:
-        atom (str): The name of the atom.
-        residue (str): The name of the residue the atom belongs to.
-        chain (str): The chain identifier of the atom.
+        atom (gemmi.Atom): The atom.
+        residue (gemmi.Residue): The name of the residue the atom belongs to.
+        chain (gemi.Chain): The chain identifier of the atom.
+        mark (gemmi.NeighborSearch.Mark): The mark associated with the atom.
+        st (gemmi.Structure): The structure the atom belongs to.
+        metal (gemmi.Atom, optional): The metal atom associated with this atom, if any.
     """
 
-    def __init__(self, atom, residue, chain, mark, st, metal=None):
+    def __init__(self, atom: gemmi.Atom, residue: gemmi.Residue, chain: gemmi.Chain, mark: gemmi.NeighborSearch.Mark, st: gemmi.Structure, metal: gemmi.Atom = None):
         self._atom = atom
         self._residue = residue
         self._chain = chain
@@ -58,7 +66,7 @@ class Atom(IAtom):
             The atom object associated with this structure.
         """
         return self._atom
-    
+
     @property
     def name(self):
         """
@@ -68,7 +76,7 @@ class Atom(IAtom):
             The name of the atom.
         """
         return self._atom.name
-    
+
     @property
     def element(self):
         """
@@ -117,26 +125,108 @@ class Atom(IAtom):
         Returns:if
             np.array: The position of the atom.
         """
-        
+
         if self._mark and self._metal:
             if self.symmetry:
                 return self._st.cell.find_nearest_pbc_position(self._metal.pos, self._mark.pos, 0)
         return self._atom.pos
 
 
-class Ligand:
+class CifAtom(IAtom):
     """
-    Represents a ligand associated with a metal in a structure.
+     Represents an atom in a molecular structure.
 
     Attributes:
-        _metal (gemmi.Atom): The metal atom.
-        _residue (gemmi.Residue): The residue containing the metal.
-        _chain (gemmi.Chain): The chain containing the residue.
-        _ligands (list): List of atoms from ligand associated with the metal.
-        _extra_ligands (list): List of additional atom not from ligands associated with the metal.
+        atom (gemmi.Atom): The atom object.
+        residue (gemmi.Residue): The residue the atom belongs to.
+        chain (gemmi.Chain): The chain the atom belongs to.
     """
 
-    def __init__(self, metal: Atom) -> None:
+    def __init__(self, atom: gemmi.Atom, residue: gemmi.Residue, chain: gemmi.Chain):
+        self._atom = atom
+        self._residue = residue
+        self._chain = chain
+
+    @property
+    def atom(self):
+        """
+        Get the atom associated with this structure.
+
+        Returns:
+            The atom object associated with this structure.
+        """
+        return self._atom
+
+    @property
+    def residue(self):
+        """
+        Returns the residue associated with the structure.
+
+        Returns:
+            The residue object associated with the structure.
+        """
+        return self._residue
+
+    @property
+    def chain(self):
+        """
+        Returns the chain associated with the structure.
+
+        Returns:
+            str: The chain identifier.
+        """
+        return self._chain
+
+    @property
+    def symmetry(self):
+        """
+        Returns if the atom comes from the symmetry.
+
+        Returns:
+            bool: The symmetry copy of the atom.
+        """
+        return 0
+
+    @property
+    def pos(self):
+        """
+        Returns the position of the atom.
+
+        Returns:
+            np.array: The position of the atom.
+        """
+        return self._atom.pos
+
+    @property
+    def name(self):
+        """
+        Get the name of the atom.
+
+        Returns:
+            The name of the atom.
+        """
+        return self._atom.name
+
+    @property
+    def element(self):
+        """
+        Get the element of the atom.
+
+        Returns:
+            The element of the atom.
+        """
+        return self._atom.element.name
+
+
+class Ligand:
+    """ The `Ligand` class represents a metal coordination structure with ligands and extra ligands.
+    Attributes:
+        _metal (IAtom): The metal atom associated with the structure.
+        _ligands (list): A list of ligand atoms.
+        _extra_ligands (list): A list of extra ligand atoms.
+    """
+
+    def __init__(self, metal: IAtom) -> None:
         self._metal = metal
         self._ligands = []
         self._extra_ligands = []
@@ -172,49 +262,49 @@ class Ligand:
 
         return cleaned_ligand
 
-    def _euclidean(self, atom1: Atom, atom2: Atom) -> float:
+    def _euclidean(self, atom1: IAtom, atom2: IAtom) -> float:
         """
         Calculates the Euclidean distance between two atoms.
 
         Args:
-            atom1 (Atom): The first atom.
-            atom2 (Atom): The second atom.
+            atom1 (IAtom): The first atom.
+            atom2 (IAtom): The second atom.
 
         Returns:
             The Euclidean distance between the two atoms.
         """
         return np.sqrt((atom1.pos - atom2.pos).dot(atom1.pos - atom2.pos))
 
-    def _dist(self, l: Atom):
+    def _dist(self, l: IAtom):
         """
         Calculates the distance between the metal and a ligand atom.
 
         Args:
-            l (Atom): The ligand atom.
+            l (IAtom): The ligand atom.
 
         Returns:
             The distance between the metal and the ligand atom.
         """
         return self._euclidean(self.metal, l)
 
-    def _cov_dist(self, l: Atom):
+    def _cov_dist(self, l: IAtom):
         """
         Calculates the covalent distance between the metal and a ligand atom.
 
         Args:
-            l (Atom): The ligand atom.
+            l (IAtom): The ligand atom.
 
         Returns:
             The covalent distance between the metal and the ligand atom.
         """
         return gemmi.Element(self.metal.atom.element.name).covalent_r + gemmi.Element(l.atom.element.name).covalent_r
 
-    def _cov_dist_coeff(self, l: Atom):
+    def _cov_dist_coeff(self, l: IAtom):
         """
         Calculates the covalent distance coefficient between the metal and a ligand atom.
 
         Args:
-            l (Atom): The ligand atom.
+            l (IAtom): The ligand atom.
 
         Returns:
             The covalent distance coefficient between the metal and the ligand atom.
@@ -303,25 +393,25 @@ class Ligand:
         """
         return len(self._ligands)
 
-    def add_ligand(self, ligand: Atom):
+    def add_ligand(self, ligand: IAtom):
         """
         Adds a ligand to the structure.
 
         Args:
-            ligand (Atom): The ligand to add.
+            ligand (IAtom): The ligand to add.
         """
-        
+
         # if self.metal.atom.occ < 1 and ligand.symmetry and (ligand.atom.occ + self.metal.atom.occ) <= 1.0:
         #     return
 
         self._ligands.append(ligand)
 
-    def add_extra_ligand(self, ligand: Atom):
+    def add_extra_ligand(self, ligand: IAtom):
         """
         Adds an extra ligand to the structure.
 
         Args:
-            ligand (Atom): The extra ligand to add.
+            ligand (IAtom): The extra ligand to add.
         """
 
         self._extra_ligands.append(ligand)
@@ -343,7 +433,7 @@ class Ligand:
             A sorted list of  names.
         """
         return sorted([ligand.atom.name for ligand in self._ligands + self._extra_ligands])
-    
+
     def symmetry_names(self):
         """
         Returns a sorted list of names with symmetries for all ligands and extra ligands.
@@ -351,7 +441,7 @@ class Ligand:
         Returns:
             A sorted list of  names.
         """
-        return sorted([f"{ligand.name} {'(' + str(ligand.symmetry) + ')' if ligand.symmetry else ''}"  for ligand in self._ligands + self._extra_ligands])
+        return sorted([f"{ligand.name} {'(' + str(ligand.symmetry) + ')' if ligand.symmetry else ''}" for ligand in self._ligands + self._extra_ligands])
 
     def atoms(self):
         """
@@ -381,7 +471,7 @@ class Ligand:
             str: The name code of the metal coordination structure.
         """
         return " ".join([self._metal.atom.name] + self.names())
-    
+
     def name_code_with_symmetries(self):
         """
         Returns the name code of the metal coordination structure.
@@ -391,7 +481,7 @@ class Ligand:
         Returns:
             str: The name code of the metal coordination structure.
         """
- 
+
         return " ".join([self._metal.atom.name] + self.symmetry_names())
 
     def get_coord(self):
@@ -417,7 +507,7 @@ class Ligand:
         Checks if the ligand contains a specific atom.
 
         Args:
-            atom (gemmi.Atom): The atom to check.
+            atom (gemmi.IAtom): The atom to check.
 
         Returns:
             True if the ligand contains the atom, False otherwise.
@@ -479,14 +569,14 @@ class Ligand:
         return f"{self._metal.atom.name} - {self.chain.name} - {self.chain.name} - {self.residue.seqid.num} - {ligands} - {extra_ligands}"
 
 
-def angle(atom1: Atom, atom2: Atom, atom3: Atom):
+def angle(atom1: IAtom, atom2: IAtom, atom3: IAtom):
     """
     Calculates the angle between three atoms.
 
     Args:
-        atom1 (Atom): The first atom.
-        atom2 (Atom): The second atom.
-        atom3 (Atom): The third atom.
+        atom1 (IAtom): The first atom.
+        atom2 (IAtom): The second atom.
+        atom3 (IAtom): The third atom.
 
     Returns:
         The angle in degrees between the three atoms.
@@ -498,13 +588,13 @@ def angle(atom1: Atom, atom2: Atom, atom3: Atom):
     return np.degrees(np.arccos(cosine_angle))
 
 
-def distance(atom1: Atom, atom2: Atom) -> float:
+def distance(atom1: IAtom, atom2: IAtom) -> float:
     """
     Calculates the Euclidean distance between two atoms.
 
     Args:
-        atom1 (Atom): The first atom.
-        atom2 (Atom): The second atom.
+        atom1 (IAtom): The first atom.
+        atom2 (IAtom): The second atom.
 
     Returns:
         The Euclidean distance between the two atoms.
@@ -592,18 +682,20 @@ def get_ligands(st, ligand, bonds=None, max_dist=10, only_best=False) -> list[Li
 
                     marks = ns.find_neighbors(
                         atom, min_dist=0.1, max_dist=max_dist)
-                    
-                    marks1 = [k for k in marks if k.image_idx == 0 and not k.to_cra(st[0]).atom.element.is_metal]
-                    marks2 = [k for k in marks if k.image_idx != 0 and not k.to_cra(st[0]).atom.element.is_metal]
+
+                    marks1 = [k for k in marks if k.image_idx ==
+                              0 and not k.to_cra(st[0]).atom.element.is_metal]
+                    marks2 = [k for k in marks if k.image_idx !=
+                              0 and not k.to_cra(st[0]).atom.element.is_metal]
                     for mark2 in marks2:
                         cra2 = mark2.to_cra(st[0])
-                        if cra2.atom.occ + atom.occ > 1 :
+                        if cra2.atom.occ + atom.occ > 1:
                             marks1.append(mark2)
                             continue
                         for mark1 in marks1:
                             cra1 = mark1.to_cra(st[0])
-                            if (cra1.atom.name == cra2.atom.name and cra1.residue.seqid.num == cra2.residue.seqid.num and 
-                                cra1.chain.name == cra2.chain.name and cra1.atom.occ + cra2.atom.occ > atom.occ):
+                            if (cra1.atom.name == cra2.atom.name and cra1.residue.seqid.num == cra2.residue.seqid.num and
+                                    cra1.chain.name == cra2.chain.name and cra1.atom.occ + cra2.atom.occ > atom.occ):
                                 break
                         else:
                             marks1.append(mark2)
@@ -613,7 +705,7 @@ def get_ligands(st, ligand, bonds=None, max_dist=10, only_best=False) -> list[Li
                             cra = mark.to_cra(st[0])
                             if cra.atom.element.is_metal:
                                 continue
-         
+
                             l = Atom(cra.atom, cra.residue,
                                      cra.chain, mark, st, atom)
                             if bonds:
@@ -637,12 +729,13 @@ def get_ligands(st, ligand, bonds=None, max_dist=10, only_best=False) -> list[Li
                             neighbour_atoms.append(
                                 Atom(cra.atom, cra.residue, cra.chain, mark, st, atom))
 
-
                         ligand_atoms = []
                         if bonds:
-                            ligand_atoms = [a for a in neighbour_atoms if a.atom.name in metal_bonds and a.residue.name == ligand and a.residue.seqid.num == residue.seqid.num and a.chain.name == chain.name and a.symmetry == 0]
-                            neighbour_atoms = [a for a in neighbour_atoms if a not in ligand_atoms]
-                
+                            ligand_atoms = [a for a in neighbour_atoms if a.atom.name in metal_bonds and a.residue.name ==
+                                            ligand and a.residue.seqid.num == residue.seqid.num and a.chain.name == chain.name and a.symmetry == 0]
+                            neighbour_atoms = [
+                                a for a in neighbour_atoms if a not in ligand_atoms]
+
                         n1 = [
                             neighbour_atom for neighbour_atom in neighbour_atoms
                             if not neighbour_atom.atom.element.is_metal and distance(metal, neighbour_atom) < (covalent_radii(metal.atom.element.name) + covalent_radii(neighbour_atom.atom.element.name)) * alpha
@@ -657,8 +750,6 @@ def get_ligands(st, ligand, bonds=None, max_dist=10, only_best=False) -> list[Li
 
                         # Step 3: Remove atoms in n0 from n1
                         n1 = [a for a in n1 if a not in n0]
-
-
 
                         # Step 4-9: Apply the logic iteratively
                         beta_c = beta1[k]
@@ -679,7 +770,7 @@ def get_ligands(st, ligand, bonds=None, max_dist=10, only_best=False) -> list[Li
                             if mark.image_idx:
                                 Logger().info(
                                     f"This atom {a.atom.name} in {chain.name} - {residue.name} - {residue.seqid.num} come from symmetry copy {mark.image_idx}")
-                            
+
                             if a.residue.name == ligand and a.residue.seqid.num == residue.seqid.num and a.chain.name == chain.name:
                                 ligand_obj.add_ligand(a)
 
@@ -715,3 +806,111 @@ def get_ligands(st, ligand, bonds=None, max_dist=10, only_best=False) -> list[Li
         structures = best_structures
 
     return structures
+
+
+def is_float(value: str) -> bool:
+    """
+    Checks if the given string can be converted to a float.
+
+    Args:
+        value (str): The string to check.
+
+    Returns:
+        bool: True if the string can be converted to a float, False otherwise.
+    """
+    try:
+        float(value)
+        return True
+    except ValueError:
+
+        return False
+
+
+def get_coord_sym(atoms: gemmi.cif.Table) -> list:
+    """
+    Retrieve the coordinate symbols from a CIF table.
+
+    Args:
+        atoms (gemmi.cif.Table): The CIF table containing atomic data.
+
+    Returns:
+        list: The coordinate symbols.
+    """
+    for coord_sym in COORDS:
+        if coord_sym[0] in atoms and all([is_float(x) & is_float(y)
+                                          & is_float(z) for x, y, z in zip(atoms[coord_sym[0]], atoms[coord_sym[1]], atoms[coord_sym[2]])]):
+            return coord_sym
+    return None
+
+def get_row(atoms: gemmi.cif.Table, metal: str):
+    """
+    Retrieve a specific row from a CIF table based on a metal identifier.
+
+    Args:
+        atoms (gemmi.cif.Table): The CIF table containing atomic data.
+        metal (str): The identifier of the metal atom to search for.
+
+    Returns:
+        gemmi.cif.Row: The row corresponding to the specified metal atom, or None if not found.
+    """
+
+
+    coord_syms = get_coord_sym(atoms)
+    if not coord_syms:
+        raise ValueError("Could not find coordinates in the CIF file.")
+
+
+    for atom, element, x, y, z in zip(atoms[ATOM_ID], atoms[TYPE_SYMBOL], atoms[coord_syms[0]], atoms[coord_syms[1]], atoms[coord_syms[2]]):
+        if atom == metal:
+            return atom, element, float(x), float(y), float(z)
+
+def create_atom(atoms, atom_name):
+    """
+    Create a gemmi.Atom object from the given atoms data and atom name.
+
+    Args:
+        atoms (list): A list of atom data.
+        atom_name (str): The name of the atom to create.
+
+    Returns:
+        gemmi.Atom: A gemmi.Atom object with the specified properties.
+    """
+
+    name, element, x, y, z = get_row(atoms, atom_name)
+    ligand = gemmi.Atom()
+    ligand.name = name
+    ligand.element = gemmi.Element(element)
+    ligand.pos =  gemmi.Position(x, y, z)
+    ligand.occ = 1
+    ligand.b_iso = 0
+    ligand.altloc = "."
+    return ligand
+
+def get_ligands_from_cif(name: str, atoms: gemmi.cif.Table, bonds: dict) -> list[Ligand]:
+    """
+    Extracts ligands from a CIF (Crystallographic Information File) and returns them as a list of Ligand objects.
+    Args:
+        name (str): The name of the residue.
+        atoms (gemmi.cif.Table): A table containing atom information from the CIF file.
+        bonds (dict): A dictionary where keys are metal atom names and values are lists of ligand atom names bonded to the metal.
+    Returns:
+        list[Ligand]: A list of Ligand objects representing the ligands bonded to the metals.
+    """
+    result = []
+    new_chain = gemmi.Chain("A")
+    seq_id = gemmi.SeqId("1")
+    residue = gemmi.Residue()
+    residue.name = name
+    residue.seqid = seq_id
+    for metal_name, ligands in bonds.items():
+        print(metal_name)
+        metal = create_atom(atoms, metal_name)
+        ligand_obj = Ligand(CifAtom(metal, residue, new_chain))
+        for ligand_name in ligands:
+            print(ligand_name)
+            ligand = create_atom(atoms, ligand_name)
+            ligand_obj.add_ligand(CifAtom(ligand, residue, new_chain))
+
+        result.append(ligand_obj)
+
+    return result
