@@ -197,8 +197,8 @@ class AngleStats:
                  angles: np.ndarray = None, procrustes_dists: np.ndarray = None) -> None:
         self._ligand1: Ligand = ligand1
         self._ligand2: Ligand = ligand2
-        self._angle: float = angle_value
-        self._std: float = std if std > 1e-03 else 5
+        self._angle: float = np.round(angle_value, 2).tolist()
+        self._std: float = np.round(std if std > 1e-03 else 5, 2).tolist()
         self._is_ligand: bool = is_ligand
         self._angles: np.ndarray = angles
         self._procrustes_dists: np.ndarray = procrustes_dists
