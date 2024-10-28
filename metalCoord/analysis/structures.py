@@ -903,11 +903,9 @@ def get_ligands_from_cif(name: str, atoms: gemmi.cif.Table, bonds: dict) -> list
     residue.name = name
     residue.seqid = seq_id
     for metal_name, ligands in bonds.items():
-        print(metal_name)
         metal = create_atom(atoms, metal_name)
         ligand_obj = Ligand(CifAtom(metal, residue, new_chain))
         for ligand_name in ligands:
-            print(ligand_name)
             ligand = create_atom(atoms, ligand_name)
             ligand_obj.add_ligand(CifAtom(ligand, residue, new_chain))
 
