@@ -39,7 +39,7 @@ for metal in metals:
         for mark2 in marks2:
             cra2 = mark2.to_cra(st[0])
             dist_cra1_cra2 = cra1.atom.pos.dist(cra2.atom.pos)
-            dist_max = 1.3 * (cra1.atom.element.covalent_r + cra2.atom.element.covalent_r)
+            dist_max = factor * (cra1.atom.element.covalent_r + cra2.atom.element.covalent_r)
             if cra1.chain.name == cra2.chain.name and \
                     cra1.residue.seqid == cra2.residue.seqid and \
                     cra1.atom.element == cra2.atom.element and \
