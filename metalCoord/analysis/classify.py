@@ -1,6 +1,5 @@
 
 import os
-from arrow import get
 import gemmi
 from tqdm import tqdm
 from metalCoord.analysis.classes import Classificator

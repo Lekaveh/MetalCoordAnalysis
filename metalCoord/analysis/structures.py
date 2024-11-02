@@ -1,6 +1,5 @@
 from abc import ABC, abstractmethod
 from itertools import chain
-from arrow import get
 import numpy as np
 import gemmi
 from metalCoord.config import Config
