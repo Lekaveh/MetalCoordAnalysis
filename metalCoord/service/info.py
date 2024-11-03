@@ -11,7 +11,7 @@ d = os.path.dirname(sys.modules["metalCoord"].__file__)
 mons = json.load(open(os.path.join(d, "data/mons.json"), encoding="utf-8"))
 
 
-def get_pdbs(ligand: str, output: str) -> list:
+def get_pdbs_list(ligand: str) -> list:
     """
     Retrieves the PDB files containing the given ligand.
 
@@ -22,9 +22,23 @@ def get_pdbs(ligand: str, output: str) -> list:
     list: A list of PDB files containing the ligand.
 
     """
-    pdbs = {ligand: []}
     if ligand in mons:
-        pdbs = {ligand: sorted(mons[ligand], key=lambda x: (not x[2], x[1] if x[1] else 10000))}
+        return {ligand: sorted(mons[ligand], key=lambda x: (not x[2], x[1] if x[1] else 10000))}
+    return {ligand: []}
+
+
+def save_pdbs_list(ligand: str, output: str) -> list:
+    """
+    Retrieves the PDB files containing the given ligand.
+
+    Parameters:
+    ligand (str): The name of the ligand.
+
+    Returns:
+    list: A list of PDB files containing the ligand.
+
+    """
+    pdbs = get_pdbs_list(ligand)
     directory = os.path.dirname(output)
     Path(directory).mkdir(exist_ok=True, parents=True)
     with open(output, 'w', encoding="utf-8") as json_file:

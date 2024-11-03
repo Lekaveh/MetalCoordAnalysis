@@ -1,5 +1,4 @@
 import argparse
-from ast import arg
 import json
 import os
 from pathlib import Path
@@ -197,8 +196,8 @@ def main_func():
             from metalCoord.service.info import get_coordinations
             print(f"List of coordinations: {get_coordinations(args.number)}")
         elif args.command == 'pdb':
-            from metalCoord.service.info import get_pdbs
-            get_pdbs(args.ligand, args.output)
+            from metalCoord.service.info import save_pdbs_list
+            save_pdbs_list(args.ligand, args.output)
         else:
             parser.print_help()
 
