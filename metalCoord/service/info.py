@@ -11,6 +11,16 @@ d = os.path.dirname(sys.modules["metalCoord"].__file__)
 mons = json.load(open(os.path.join(d, "data/mons.json"), encoding="utf-8"))
 
 
+def get_metal_ligand_list() -> list:
+    """
+    Retrieves the list of metals and their corresponding ligands.
+
+    Returns:
+    list: A list of metals and their corresponding ligands.
+
+    """
+    return mons.keys()
+
 def get_pdbs_list(ligand: str) -> list:
     """
     Retrieves the PDB files containing the given ligand.
