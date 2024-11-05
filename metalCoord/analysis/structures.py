@@ -666,7 +666,8 @@ def get_ligands(st, ligand, bonds=None, max_dist=10, only_best=False) -> list[Li
 
     if not bonds:
         bonds = {}
-
+    
+  
     for chain in st[0]:
         for residue in chain:
             if residue.name != ligand:
@@ -684,20 +685,22 @@ def get_ligands(st, ligand, bonds=None, max_dist=10, only_best=False) -> list[Li
 
                     marks1 = [k for k in marks if k.image_idx ==
                               0 and not k.to_cra(st[0]).atom.element.is_metal]
+                    # if not bonds:
                     marks2 = [k for k in marks if k.image_idx !=
-                              0 and not k.to_cra(st[0]).atom.element.is_metal]
-                    for mark2 in marks2:
-                        cra2 = mark2.to_cra(st[0])
-                        if cra2.atom.occ + atom.occ > 1:
-                            marks1.append(mark2)
-                            continue
-                        for mark1 in marks1:
-                            cra1 = mark1.to_cra(st[0])
-                            if (cra1.atom.name == cra2.atom.name and cra1.residue.seqid.num == cra2.residue.seqid.num and
-                                    cra1.chain.name == cra2.chain.name and cra1.atom.occ + cra2.atom.occ > atom.occ):
-                                break
-                        else:
-                            marks1.append(mark2)
+                            0 and not k.to_cra(st[0]).atom.element.is_metal]
+                    if not bonds:
+                        for mark2 in marks2:
+                            cra2 = mark2.to_cra(st[0])
+                            if cra2.atom.occ + atom.occ > 1:
+                                marks1.append(mark2)
+                                continue
+                            for mark1 in marks1:
+                                cra1 = mark1.to_cra(st[0])
+                                if (cra1.atom.name == cra2.atom.name and cra1.residue.seqid.num == cra2.residue.seqid.num and
+                                        cra1.chain.name == cra2.chain.name and cra1.atom.occ + cra2.atom.occ > atom.occ):
+                                    break
+                            else:
+                                marks1.append(mark2)
                     marks = marks1
                     if Config().simple:
                         for mark in marks:
@@ -783,7 +786,7 @@ def get_ligands(st, ligand, bonds=None, max_dist=10, only_best=False) -> list[Li
                         ligand_obj = ligand_obj.clean_the_farthest(
                             free=bool(bonds), n=ligand_obj.coordination() - Config().max_coordination_number)
 
-                    if bonds and ligand_obj.ligands_len != len(bonds.get(metal_name, [])):
+                    if bonds and set(metal_bonds) != set([l.atom.name for l in ligand_obj.ligands]):
                         raise ValueError(
                             f"There is inconsistency between ligand(s) in the PDB and monomer file. Metal {metal_name} in {chain.name} - {residue.name} - {residue.seqid.num} has different number of neighbours than expected. Expected: {sorted(bonds.get(metal_name, []))}, found: {sorted([l.atom.name for l in ligand_obj.ligands])}")
 
