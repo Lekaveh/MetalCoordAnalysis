@@ -3,6 +3,7 @@ import numpy as np
 import metalCoord
 import metalCoord.analysis
 import metalCoord.analysis.structures
+from metalCoord.analysis.data import DB
 
 
 class Ligand:
@@ -315,7 +316,8 @@ class LigandStats:
         float: The procrustes value of the ligand.
         """
         return self._procrustes
-
+    
+    
     @property
     def coordination(self) -> int:
         """
@@ -394,6 +396,19 @@ class LigandStats:
         for ligand_angle in self._angles:
             if ligand_angle.is_ligand:
                 yield ligand_angle
+
+    def weighted_procrustes(self, metal: str) -> float:
+        """
+        Calculates the weighted procrustes score of the ligand.
+
+        Args:
+            metal (str): The metal identifier.
+
+        Returns:
+            float: The weighted procrustes score.
+        """
+        frequencies = DB.get_frequency(metal, self.coordination)
+        return self.procrustes*(1 - frequencies.get(self.clazz, 1e-03))
 
     def get_ligand_bond(self, ligand_name: str) -> DistanceStats:
         """
@@ -691,7 +706,9 @@ class MetalStats:
             Ligand: The best class of ligands.
         """
         coord = self.get_coordination()
-        return self._ligands[np.argmin([l.procrustes for l in self._ligands if l.coordination == coord])]
+        ligands = [l for l in self._ligands if l.coordination == coord]
+        weighted_procrustes = [l.weighted_procrustes(self.metal_element) for l in ligands]
+        return ligands[np.argmin(weighted_procrustes)]
 
     def get_all_distances(self) -> list:
         """
@@ -801,7 +818,7 @@ class MetalStats:
             "ligands": []
         }
 
-        for l in sorted(self.ligands, key=lambda x: (-x.coordination, x.procrustes)):
+        for l in sorted(self.ligands, key=lambda x: (-x.coordination, x.weighted_procrustes(self.metal_element))):
             metal["ligands"].append(l.to_dict())
 
         return metal

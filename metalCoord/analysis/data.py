@@ -53,6 +53,21 @@ class StatsData():
         """
         result = self.__distances[(self.__distances.Metal == metal) & (self.__distances.Ligand == ligand)][["mean", "std", "count"]].values
         return result[0] if len(result) > 0 else (0, 0, 0)
+    
+    def get_frequency(self, metal, coordination):
+        """
+        Retrieves the frequency of each class for the specific coordination for a given metal.
+
+        Args:
+            metal (str): The metal element.
+            coordination (str): The coordination to search for.
+
+        Returns:
+            int: The frequency of each class for the coordination for the given metal.
+        """
+
+        selection = self.__data.loc[(self.__data.Metal == metal) & (self.__data.Coordination == coordination)]
+        return (selection.groupby("Class")["File"].count()/selection.shape[0]).to_dict()
 
     def data(self):
         """
