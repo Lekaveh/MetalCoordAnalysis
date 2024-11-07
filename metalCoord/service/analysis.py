@@ -224,14 +224,16 @@ def save_cods(pdb_stats: PdbStats, path: str):
 
 
 
-def update_cif(output_path, path, pdb, use_cif=False):
+def update_cif(output_path, path, pdb, use_cif=False, clazz = None):
     """
     Update the CIF file with ligand information.
 
-    Parameters:
-    - output_path (str): The path to save the updated CIF file.
+    Args:
+    - output_path (str): The path where the updated CIF file will be saved.
     - path (str): The path to the original CIF file.
     - pdb (str): The path to the PDB file.
+    - use_cif (bool): Whether to use the CIF file for classification.
+    - clazz (str): Predefined class.
 
     Returns:
     - None
@@ -303,7 +305,7 @@ def update_cif(output_path, path, pdb, use_cif=False):
             f"mmcif category {BOND_CATEGORY} not found. Please check the CIF file.")
     if contains_metal(atoms):
         if use_cif:
-            pdb_stats = find_classes_cif(name, atoms, bonds)
+            pdb_stats = find_classes_cif(name, atoms, bonds, clazz=clazz)
         else:
             if pdb is None:
                 if name not in mons:
@@ -332,7 +334,7 @@ def update_cif(output_path, path, pdb, use_cif=False):
                 Logger().info(f"Best PDB file is {pdb}")
 
             pdb_stats = find_classes_pdb(
-                name, pdb, get_bonds(atoms, bonds), only_best=True)
+                name, pdb, get_bonds(atoms, bonds), only_best=True, clazz = clazz)
 
         if pdb_stats.is_empty():
             # Logger().info(f"No coordination found for {name}  in {pdb}. Please check the PDB file")
@@ -506,7 +508,7 @@ def update_cif(output_path, path, pdb, use_cif=False):
         Logger().info(f"No metal found in {name}")
 
 
-def get_stats(ligand, pdb, output):
+def get_stats(ligand, pdb, output, clazz = None):
     """
     Retrieves statistics for a given ligand and PDB file and writes the results to a JSON file.
 
@@ -514,11 +516,12 @@ def get_stats(ligand, pdb, output):
         ligand (str): The name of the ligand.
         pdb (str): The path to the PDB file.
         output (str): The path to the output JSON file.
+        clazz (str): Predefined class.
 
     Returns:
         None
     """
-    pdb_stats = find_classes_pdb(ligand, pdb)
+    pdb_stats = find_classes_pdb(ligand, pdb, clazz=clazz)
     results = pdb_stats.json()
 
     directory = os.path.dirname(output)
