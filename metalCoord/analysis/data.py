@@ -1,6 +1,5 @@
 import os
 import sys
-import numpy as np
 import pandas as pd
 from metalCoord.analysis.utlis import elementCode
 
@@ -69,6 +68,20 @@ class StatsData():
         selection = self.__data.loc[(self.__data.Metal == metal) & (self.__data.Coordination == coordination)]
         return (selection.groupby("Class")["File"].count()/selection.shape[0]).to_dict()
 
+    def get_frequency_all(self, metal):
+        """
+        Retrieves the frequency of each class for all coordinations for a given metal.
+
+        Args:
+            metal (str): The metal element.
+
+        Returns:
+            dict: The frequency of each class for all coordinations for the given metal.
+        """
+
+        selection = self.__data.loc[self.__data.Metal == metal]
+        return (selection.groupby(["Class"])["File"].count()/selection.shape[0]).to_dict()
+        
     def data(self):
         """
         Returns the loaded data for analysis.

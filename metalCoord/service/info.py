@@ -1,10 +1,12 @@
-
 import json
 import os
 from pathlib import Path
 import sys
+import gemmi
 from metalCoord.analysis.classes import idealClasses
+from metalCoord.analysis.data import DB
 from metalCoord.logging import Logger
+
 
 
 d = os.path.dirname(sys.modules["metalCoord"].__file__)
@@ -58,17 +60,34 @@ def save_pdbs_list(ligand: str, output: str) -> list:
         Logger().info(f"List of pdbs for {ligand} written to {output}")
 
 
-def get_coordinations(coordination_num: int = None) -> list:
+def get_coordinations(coordination_num: int = None, metal: str = None) -> list:
     """
-    Retrieves the ideal coordination classes based on the given coordination number.
-
-    Parameters:
-    coordination_num (int): The coordination number to filter the ideal classes. If None, returns all ideal classes.
-
+    Retrieve coordination information based on the provided parameters.
+    Args:
+        coordination_num (int, optional): The coordination number to filter by. Defaults to None.
+        metal (str, optional): The metal element to filter by. Defaults to None.
     Returns:
-    list: A list of ideal coordination classes.
-
+        list: A list of coordination information based on the provided parameters.
+    Raises:
+        ValueError: If the provided metal is not a valid metal element.
+    Notes:
+        - If only `coordination_num` is provided, returns ideal classes by coordination number.
+        - If both `metal` and `coordination_num` are provided, returns frequency data for the metal and coordination number.
+        - If only `metal` is provided, returns frequency data for the metal across all coordination numbers.
+        - If neither `coordination_num` nor `metal` is provided, returns all ideal classes.
     """
-    if coordination_num:
+
+    if metal:
+        if not gemmi.Element(metal).is_metal:
+            raise ValueError(f"{metal} is not a metal element.")
+        metal = metal.lower().capitalize()
+    if coordination_num and not metal:
         return idealClasses.get_ideal_classes_by_coordination(coordination_num)
+        
+    if metal and coordination_num:
+        return DB.get_frequency(metal, coordination_num)
+    
+    if metal and not coordination_num:
+        return DB.get_frequency_all(metal)
+    
     return idealClasses.get_ideal_classes()

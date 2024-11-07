@@ -143,6 +143,7 @@ def create_parser():
         'coord', help='List of coordinations.')
     coordination_parser.add_argument('-n', '--number', type=int, required=False,
                                      help='Coordination number.', metavar='<COORDINATION NUMBER>')
+    coordination_parser.add_argument('-m', '--metal', type=str, required=False)
 
     # App4
     pdb_parser = subparsers.add_parser(
@@ -194,7 +195,7 @@ def main_func():
 
         elif args.command == 'coord':
             from metalCoord.service.info import get_coordinations
-            print(f"List of coordinations: {get_coordinations(args.number)}")
+            print(f"List of coordinations: {get_coordinations(args.number, args.metal)}")
         elif args.command == 'pdb':
             from metalCoord.service.info import save_pdbs_list
             save_pdbs_list(args.ligand, args.output)
