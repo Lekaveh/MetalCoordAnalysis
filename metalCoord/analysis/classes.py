@@ -187,7 +187,7 @@ class Classificator():
         Yields:
             ClassificationResult: The classification results.
         """
-        print(class_name)
+
         if class_name:
             if not idealClasses.contains(class_name):
                 raise ValueError(f"Class {class_name} not found.")

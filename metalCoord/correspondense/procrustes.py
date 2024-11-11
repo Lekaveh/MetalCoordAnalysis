@@ -226,7 +226,7 @@ def ring_permutations(ring):
     indices = list(range(n))
     return [[ring[(idx + i) % n] for idx in indices] for i in range(n)]
 
-
+@tf.function
 def norm(x, hm):
     """
     Computes the norm of a tensor using the Procrustes method.
@@ -240,7 +240,7 @@ def norm(x, hm):
     """
     return tf.sqrt(tf.linalg.trace(tf.transpose(x, perm=[0, 2, 1])@tf.transpose(hm, perm=[0, 2, 1])@hm@x))
 
-
+@tf.function
 def preshape(x):
     """
     Transforms the input matrix `x` using the Helmert matrix and normalizes it.
@@ -261,7 +261,7 @@ def preshape(x):
         hm, dtype='float32'), (1, hm.shape[0], hm.shape[1]))
     return hm@x/tf.reshape(norm(x, hm), (-1, 1, 1))
 
-
+@tf.function
 def distance(x1: tf.Tensor, x2: tf.Tensor) -> tf.Tensor:
     """
     Calculates the distance between two sets of coordinates using the Procrustes analysis.
@@ -279,7 +279,7 @@ def distance(x1: tf.Tensor, x2: tf.Tensor) -> tf.Tensor:
         z1, perm=[0, 2, 1])@z2@tf.transpose(z2, perm=[0, 2, 1])@z1)
     return tf.sqrt(tf.abs(1 - tf.reduce_sum(tf.sqrt(s), axis=1)**2))
 
-
+@tf.function
 def procrustes_fit(A: tf.Tensor, B: tf.Tensor) -> tuple[tf.Tensor, tf.Tensor, tf.Tensor, tf.Tensor]:
     """
     Computes the Procrustes fit between two matrices A and B.
@@ -323,18 +323,19 @@ def get_combinations(groups=None, rings=None):
     c_list = []
     ranges = [0] + np.cumsum(groups).tolist()
     if rings is None:
-        rings = [0]*len(groups)
+        rings = [0] * len(groups)
 
     for i in range(len(ranges) - 1):
         if rings[i]:
-            c_list.append(np.array(ring_permutations(range(
-                ranges[i], ranges[i + 1])) + ring_permutations(list(range(ranges[i], ranges[i + 1]))[::-1])))
+            perms = ring_permutations(range(ranges[i], ranges[i + 1]))
+            perms_rev = ring_permutations(list(range(ranges[i], ranges[i + 1]))[::-1])
+            c_list.append(np.array(perms + perms_rev))
+            
         else:
-            c_list.append(np.fromiter(itertools.chain.from_iterable(itertools.permutations(range(
-                ranges[i], ranges[i + 1]))), dtype=np.int32).reshape(-1, ranges[i + 1] - ranges[i]))
+            perms = itertools.permutations(range(ranges[i], ranges[i + 1]))
+            c_list.append(np.array(list(perms), dtype=np.int32))
 
-    combinations = np.vstack([np.concatenate(x)
-                             for x in itertools.product(*c_list)])
+    combinations = np.array([np.concatenate(x) for x in itertools.product(*c_list)])
     k = len(combinations)
     return combinations, k
 
@@ -355,6 +356,7 @@ def create_group(rings, others):
         return [[0]] + rings + [others]
     return [[0]] + rings
 
+# @tf.function
 
 def fit_group(coords, ideal_coords, groups=None, rings=None):
     """
