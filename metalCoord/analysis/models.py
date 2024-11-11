@@ -128,7 +128,7 @@ class DistanceStats:
                  procrustes_dists: np.ndarray = None, description: str = "") -> None:
         self._ligand: Ligand = ligand
         self._distance: float = np.round(distance, 2).tolist()
-        self._std: float = np.round(np.where(std > 1e-02, std, 0.05), 2).tolist()
+        self._std: float = np.round(np.where(std > 0.02, std, 0.02), 2).tolist()
         self._distances: np.ndarray = distances
         self._procrustes_dists: np.ndarray = procrustes_dists
         self._description: str = description
@@ -199,7 +199,7 @@ class AngleStats:
         self._ligand1: Ligand = ligand1
         self._ligand2: Ligand = ligand2
         self._angle: float = np.round(angle_value, 2).tolist()
-        self._std: float = np.round(std if std > 1e-03 else 5, 2).tolist()
+        self._std: float = np.round(np.where(std > 3.0, std, 3.0), 2).tolist()
         self._is_ligand: bool = is_ligand
         self._angles: np.ndarray = angles
         self._procrustes_dists: np.ndarray = procrustes_dists
