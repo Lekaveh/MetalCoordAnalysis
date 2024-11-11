@@ -736,7 +736,8 @@ def get_ligands(st, ligand, bonds=None, max_dist=10, only_best=False) -> list[Li
                             ligand_atoms = [a for a in neighbour_atoms if a.atom.name in metal_bonds and a.residue.name ==
                                             ligand and a.residue.seqid.num == residue.seqid.num and a.chain.name == chain.name and a.symmetry == 0]
                             neighbour_atoms = [
-                                a for a in neighbour_atoms if a not in ligand_atoms]
+                                a for a in neighbour_atoms if a not in ligand_atoms and (a.residue.name !=
+                                            ligand or a.residue.seqid.num != residue.seqid.num or a.chain.name != chain.name ) and a.symmetry == 0]
 
                         n1 = [
                             neighbour_atom for neighbour_atom in neighbour_atoms
