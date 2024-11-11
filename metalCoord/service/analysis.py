@@ -177,7 +177,7 @@ def find_minimal_cycles(bonds):
     graph = nx.Graph()
     graph.add_edges_from([[a1, a2] for a1, a2 in bonds])
     # Find the cycle basis of the graph
-    cycle_basis = nx.simple_cycles(graph)
+    cycle_basis = nx.simple_cycles(graph, length_bound=4)
 
     return cycle_basis
 
@@ -427,8 +427,6 @@ def update_cif(output_path, path, pdb, use_cif=False, clazz = None):
         monomer = list(pdb_stats.monomers())[-1]
         for metal_stat in monomer.metals:
             for bond in metal_stat.get_all_distances():
-                # if bond.ligand.symmetry != 0:
-                #     continue
                 v.append((metal_stat.code, bond.ligand.code))
 
         Logger().info("update cycles")
