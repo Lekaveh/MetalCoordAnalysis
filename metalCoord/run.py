@@ -1,4 +1,5 @@
 import argparse
+from ast import arg
 import json
 import os
 from pathlib import Path
@@ -148,13 +149,17 @@ def create_parser():
     coordination_parser.add_argument('-n', '--number', type=int, required=False,
                                      help='Coordination number.', metavar='<COORDINATION NUMBER>')
     coordination_parser.add_argument('-m', '--metal', type=str, required=False)
+    coordination_parser.add_argument('-o', '--output', type=str, required=False,
+                                     help='Output json file.', metavar='<OUTPUT JSON FILE>')
+    coordination_parser.add_argument('--cod', required=False,
+                              help='Include IDs of the COD structures.', default=argparse.SUPPRESS,  action='store_true')
 
     # App4
     pdb_parser = subparsers.add_parser(
         'pdb', help='Get list of PDBs containing the ligand.')
     pdb_parser.add_argument('-l', '--ligand', type=str,
                             required=True, help='Ligand code.', metavar='<LIGAND CODE>')
-    pdb_parser.add_argument('-o', '--output', type=str, required=True,
+    pdb_parser.add_argument('-o', '--output', type=str, required=False,
                             help='Output json file.', metavar='<OUTPUT JSON FILE>')
     return parser
 
@@ -198,11 +203,11 @@ def main_func():
             get_stats(args.ligand, args.pdb, args.output, clazz = args.cl)
 
         elif args.command == 'coord':
-            from metalCoord.service.info import get_coordinations
-            print(f"List of coordinations: {get_coordinations(args.number, args.metal)}")
+            from metalCoord.service.info import process_coordinations
+            process_coordinations(args.number, args.metal, args.output, args.cod if "cod" in args else False)
         elif args.command == 'pdb':
-            from metalCoord.service.info import save_pdbs_list
-            save_pdbs_list(args.ligand, args.output)
+            from metalCoord.service.info import process_pdbs_list
+            process_pdbs_list(args.ligand, args.output)
         else:
             parser.print_help()
 
