@@ -132,11 +132,12 @@ class StatsData():
         if cod:
             agg["COD"] = "unique"
         stats = group.agg(agg)
-        stats["File"] = stats["File"]/data.shape[0]
+        stats["Freq"] = stats["File"]/data.shape[0]
         result = dict()
         for index, row in stats.iterrows():
-            result[index] = {"frequency": row["File"],
-                             "coordination": int(row["Coordination"])}
+            result[index] = {"frequency": row["Freq"],
+                             "coordination": int(row["Coordination"]),
+                             "count": int(row["File"])}
             if cod:
                 result[index]["cod"] = sorted(row["COD"].tolist())
         return dict(sorted(result.items(), key = lambda item,: item[1]["coordination"]))
