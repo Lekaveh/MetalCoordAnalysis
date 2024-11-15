@@ -408,7 +408,9 @@ class LigandStats:
             float: The weighted procrustes score.
         """
         frequencies = DB.get_frequency_metal_ccordination(metal, self.coordination)
-        return self.procrustes*(1 - frequencies.get(self.clazz, {}).get("frequency", 1e-3))
+        freqs = [x["frequency"] for x in frequencies.values()]
+        freq = frequencies.get(self.clazz, {}).get("frequency", 1e-7)
+        return self.procrustes*(1 - np.exp(freq)/np.sum(freqs))
 
     def get_ligand_bond(self, ligand_name: str) -> DistanceStats:
         """
