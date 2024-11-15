@@ -410,7 +410,8 @@ class LigandStats:
         frequencies = DB.get_frequency_metal_ccordination(metal, self.coordination)
         freqs = [x["frequency"] for x in frequencies.values()]
         freq = frequencies.get(self.clazz, {}).get("frequency", 1e-7)
-        return self.procrustes*(1 - np.exp(freq)/np.sum(freqs))
+
+        return self.procrustes*(1 - np.exp(freq)/np.sum(np.exp(freqs)))
 
     def get_ligand_bond(self, ligand_name: str) -> DistanceStats:
         """
