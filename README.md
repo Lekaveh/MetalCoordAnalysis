@@ -13,6 +13,8 @@ The Metal Coordination Analysis Tool is a Python application designed for analyz
 
 - **Coordination List**: Provides a list of coordination numbers for the given parameters.
 
+- **Pdb list: Provide  list of pdb with their resolution for the specific ligand
+
 ## Installation
 
 ### Prerequisites
@@ -75,5 +77,10 @@ pip install git+https://github.com/Lekaveh/MetalCoordAnalysis
         - -l, --ligand: Ligand code.
         - -o, --output: Output JSON file
         - --no-progress: Do not show progress bars
+
+### Tutorial
+For a step-by-step tutorial on how to use the Metal Coordination Analysis Tool, visit the [tutorial page](https://github.com/Lekaveh/MetalCoordAnalysis/blob/master/tutorial/tutorial.rst).
+
+This ensures users have clear guidance and an easy way to access additional information through the tutorial.
 
 

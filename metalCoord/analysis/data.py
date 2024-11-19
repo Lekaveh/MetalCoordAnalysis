@@ -1,6 +1,5 @@
 import os
 import sys
-from numpy import sort
 import pandas as pd
 from metalCoord.analysis.utlis import elementCode
 
