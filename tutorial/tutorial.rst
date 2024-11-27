@@ -126,8 +126,8 @@ The script creates five files:
 
  - 4dl8_mc_restraints.txt is a keyword file for *Servalcat* or *Refmacat* containing the external bond length and angle restraints based on a coordination class with the lowest procrustes score.
  - 4dl8_mc_restraints_coot.txt is the same keyword file in a simplified format which is compatible with *Coot*. It can be loaded in Coot using Calculate -> Modules -> Restraints and then Restraints -> Read Refmac Extra Restraints. The file does not include restraints for atoms with alternative conformations and atoms from symmetry-related molecules.
- - 4dl8_mc_restraints.def is a keyword file compatible with *Phenix.refine*. The file does not include restraints for atoms from symmetry-related molecules.
- - 4dl8_mc_restraints.mmcif and 4dl8_mc_restraints.pdb are structure models with updated connection/link records related to the interactions with metals. Note that the script deletes all the connection/link records specified in the input PDB/mmCIF file - this behaviour can be turned off using an extra option ``--keep-links`` but a user should be very careful and check the result to avoid inconsistencies in the connection/link records.
+ - 4dl8_mc_restraints.params is a keyword file compatible with *Phenix.refine*. The file does not include restraints for atoms from symmetry-related molecules.
+ - 4dl8_mc_restraints.mmcif and 4dl8_mc_restraints.pdb are structure models with modified connection/link records: The original metal-related connection/link records specified in the input PDB/mmCIF file were deleted and then the metal-related links were added again from scratch based on the MetalCoord analysis. To turn off the deletion step, an extra option ``--keep-links`` can be used but a user should be very careful and check the result to avoid inconsistencies in the connection/link records.
 
 Now we can refine the structure model in *Servalcat* using the external restraints::
 
@@ -256,9 +256,9 @@ At the end of the file ``8tnv_mc_restraints.txt``, these lines describing the di
    exte dist first chain A resi 402 inse . atom O1 second chain A resi 402 inse . atom O2 value 1.6 sigma 0.2 type 0
    exte dist first chain B resi 406 inse . atom O1 second chain B resi 406 inse . atom O2 value 1.6 sigma 0.2 type 0
 
-Now it is possible to refine the structure in *Servalcat* while taking the external restrains into account::
+The dictionary file CUO.cif should be available in the CCP4 monomer library or can be downloaded at https://github.com/MonomerLibrary/monomers/blob/master/c/CUO.cif . Now it is possible to refine the structure in *Servalcat* while taking the external restrains into account::
 
-   servalcat refine_xtal_norefmac --hklin 8tnv-sf.cif --model 8tnv_mc_restraints.mmcif -s xray --ncsr --ligand CUO_out_final.cif --keyword_file 8tnv_mc_restraints.txt -o 8tnv_servalcat_restraints --adp aniso
+   servalcat refine_xtal_norefmac --hklin 8tnv-sf.cif --model 8tnv_mc_restraints.mmcif -s xray --ncsr --ligand CUO.cif --keyword_file 8tnv_mc_restraints.txt -o 8tnv_servalcat_restraints --adp aniso
 
 Other examples of monomers with such traingles are `C4R <https://www.rcsb.org/ligand/C4R>`_, `DVW <https://www.rcsb.org/ligand/DVW>`_, `J9H <https://www.rcsb.org/ligand/J9H>`_, `RMD <https://www.rcsb.org/ligand/RMD>`_. A special case is `PLL <https://www.rcsb.org/ligand/PLL>`_ where three atoms would need to be replaced with one.
 
