@@ -52,6 +52,8 @@ class Atom(IAtom):
         self._residue = residue
         self._chain = chain
         self._mark = mark
+        self._mark_pos = mark.pos if mark else None
+        self._symmetry = mark.image_idx if mark else 0
         self._st = st
         self._metal = metal
 
@@ -113,7 +115,7 @@ class Atom(IAtom):
         Returns:
             bool: The symmetry copy of the atom.
         """
-        return self._mark.image_idx
+        return self._symmetry
 
     @property
     def pos(self):
@@ -124,9 +126,9 @@ class Atom(IAtom):
             np.array: The position of the atom.
         """
 
-        if self._mark and self._metal:
+        if self._mark_pos and self._metal:
             if self.symmetry:
-                return self._st.cell.find_nearest_pbc_position(self._metal.pos, self._mark.pos, 0)
+                return self._st.cell.find_nearest_pbc_position(self._metal.pos, self._mark_pos, 0)
         return self._atom.pos
 
 
