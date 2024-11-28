@@ -287,10 +287,7 @@ if __name__ == "__main__":
     )
 
     args = parser.parse_args()
-    if len(args.i) < 2:
-        jsonPaths = [args.i]
-    else:
-        jsonPaths = args.i
+    jsonPaths = args.i
     stPath = args.p
     outputPrefix = args.o
     jsonEquivalentsPath = args.e
