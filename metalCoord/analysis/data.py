@@ -134,7 +134,7 @@ class StatsData():
         stats["Freq"] = stats["File"]/data.shape[0]
         result = dict()
         for index, row in stats.iterrows():
-            result[index] = {"frequency": row["Freq"],
+            result[index] = {"frequency": float(row["Freq"]),
                              "coordination": int(row["Coordination"]),
                              "count": int(row["File"])}
             if cod:

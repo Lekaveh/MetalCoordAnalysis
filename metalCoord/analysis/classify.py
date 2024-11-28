@@ -40,7 +40,7 @@ def get_structures(ligand, path, bonds=None, only_best=False) -> list[Ligand]:
     elif len(path) == 4:
         pdb, file_type = load_pdb(path)
         if file_type == 'cif':
-            cif_block = gemmi.cif.read_string(pdb)[0]
+            cif_block = gemmi.cif.read_string(pdb.decode())[0]
             st = gemmi.make_structure_from_block(cif_block)
         else:
             st = gemmi.read_pdb_string(pdb)

@@ -89,9 +89,6 @@ def angle(metal, ligand1, ligand2):
 
 
 
-
-from abc import ABC, abstractmethod
-
 class StatsFinder(ABC):
     """
     Abstract base class for finding statistics in metal coordination analysis.
