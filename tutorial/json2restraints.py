@@ -1,9 +1,63 @@
+"""
+Generate external bond length and angle restraints from JSON files from MetalCoord stats to keywords
+for Servalcat / Refmac5 / Coot / Phenix.
+
+Typical usage:
+ccp4-python json2restraints.py -i 4dl8_AF3_mc.json 4dl8_MG_mc.json 4dl8_NA_mc.json -p 4dl8.cif -o mc_restraints
+
+The script creates these files:
+
+ - mc_restraints.txt is a keyword file for Servalcat or Refmacat containing the external bond 
+   length and angle restraints based on a coordination class with the lowest procrustes score.
+ - mc_restraints_coot.txt is the same keyword file in a simplified format which is compatible with Coot.
+   It can be loaded in Coot using Calculate -> Modules -> Restraints and then Restraints -> Read Refmac Extra Restraints.
+   The file does not include restraints for atoms with alternative conformations and atoms from symmetry-related molecules.
+ - mc_restraints.params is a keyword file compatible with Phenix.refine.
+   The file does not include restraints for atoms from symmetry-related molecules.
+
+When a structure model (PDB/mmCIF file) is given, the original metal-related LINK/connection records specified
+in the input PDB/mmCIF file are deleted and then the metal-related links were added again from scratch based on 
+the MetalCoord analysis. To turn off the deletion step, an extra option --keep-links can be used but a user should 
+be very careful and check the result to avoid inconsistencies in the connection/link records.
+These files are then created:
+ - mc_restraints.mmcif
+ - mc_restraints.pdb
+
+Dependencies:
+ - gemmi
+
+To list all the available options, run:
+ccp4-python json2restraints.py -h
+"""
 import json
-import gemmi
+try:
+    import gemmi
+except:
+    import sys
+    sys.stderr.write("ERROR: moduel GEMMI not found.\n")
+    sys.exit(1)
 
 
-def main(jsonPaths, stPath=None, outputPrefix="restraints", jsonEquivalentsPath=None, keep_links=False):
-    #    list       string       string                     string                    bool
+def main(jsonPaths, stPath=None, outputPrefix="restraints", jsonEquivalentsPath=None, keep_links=False, phenix_variant=None):
+    """This script generates external bond length and angle restraints for Refmacat or Servalcat
+       from the JSON files from MetalCoord stats.
+
+    Args:
+        jsonPaths (list): List of MetalCoord JSON file names or paths. 
+                          Required argument.
+        stPath (str): PDB/mmCIF file name or path. Required for updating LINK/connection records
+        outputPrefix (str): Prefix for output file names
+        jsonEquivalentsPath (str): Only for a special case of nonmetal-metal-nonmetal triangles:
+                                   JSON file specifying equivalent atoms.
+        keep_links (bool): Keep links in the input stPath file.
+                           Default: False
+        phenix_variant (int): If more variants for the same distance restraint possible,
+                              write only n-th variant to an output .params file for Phenix.
+                              It may help troubleshooting.
+                              Default: None so all variant will be written.
+
+    Returns:
+        None"""
 
     outputRestraintsPath = outputPrefix + ".txt"
     outputRestraintsCootPath = outputPrefix + "_coot.txt"
@@ -65,6 +119,7 @@ def main(jsonPaths, stPath=None, outputPrefix="restraints", jsonEquivalentsPath=
                     if angle_restraints_to_delete:
                         d[m]['ligands'][l]['angles'] = \
                             [i for j, i in enumerate(d[m]['ligands'][l]['angles']) if j not in angle_restraints_to_delete]
+
     outputLines = []
     outputLinesCoot = []
     outputLinesPhenix = []
@@ -120,13 +175,14 @@ def main(jsonPaths, stPath=None, outputPrefix="restraints", jsonEquivalentsPath=
                         outputLinesCoot.append(line_coot + "\n")
                     # restaints for phenix.refine: atoms with symmetry records are not included
                     if not atom_ligand['ligand']['symmetry']:
-                        outputLinesPhenix.append("  bond {\n")
-                        outputLinesPhenix.append(f"    action = *add\n")
-                        outputLinesPhenix.append(f"    atom_selection_1 = {atom_selection_1_phenix}\n")
-                        outputLinesPhenix.append(f"    atom_selection_2 = {atom_selection_2_phenix}\n")
-                        outputLinesPhenix.append(f"    distance_ideal = {atom_ligand['distance'][i]}\n")
-                        outputLinesPhenix.append(f"    sigma = {atom_ligand['std'][i]}\n")
-                        outputLinesPhenix.append("  }\n")
+                        if len(atom_ligand['distance']) < 2 or not phenix_variant or (len(atom_ligand['distance']) >= 2 and i + 1 == phenix_variant):
+                            outputLinesPhenix.append("  bond {\n")
+                            outputLinesPhenix.append(f"    action = *add\n")
+                            outputLinesPhenix.append(f"    atom_selection_1 = {atom_selection_1_phenix}\n")
+                            outputLinesPhenix.append(f"    atom_selection_2 = {atom_selection_2_phenix}\n")
+                            outputLinesPhenix.append(f"    distance_ideal = {atom_ligand['distance'][i]}\n")
+                            outputLinesPhenix.append(f"    sigma = {atom_ligand['std'][i]}\n")
+                            outputLinesPhenix.append("  }\n")
                     if j >= len(ligand['base']) and stPath:
                         # create a mmCIF link, it's from 'pdb', i.e. neighbourhood
                         con = gemmi.Connection()
@@ -211,7 +267,15 @@ def main(jsonPaths, stPath=None, outputPrefix="restraints", jsonEquivalentsPath=
                 if not atom_ligands['ligand1']['symmetry'] and \
                         not atom_ligands['ligand2']['symmetry']:
                     outputLinesPhenix.append("  angle {\n")
-                    outputLinesPhenix.append(f"    action = *add\n")
+                    if atom_metal['chain'] == atom_ligands['ligand1']['chain'] and \
+                            atom_metal['chain'] == atom_ligands['ligand2']['chain'] and \
+                            atom_metal['residue'] == atom_ligands['ligand1']['residue'] and \
+                            atom_metal['residue'] == atom_ligands['ligand2']['residue'] and \
+                            atom_metal['sequence_icode'] == atom_ligands['ligand1']['sequence_icode'] and \
+                            atom_metal['sequence_icode'] == atom_ligands['ligand2']['sequence_icode']:
+                        outputLinesPhenix.append(f"    action = *change\n")
+                    else:
+                        outputLinesPhenix.append(f"    action = *add\n")
                     outputLinesPhenix.append(f"    atom_selection_1 = {atom_selection_1_phenix}\n")
                     outputLinesPhenix.append(f"    atom_selection_2 = {atom_selection_2_phenix}\n")
                     outputLinesPhenix.append(f"    atom_selection_3 = {atom_selection_3_phenix}\n")
@@ -251,7 +315,8 @@ def main(jsonPaths, stPath=None, outputPrefix="restraints", jsonEquivalentsPath=
 if __name__ == "__main__":
     import argparse
     parser = argparse.ArgumentParser(
-        description="Convert JSON files from metalCoord to external restraint keywords for servalcat / refmac5 / coot / phenix.refine"
+        description=__doc__,
+        formatter_class=argparse.RawDescriptionHelpFormatter
     )
     parser.add_argument(
         "-i",
@@ -271,7 +336,7 @@ if __name__ == "__main__":
         "-o",
         help="Prefix for output file names",
         type=str,
-        default="output",
+        default="restraints",
         metavar="OUTPUT"
     )
     parser.add_argument(
@@ -285,6 +350,14 @@ if __name__ == "__main__":
         type=str,
         metavar="JSON_EQUIVALENTS",
     )
+    parser.add_argument(
+        "--phenix-variant",
+        help="Which variant of a restraint should be used in restraints for Phenix. (Default: 1)",
+        type=int,
+        default=None,
+        metavar="PHENIX_VARIANT",
+    )
+
 
     args = parser.parse_args()
     jsonPaths = args.i
@@ -292,5 +365,6 @@ if __name__ == "__main__":
     outputPrefix = args.o
     jsonEquivalentsPath = args.e
     keep_links = args.keep_links
+    phenix_variant = args.phenix_variant
 
-    main(jsonPaths, stPath, outputPrefix, jsonEquivalentsPath, keep_links)
+    main(jsonPaths, stPath, outputPrefix, jsonEquivalentsPath, keep_links, phenix_variant)
