@@ -34,8 +34,7 @@ try:
     import gemmi
 except:
     import sys
-    sys.stderr.write("ERROR: moduel GEMMI not found.\n")
-    sys.exit(1)
+    raise SystemExit("ERROR: module GEMMI not found.\n")
 
 
 def main(jsonPaths, stPath=None, outputPrefix="restraints", jsonEquivalentsPath=None, keep_links=False, phenix_variant=None):
@@ -177,7 +176,7 @@ def main(jsonPaths, stPath=None, outputPrefix="restraints", jsonEquivalentsPath=
                     if not atom_ligand['ligand']['symmetry']:
                         if len(atom_ligand['distance']) < 2 or not phenix_variant or (len(atom_ligand['distance']) >= 2 and i + 1 == phenix_variant):
                             outputLinesPhenix.append("  bond {\n")
-                            outputLinesPhenix.append(f"    action = *add\n")
+                            outputLinesPhenix.append("    action = *add\n")
                             outputLinesPhenix.append(f"    atom_selection_1 = {atom_selection_1_phenix}\n")
                             outputLinesPhenix.append(f"    atom_selection_2 = {atom_selection_2_phenix}\n")
                             outputLinesPhenix.append(f"    distance_ideal = {atom_ligand['distance'][i]}\n")
@@ -273,9 +272,9 @@ def main(jsonPaths, stPath=None, outputPrefix="restraints", jsonEquivalentsPath=
                             atom_metal['residue'] == atom_ligands['ligand2']['residue'] and \
                             atom_metal['sequence_icode'] == atom_ligands['ligand1']['sequence_icode'] and \
                             atom_metal['sequence_icode'] == atom_ligands['ligand2']['sequence_icode']:
-                        outputLinesPhenix.append(f"    action = *change\n")
+                        outputLinesPhenix.append("    action = *change\n")
                     else:
-                        outputLinesPhenix.append(f"    action = *add\n")
+                        outputLinesPhenix.append("    action = *add\n")
                     outputLinesPhenix.append(f"    atom_selection_1 = {atom_selection_1_phenix}\n")
                     outputLinesPhenix.append(f"    atom_selection_2 = {atom_selection_2_phenix}\n")
                     outputLinesPhenix.append(f"    atom_selection_3 = {atom_selection_3_phenix}\n")
