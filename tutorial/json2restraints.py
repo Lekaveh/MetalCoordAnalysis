@@ -33,7 +33,6 @@ import json
 try:
     import gemmi
 except:
-    import sys
     raise SystemExit("ERROR: module GEMMI not found.\n")
 
 
