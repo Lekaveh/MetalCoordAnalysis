@@ -1,14 +1,9 @@
-import os
-os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3' 
 import itertools
+
 import numpy as np
+from itertools import permutations
 from scipy.linalg import helmert
-import tensorflow as tf
 from sklearn.cluster import DBSCAN
-
-# from metalCoord.config import Config
-
-tf.config.set_visible_devices([], 'GPU')
 
 
 def is_it_plane(xyz):
@@ -99,8 +94,8 @@ def angle(center, point1, point2, n):
     """
     a = point1 - center
     b = point2 - center
-    a = np.array(a)/np.linalg.norm(a)
-    b = np.array(b)/np.linalg.norm(b)
+    a = np.asarray(a)/np.linalg.norm(a)
+    b = np.asarray(b)/np.linalg.norm(b)
 
     right_handed_angle = np.arctan2(np.dot(np.cross(a, b), n), np.dot(a, b))
     return np.rad2deg(right_handed_angle)
@@ -226,43 +221,37 @@ def ring_permutations(ring):
     indices = list(range(n))
     return [[ring[(idx + i) % n] for idx in indices] for i in range(n)]
 
-@tf.function
+
 def norm(x, hm):
     """
     Computes the norm of a tensor using the Procrustes method.
 
     Args:
-        x (tf.Tensor): A tensor of shape (batch_size, n, m).
-        hm (tf.Tensor): A tensor of shape (batch_size, n, m).
+        x (np.ndarray): An array of shape (batch_size, n, m).
+        hm (np.ndarray): An array of shape (batch_size, n, m).
 
     Returns:
-        tf.Tensor: The computed norm as a tensor.
+        np.ndarray: The computed norm as an array.
     """
-    return tf.sqrt(tf.linalg.trace(tf.transpose(x, perm=[0, 2, 1])@tf.transpose(hm, perm=[0, 2, 1])@hm@x))
+    return np.sqrt(np.trace(x.transpose(0, 2, 1) @ hm.transpose(0, 2, 1) @ hm @ x, axis1=1, axis2=2))
 
-@tf.function
+
 def preshape(x):
     """
     Transforms the input matrix `x` using the Helmert matrix and normalizes it.
 
     Args:
-        x (tf.Tensor): A tensor of shape (n_samples, n_features) representing the input data.
+        x (np.ndarray): An array of shape (n_samples, n_features) representing the input data.
 
     Returns:
-        tf.Tensor: The transformed and normalized tensor.
-
-    Notes:
-        - The function first computes the Helmert matrix based on the number of features in `x`.
-        - The Helmert matrix is then broadcasted to match the shape required for matrix multiplication.
-        - The input tensor `x` is transformed using the Helmert matrix and normalized by its norm.
+        np.ndarray: The transformed and normalized array.
     """
     hm = helmert(x.shape[1])
-    hm = tf.broadcast_to(tf.convert_to_tensor(
-        hm, dtype='float32'), (1, hm.shape[0], hm.shape[1]))
-    return hm@x/tf.reshape(norm(x, hm), (-1, 1, 1))
+    hm = np.broadcast_to(hm.astype('float32'), (1, hm.shape[0], hm.shape[1]))
+    return hm @ x / np.reshape(norm(x, hm), (-1, 1, 1))
 
-@tf.function
-def distance(x1: tf.Tensor, x2: tf.Tensor) -> tf.Tensor:
+
+def distance(x1: np.ndarray, x2: np.ndarray) -> np.ndarray:
     """
     Calculates the distance between two sets of coordinates using the Procrustes analysis.
 
@@ -275,40 +264,42 @@ def distance(x1: tf.Tensor, x2: tf.Tensor) -> tf.Tensor:
     """
     z2 = preshape(x2)
     z1 = preshape(x1)
-    s, _, _ = tf.linalg.svd(tf.transpose(
-        z1, perm=[0, 2, 1])@z2@tf.transpose(z2, perm=[0, 2, 1])@z1)
-    return tf.sqrt(tf.abs(1 - tf.reduce_sum(tf.sqrt(s), axis=1)**2))
+    s = np.linalg.svd(z1.transpose(0, 2, 1) @ z2 @
+                      z2.transpose(0, 2, 1) @ z1)[1]
+    return np.sqrt(np.abs(1 - np.sum(np.sqrt(s), axis=1)**2))
 
-@tf.function
-def procrustes_fit(A: tf.Tensor, B: tf.Tensor) -> tuple[tf.Tensor, tf.Tensor, tf.Tensor, tf.Tensor]:
+
+def procrustes_fit(A: np.ndarray, B: np.ndarray) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
     """
     Computes the Procrustes fit between two matrices A and B.
 
     Parameters:
-    A (tf.Tensor): The first matrix.
-    B (tf.Tensor): The second matrix.
+    A (np.ndarray): The first matrix.
+    B (np.ndarray): The second matrix.
 
     Returns:
     tuple: A tuple containing the following elements:
-        - distance (tf.Tensor): The distance between the approximated matrix and B.
-        - approx (tf.Tensor): The approximated matrix.
-        - c (tf.Tensor): The scaling factor.
-        - R (tf.Tensor): The rotation matrix.
+        - distance (np.ndarray): The distance between the approximated matrix and B.
+        - approx (np.ndarray): The approximated matrix.
+        - c (np.ndarray): The scaling factor.
+        - R (np.ndarray): The rotation matrix.
     """
-    A_t = tf.transpose(A, perm=[0, 2, 1])
-    _, v, w = tf.linalg.svd(A_t@B)
-    wt = tf.transpose(w, perm=[0, 2, 1])
-    R = v@wt
-    c = tf.linalg.trace(tf.transpose(
-        R, perm=[0, 2, 1])@A_t@B)/tf.linalg.trace(A_t@A)
-    c = tf.reshape(c, (-1, 1, 1))
-    approx = c*A@R
+    A_t = A.transpose(0, 2, 1)
+    v, _, wt = np.linalg.svd(A_t @ B)
+    R = v @ wt
+
+    c = np.trace(R.transpose(0, 2, 1) @ A_t @ B, axis1=1,
+                 axis2=2) / np.trace(A_t @ A, axis1=1, axis2=2)
+    c = np.reshape(c, (-1, 1, 1))
+
+    approx = c * A @ R
     return (distance(approx, B), approx, c, R)
 
 
 def get_combinations(groups=None, rings=None):
     """
     Generate all possible combinations of permutations for given groups and rings.
+
     Parameters:
     groups (list of int): A list where each element represents the size of a group.
     rings (list of int, optional): A list where each element is a flag (0 or 1) indicating 
@@ -316,10 +307,9 @@ def get_combinations(groups=None, rings=None):
                                    If None, all groups are treated as non-rings.
     Returns:
     tuple: A tuple containing:
-        - combinations (numpy.ndarray): A 2D array where each row is a unique combination of permutations.
+        - combinations (np.ndarray): A 2D array where each row is a unique combination of permutations.
         - k (int): The total number of combinations.
     """
-
     c_list = []
     ranges = [0] + np.cumsum(groups).tolist()
     if rings is None:
@@ -328,17 +318,282 @@ def get_combinations(groups=None, rings=None):
     for i in range(len(ranges) - 1):
         if rings[i]:
             perms = ring_permutations(range(ranges[i], ranges[i + 1]))
-            perms_rev = ring_permutations(list(range(ranges[i], ranges[i + 1]))[::-1])
+            perms_rev = ring_permutations(
+                list(range(ranges[i], ranges[i + 1]))[::-1])
             c_list.append(np.array(perms + perms_rev))
-            
         else:
-            perms = itertools.permutations(range(ranges[i], ranges[i + 1]))
+            perms = permutations(range(ranges[i], ranges[i + 1]))
             c_list.append(np.array(list(perms), dtype=np.int32))
 
-    combinations = np.array([np.concatenate(x) for x in itertools.product(*c_list)])
+    combinations = np.array([np.concatenate(x)
+                            for x in itertools.product(*c_list)])
     k = len(combinations)
     return combinations, k
 
+class Procustes:
+    """
+    Procustes class for performing Procrustes analysis on coordinate data.
+    Methods
+    -------
+    __init__(self, coords, ideal_coords)
+        Initializes the Procustes object with the given coordinates and ideal coordinates.
+    fit(self, coords, ideal_coords, groups=None, all=False, center=True)
+        Fits the Procrustes model to the given coordinates and ideal coordinates.
+    _dummy(self, all=False)
+        Returns dummy results when no valid results are found.
+    _fit(self, combinations)
+        Performs the Procrustes fitting on the given combinations of indices.
+    _get_next_combinations(self)
+        Generates the next set of combinations for Procrustes fitting.
+    _get_combinations(self, current_index)
+        Generates all possible combinations of indices for the next step of Procrustes fitting.
+    is_finished(self)
+        Checks if the Procrustes fitting process is finished.
+    """
+
+    def _init(self, coords, ideal_coords):
+        """
+        Initialize the Procrustes analysis object.
+
+        Args:
+            coords (np.ndarray): Coordinate array to be fitted
+            ideal_coords (np.ndarray): Ideal coordinate array to fit to
+        """
+        self._coords = coords
+        self._ideal_coords = ideal_coords
+        self._n = len(coords)
+        self._n_processed = 1
+        self._step = 6
+        self._index = list(range(self._n))
+        self._current_indices = [[0]]
+        self._dim1 = coords.shape[0]
+        self._dim2 = coords.shape[1]
+
+        # Replace TensorFlow broadcasting with NumPy
+        self._y = np.broadcast_to(
+            ideal_coords.astype('float32'),
+            (1, self._dim1, self._dim2)
+        )
+        self._x = np.broadcast_to(
+            ideal_coords.astype('float32'),
+            (1, self._dim1, self._dim2)
+        )
+        self._result = []
+
+    def fit(self, coords, ideal_coords, groups=None, all=False, center=True):
+        """
+        Fits the given coordinates to the ideal coordinates using the Procrustes analysis.
+        Parameters:
+        coords (numpy.ndarray): The coordinates to be fitted.
+        ideal_coords (numpy.ndarray): The ideal coordinates to fit to.
+        groups (list, optional): A list of groups for filtering indices. Defaults to None.
+        all (bool, optional): If True, returns all distances and indices. Defaults to False.
+        center (bool, optional): If True, centers the coordinates before fitting. Defaults to True.
+        Returns:
+        tuple: If `all` is False, returns a tuple containing:
+            - float: The minimum distance.
+            - numpy.ndarray: The approximated coordinates corresponding to the minimum distance.
+            - float: The translation component.
+            - numpy.ndarray: The rotation matrix.
+            - numpy.ndarray: The indices of the best fit.
+        If `all` is True, returns a tuple containing:
+            - numpy.ndarray: All distances.
+            - numpy.ndarray: All indices.
+            - float: The minimum distance.
+            - numpy.ndarray: All rotated coordinates.
+        """
+        if center:
+            self._init(coords - coords[0], ideal_coords - ideal_coords[0])
+        else:
+            self._init(coords, ideal_coords)
+
+        while not self.is_finished():
+            self._get_next_combinations()
+
+        if self._results:
+            distances, approxs, c, R, indices, rotated = [np.concatenate(
+                [r[i] for r in self._results], axis=0) for i in range(6)]
+
+            if groups is not None:
+                filtered_indices = []
+                for i, index in enumerate(indices):
+                    if len([0 for j, id in enumerate(index) if find_in_group(groups[0], j) != find_in_group(groups[1], id)]) == 0:
+                        filtered_indices.append(i)
+
+                if filtered_indices:
+                    distances, approxs, c, R, indices, rotated = distances[filtered_indices], approxs[filtered_indices], c[
+                        filtered_indices], R[filtered_indices], indices[filtered_indices], rotated[filtered_indices]
+                else:
+                    return self._dummy(all)
+
+            if all:
+                return (distances, indices, distances[np.argmin(distances)].squeeze() if len(distances) else 1, rotated)
+
+            min_arg = np.argmin(distances)
+            return (distances[min_arg].squeeze(), approxs[min_arg][indices[min_arg]].squeeze(),  c[min_arg].ravel()[0], R[min_arg].squeeze(), indices[min_arg].ravel())
+
+        return self._dummy(all)
+
+    def _dummy(self, all=False):
+        if all:
+            return ([], [], 1, [])
+        return (1, None, None, None, [])
+
+    def _fit(self, combinations):
+        """
+        Internal fitting method that performs Procrustes analysis on given combinations.
+
+        Args:
+            combinations (np.ndarray): Array of index combinations to try
+
+        Returns:
+            tuple: Contains distances, approximations, scaling factors, rotation matrices,
+                indices, and rotated coordinates
+        """
+        k = combinations.shape[0]
+        n1 = combinations.shape[1]
+
+        # Initialize s_y array
+        s_y = np.zeros((k, n1, self._dim2), dtype='float32')
+
+        # Apply permutations directly
+        for i in range(k):
+            s_y[i] = self._y[0, combinations[i]]
+
+        # Create broadcast arrays
+        s_x = np.broadcast_to(
+            self._coords[:n1].astype('float32'),
+            (1, n1, self._dim2)
+        )
+
+        # Compute Procrustes fit
+        distances, approxs, c, R = procrustes_fit(s_y, s_x)
+
+        # Apply masking based on distance threshold
+        min_dist = min(np.nanmin(distances) + 0.1, 0.2)
+        mask = distances <= min_dist
+
+        distances = distances[mask]
+        R = R[mask]
+        c = c[mask]
+        indices = combinations[mask]
+        indices = indices.reshape(len(indices), n1)
+
+        # Compute rotated coordinates
+        rotated = np.broadcast_to(
+            self._ideal_coords[:n1].astype('float32'),
+            (1, n1, self._dim2)
+        ) @ R
+
+        approxs = c * rotated
+
+        return distances, approxs, c, R, indices, rotated
+
+    def _get_next_combinations(self):
+        self._results = []
+        next_step = min(self._step, self._n - self._n_processed)
+        for current_index in self._current_indices:
+            combinations = self._get_combinations(current_index)
+            result = self._fit(combinations)
+            if result[0].size:
+                self._results.append(result)
+
+        if self._results:
+            self._current_indices = np.concatenate(
+                [r[4].tolist() for r in self._results], axis=0).tolist()
+            self._n_processed += next_step
+        else:
+            self._current_indices = []
+            self._n_processed = self._n
+
+    def _get_combinations(self, current_index):
+        result = []
+        step = min(self._step, self._n - self._n_processed)
+        candidates = np.setdiff1d(self._index, current_index)
+
+        for next_indices in np.fromiter(itertools.chain.from_iterable(itertools.combinations(candidates, step)), dtype=np.float32).reshape(-1, step):
+            permutations = np.fromiter(itertools.chain.from_iterable(
+                itertools.permutations(next_indices)), dtype=int).reshape(-1, step)
+            result.extend([current_index + permutation.tolist()
+                          for permutation in permutations])
+        return np.array(result)
+
+    def is_finished(self):
+        """
+        Check if the processing is finished.
+
+        Returns:
+            bool: True if the number of processed items equals the total number of items, False otherwise.
+        """
+        return self._n_processed == self._n
+    
+fitter =  Procustes()
+
+def fit_group(coords, ideal_coords, groups=None, rings=None):
+    """
+    Fits a group of coordinates to ideal coordinates using Procrustes analysis.
+
+    Parameters:
+    coords (np.ndarray): The coordinates to be fitted, shape (n1, m).
+    ideal_coords (np.ndarray): The ideal coordinates to fit to, shape (n2, m).
+    groups (list of lists, optional): Groups of indices for correspondence. Default is None.
+    rings (list, optional): Additional parameter for get_combinations function. Default is None.
+
+    Returns:
+    tuple: A tuple containing:
+        - distances (np.ndarray): The distances after fitting.
+        - approxs (np.ndarray): The approximated coordinates after fitting.
+        - c (np.ndarray): The scaling factors.
+        - R (np.ndarray): The rotation matrices.
+        - indices (np.ndarray): The indices of the best fit.
+        - rotated (np.ndarray): The rotated ideal coordinates.
+    """
+    n1 = coords.shape[0]
+    n2 = ideal_coords.shape[1]
+
+    if groups is None:
+        correspondense = [list(range(n1)), list(range(n1))]
+        lengths = [n1]
+    else:
+        correspondense = [
+            np.hstack(groups[0]).tolist(), np.hstack(groups[1]).tolist()]
+        lengths = [len(gr) for gr in groups[0]]
+
+    y = np.broadcast_to(ideal_coords[correspondense[1]].astype('float32'),
+                        (1, n1, n2))
+
+    combinations, k = get_combinations(groups=lengths, rings=rings)
+
+    # Create s_y by applying the permutations
+    s_y = np.zeros((k, n1, coords.shape[1]), dtype='float32')
+    for i, comb in enumerate(combinations):
+        s_y[i] = y[0, comb]
+
+    s_x = np.broadcast_to(coords[correspondense[0]].astype('float32'),
+                          (1, n1, n2))
+
+    distances, approxs, c, R = procrustes_fit(s_y, s_x)
+
+    min_distance = np.nanmin(distances)
+    mask = distances <= min_distance + 0.2
+    distances = distances[mask]
+
+    R = R[mask]
+    c = c[mask]
+    indices = combinations[mask]
+    indices = indices.reshape(len(indices), n1)
+
+    back_index = np.argsort(correspondense[0])
+
+    rotated = np.broadcast_to(ideal_coords.astype('float32'),
+                              (1, n1, n2)) @ R
+    approxs = (c * rotated)
+
+    x_index = np.full((len(indices), n1), correspondense[1])
+
+    indices = np.vstack([x[i] for x, i in zip(x_index, indices)])[
+        :, back_index]
+    return distances, approxs, c, R, indices, rotated
 
 def create_group(rings, others):
     """
@@ -355,73 +610,6 @@ def create_group(rings, others):
     if len(others):
         return [[0]] + rings + [others]
     return [[0]] + rings
-
-# @tf.function
-
-def fit_group(coords, ideal_coords, groups=None, rings=None):
-    """
-    Fits a group of coordinates to ideal coordinates using Procrustes analysis.
-    Parameters:
-    coords (numpy.ndarray): The coordinates to be fitted, shape (n1, m).
-    ideal_coords (numpy.ndarray): The ideal coordinates to fit to, shape (n2, m).
-    groups (list of lists, optional): Groups of indices for correspondence. Default is None.
-    rings (list, optional): Additional parameter for get_combinations function. Default is None.
-    Returns:
-    tuple: A tuple containing:
-        - distances (numpy.ndarray): The distances after fitting.
-        - approxs (numpy.ndarray): The approximated coordinates after fitting.
-        - c (numpy.ndarray): The scaling factors.
-        - R (numpy.ndarray): The rotation matrices.
-        - indices (numpy.ndarray): The indices of the best fit.
-        - rotated (numpy.ndarray): The rotated ideal coordinates.
-    """
-    n1 = coords.shape[0]
-    n2 = ideal_coords.shape[1]
-
-    if groups is None:
-        correspondense = [list(range(n1)), list(range(n1))]
-        lengths = [n1]
-    else:
-        correspondense = [
-            np.hstack(groups[0]).tolist(), np.hstack(groups[1]).tolist()]
-        lengths = [len(gr) for gr in groups[0]]
-
-    y = tf.broadcast_to(tf.convert_to_tensor(
-        ideal_coords[correspondense[1]], dtype='float32'), (1, n1, n2))
-
-    combinations, k = get_combinations(groups=lengths, rings=rings)
-    t_combinations = combinations.reshape(-1,
-                                          combinations.shape[0], combinations.shape[1], 1)
-
-    s_y = tf.gather_nd(y, indices=t_combinations, batch_dims=1)
-    s_y = tf.reshape(s_y, (k*1, n1, coords.shape[1]))
-    s_x = tf.broadcast_to(tf.convert_to_tensor(
-        coords[correspondense[0]], dtype='float32'), (1, n1, n2))
-
-    distances, approxs, c, R = procrustes_fit(s_y, s_x)
-
-    distances = distances.numpy()
-    min_distance = np.nanmin(distances)
-    mask = distances <= min_distance + 0.2
-    distances = distances[mask]
-
-    R = tf.boolean_mask(R, mask)
-    c = tf.boolean_mask(c, mask)
-    indices = tf.boolean_mask(combinations, mask).numpy()
-    indices = indices.reshape(len(indices), n1)
-
-    back_index = np.argsort(correspondense[0])
-
-    rotated = tf.broadcast_to(tf.convert_to_tensor(
-        ideal_coords, dtype='float32'), (1, n1, n2))@R
-    approxs = (c*rotated).numpy()
-
-    x_index = np.full((len(indices), n1), correspondense[1])
-
-    indices = np.vstack([x[i] for x, i in zip(x_index, indices)])[
-        :, back_index]
-    return distances, approxs, c.numpy(), R.numpy(), indices, rotated.numpy()
-
 
 def find_in_group(groups, index):
     """
@@ -470,53 +658,51 @@ def fit(coords: np.ndarray, ideal_coords: np.ndarray, groups: tuple = None, all:
     rings1, others1 = find_rings(coords)
     rings2, others2 = find_rings(ideal_coords)
 
-    if len(coords) >= 8:
-        if len(rings1) > 0 and have_same_ring_length(rings1, rings2):
-            ring_lengths = [len(ring) for ring in rings2]
-            current_l = -1
-            ring_groups = []
-            for i, l in enumerate(ring_lengths):
-                if current_l == l:
-                    ring_groups[-1].append(i)
-                else:
-                    ring_groups.append([i])
-                current_l = l
-
-            if len(ring_groups) > 1:
-                ring_group_combinations = ([[rings2[i] for perm_group in itertools.permutations(
-                    ring_group) for i in perm_group] for ring_group in ring_groups])
+     
+    if len(coords) >= 8 and len(rings1) > 0 and have_same_ring_length(rings1, rings2):
+        ring_lengths = [len(ring) for ring in rings2]
+        current_l = -1
+        ring_groups = []
+        for i, l in enumerate(ring_lengths):
+            if current_l == l:
+                ring_groups[-1].append(i)
             else:
-                ring_group_combinations = ([[rings2[i] for i in perm_group]
-                                           for perm_group in itertools.permutations(ring_groups[0])])
+                ring_groups.append([i])
+            current_l = l
 
-            ring_group_permutations = []
-            for c in itertools.product(*ring_group_combinations):
-                ring_group_permutations.append(create_group(list(c), others2))
-            ring1_group = create_group(rings1, others1)
-
-            results = []
-            for ring2_group in ring_group_permutations:
-                current_groups = [ring1_group, ring2_group]
-                results.append(fit_group(coords, ideal_coords, current_groups, [
-                               0] + [1 for i, x in enumerate(rings1)] + [0]))
-
-            distances, approxs, c, r, indices, rotated = [
-                np.concatenate([r[i] for r in results], axis=0) for i in range(6)]
-
-            if groups is not None:
-                filtered_indices = []
-                for i, index in enumerate(indices):
-                    if len([0 for j, id in enumerate(index) if find_in_group(groups[0], j) != find_in_group(groups[1], id)]) == 0:
-                        filtered_indices.append(i)
-
-                if filtered_indices:
-                    distances, approxs, c, r, indices, rotated = distances[filtered_indices], approxs[filtered_indices], c[
-                        filtered_indices], r[filtered_indices], indices[filtered_indices], rotated[filtered_indices]
-                else:
-                    distances, approxs, c, r, indices, rotated = np.ones(1), np.expand_dims(np.zeros_like(approxs[0]), axis=0),  np.expand_dims(np.zeros_like(
-                        c[0]), axis=0),  np.expand_dims(np.zeros_like(r[0]), axis=0),  np.expand_dims(np.zeros_like(indices[0]), axis=0),  np.expand_dims(np.zeros_like(rotated[0]), axis=0)
+        if len(ring_groups) > 1:
+            ring_group_combinations = ([[rings2[i] for perm_group in itertools.permutations(
+                ring_group) for i in perm_group] for ring_group in ring_groups])
         else:
-            return Procustes().fit(coords, ideal_coords, groups, all, center)
+            ring_group_combinations = ([[rings2[i] for i in perm_group]
+                                        for perm_group in itertools.permutations(ring_groups[0])])
+
+        ring_group_permutations = []
+        for c in itertools.product(*ring_group_combinations):
+            ring_group_permutations.append(create_group(list(c), others2))
+        ring1_group = create_group(rings1, others1)
+
+        results = []
+        for ring2_group in ring_group_permutations:
+            current_groups = [ring1_group, ring2_group]
+            results.append(fit_group(coords, ideal_coords, current_groups, [
+                            0] + [1 for i, x in enumerate(rings1)] + [0]))
+
+        distances, approxs, c, r, indices, rotated = [
+            np.concatenate([r[i] for r in results], axis=0) for i in range(6)]
+
+        if groups is not None:
+            filtered_indices = []
+            for i, index in enumerate(indices):
+                if len([0 for j, id in enumerate(index) if find_in_group(groups[0], j) != find_in_group(groups[1], id)]) == 0:
+                    filtered_indices.append(i)
+
+            if filtered_indices:
+                distances, approxs, c, r, indices, rotated = distances[filtered_indices], approxs[filtered_indices], c[
+                    filtered_indices], r[filtered_indices], indices[filtered_indices], rotated[filtered_indices]
+            else:
+                distances, approxs, c, r, indices, rotated = np.ones(1), np.expand_dims(np.zeros_like(approxs[0]), axis=0),  np.expand_dims(np.zeros_like(
+                    c[0]), axis=0),  np.expand_dims(np.zeros_like(r[0]), axis=0),  np.expand_dims(np.zeros_like(indices[0]), axis=0),  np.expand_dims(np.zeros_like(rotated[0]), axis=0)
     else:
         distances, approxs, c, r, indices, rotated = fit_group(
             coords, ideal_coords, groups)
@@ -528,167 +714,4 @@ def fit(coords: np.ndarray, ideal_coords: np.ndarray, groups: tuple = None, all:
     return (distances[min_arg].squeeze(), approxs[min_arg][indices[min_arg]].squeeze(),  c[min_arg].ravel()[0], r[min_arg].squeeze(), indices[min_arg].ravel())
 
 
-class Procustes:
-    """
-    Procustes class for performing Procrustes analysis on coordinate data.
-    Methods
-    -------
-    __init__(self, coords, ideal_coords)
-        Initializes the Procustes object with the given coordinates and ideal coordinates.
-    fit(self, coords, ideal_coords, groups=None, all=False, center=True)
-        Fits the Procrustes model to the given coordinates and ideal coordinates.
-    _dummy(self, all=False)
-        Returns dummy results when no valid results are found.
-    _fit(self, combinations)
-        Performs the Procrustes fitting on the given combinations of indices.
-    _get_next_combinations(self)
-        Generates the next set of combinations for Procrustes fitting.
-    _get_combinations(self, current_index)
-        Generates all possible combinations of indices for the next step of Procrustes fitting.
-    is_finished(self)
-        Checks if the Procrustes fitting process is finished.
-    """
-    def _init(self, coords, ideal_coords):
-        self._coords = coords
-        self._ideal_coords = ideal_coords
-        self._n = len(coords)
-        self._n_processed = 1
-        self._step = 6
-        self._index = list(range(self._n))
-        self._current_indices = [[0]]
-        self._dim1 = coords.shape[0]
-        self._dim2 = coords.shape[1]
-        self._y = tf.broadcast_to(tf.convert_to_tensor(
-            ideal_coords, dtype='float32'), (1, self._dim1,  self._dim2))
-        self._x = tf.broadcast_to(tf.convert_to_tensor(
-            ideal_coords, dtype='float32'), (1, self._dim1,  self._dim2))
-        self._result = []
 
-    def fit(self, coords, ideal_coords, groups=None, all=False, center=True):
-        """
-        Fits the given coordinates to the ideal coordinates using the Procrustes analysis.
-        Parameters:
-        coords (numpy.ndarray): The coordinates to be fitted.
-        ideal_coords (numpy.ndarray): The ideal coordinates to fit to.
-        groups (list, optional): A list of groups for filtering indices. Defaults to None.
-        all (bool, optional): If True, returns all distances and indices. Defaults to False.
-        center (bool, optional): If True, centers the coordinates before fitting. Defaults to True.
-        Returns:
-        tuple: If `all` is False, returns a tuple containing:
-            - float: The minimum distance.
-            - numpy.ndarray: The approximated coordinates corresponding to the minimum distance.
-            - float: The translation component.
-            - numpy.ndarray: The rotation matrix.
-            - numpy.ndarray: The indices of the best fit.
-        If `all` is True, returns a tuple containing:
-            - numpy.ndarray: All distances.
-            - numpy.ndarray: All indices.
-            - float: The minimum distance.
-            - numpy.ndarray: All rotated coordinates.
-        """
-        if center:
-            self._init(coords - coords[0], ideal_coords - ideal_coords[0])
-        else:
-            self._init(coords, ideal_coords)
-        
-        # if len(coords) >= 8:
-        #     dist = Procustes().fit(coords[:6], ideal_coords[:6], None, False, True)[0]
-        #     if dist > Config().procrustes_threshold:
-        #         return self._dummy(all)
-
-        while not self.is_finished():
-            self._get_next_combinations()
-
-        if self._results:
-            distances, approxs, c, R, indices, rotated = [np.concatenate(
-                [r[i] for r in self._results], axis=0) for i in range(6)]
-
-            if groups is not None:
-                filtered_indices = []
-                for i, index in enumerate(indices):
-                    if len([0 for j, id in enumerate(index) if find_in_group(groups[0], j) != find_in_group(groups[1], id)]) == 0:
-                        filtered_indices.append(i)
-
-                if filtered_indices:
-                    distances, approxs, c, R, indices, rotated = distances[filtered_indices], approxs[filtered_indices], c[
-                        filtered_indices], R[filtered_indices], indices[filtered_indices], rotated[filtered_indices]
-                else:
-                    return self._dummy(all)
-
-            if all:
-                return (distances, indices, distances[np.argmin(distances)].squeeze() if len(distances) else 1, rotated)
-
-            min_arg = np.argmin(distances)
-            return (distances[min_arg].squeeze(), approxs[min_arg][indices[min_arg]].squeeze(),  c[min_arg].ravel()[0], R[min_arg].squeeze(), indices[min_arg].ravel())
-
-        return self._dummy(all)
-
-    def _dummy(self, all=False):
-        if all:
-            return ([], [], 1, [])
-        return (1, None, None, None, [])
-
-    def _fit(self, combinations):
-        k = combinations.shape[0]
-        n1 = combinations.shape[1]
-        t_combinations = combinations.reshape(
-            -1, combinations.shape[0], combinations.shape[1], 1)
-
-        s_y = tf.gather_nd(self._y, indices=t_combinations, batch_dims=1)
-        s_y = tf.reshape(s_y, (k, n1, self._dim2))
-        s_x = tf.broadcast_to(tf.convert_to_tensor(
-            self._coords[:n1], dtype='float32'), (1, n1, self._dim2))
-
-        distances, approxs, c, R = procrustes_fit(s_y, s_x)
-        distances = distances.numpy()
-        mask = distances <= min(np.nanmin(distances) + 0.1, 0.2)
-
-        distances = distances[mask]
-        R = tf.boolean_mask(R, mask)
-        c = tf.boolean_mask(c, mask)
-        indices = tf.boolean_mask(combinations, mask).numpy()
-        indices = indices.reshape(len(indices), n1)
-
-        rotated = tf.broadcast_to(tf.convert_to_tensor(
-            self._ideal_coords[:n1], dtype='float32'), (1, n1, self._dim2))@R
-        approxs = (c*rotated).numpy()
-
-        return distances, approxs, c.numpy(), R.numpy(), indices, rotated.numpy()
-
-    def _get_next_combinations(self):
-        self._results = []
-        next_step = min(self._step, self._n - self._n_processed)
-        for current_index in self._current_indices:
-            combinations = self._get_combinations(current_index)
-            result = self._fit(combinations)
-            if result[0].size:
-                self._results.append(result)
-
-        if self._results:
-            self._current_indices = np.concatenate(
-                [r[4].tolist() for r in self._results], axis=0).tolist()
-            self._n_processed += next_step
-        else:
-            self._current_indices = []
-            self._n_processed = self._n
-
-    def _get_combinations(self, current_index):
-        result = []
-        step = min(self._step, self._n - self._n_processed)
-        candidates = np.setdiff1d(self._index, current_index)
-
-        for next_indices in np.fromiter(itertools.chain.from_iterable(itertools.combinations(candidates, step)), dtype=np.float32).reshape(-1, step):
-            permutations = np.fromiter(itertools.chain.from_iterable(
-                itertools.permutations(next_indices)), dtype=int).reshape(-1, step)
-            result.extend([current_index + permutation.tolist()
-                          for permutation in permutations])
-        return np.array(result)
-
-    def is_finished(self):
-        """
-        Check if the processing is finished.
-
-        Returns:
-            bool: True if the number of processed items equals the total number of items, False otherwise.
-        """
-        return self._n_processed == self._n
