@@ -1,6 +1,12 @@
 # MetalCoord
 # Metal Coordination Analysis Tool
 
+[Improving macromolecular structure refinement with metal-coordination restraints](https://doi.org/10.1107/S2059798324011458)
+
+Kaveh H. Babai, Fei Long, Martin Malý, Keitaro Yamashitad and Garib N. Murshudov (2024)
+
+Acta Crystallogr. D80, Part 12
+
 ## Overview
 
 The Metal Coordination Analysis Tool is a Python application designed for analyzing metal coordination in biological macromolecules such as proteins and nucleic acids. This tool provides a set of functionalities to process molecular structures, identify metal coordination sites, and generate insightful visualizations.
