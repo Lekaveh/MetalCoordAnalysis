@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "metalcoordanalysis"
-version = "0.1.0"
+version = "0.1.78" 
 description = "Metal Coordination Analysis Tool"
 authors = ["Kaveh Babai <lekaveh@gmail.com>", "Fei Long", "Matrin Maly", "Keitaro Yamashita", "Garib N. Murshudov <garib@mrc-lmb.cam.ac.uk>"]
 readme = "README.md"
@@ -36,7 +36,10 @@ jupyter = "^1.0.0"
 
 [tool.poetry-dynamic-versioning]
 enable = true
-source = "metalCoord.__version__"
+
+[tool.poetry-dynamic-versioning.from-file]
+source = "metalCoord/__init__.py"
+pattern = '^__version__ = "(\d+\.\d+\.\d+)"$' 
 
 [build-system]
 requires = ["poetry-core>=1.0.0", "poetry-dynamic-versioning>=1.0.0,<2.0.0"]
