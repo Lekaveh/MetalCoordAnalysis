@@ -48,7 +48,7 @@ class Class():
         """
         return self.__data[self.__data["Class"] == class_name][["X", "Y", "Z"]].values
 
-    def get_ideal_classes(self: str):
+    def get_ideal_classes(self):
         """
         Retrieves the names of the ideal classes.
 
@@ -56,6 +56,7 @@ class Class():
             dict_keys: The names of the ideal classes.
         """
         return [key for key, _ in sorted(self.__classes.items(), key = operator.itemgetter(1))]
+    
 
     def get_ideal_classes_by_coordination(self, coordination_num: int):
         """
@@ -175,24 +176,43 @@ class Classificator():
         """
         self._thr = thr
 
-    def classify(self, structure):
+    def classify(self, structure, class_name = None):
         """
         Classifies a structure.
 
         Args:
             structure: The structure to classify.
+            class_name (str): The class name to classify the structure
 
         Yields:
             ClassificationResult: The classification results.
         """
-        for clazz in idealClasses.get_ideal_classes():
-            if idealClasses.get_coordination(clazz) != structure.coordination():
-                continue
-            m_ligand_coord = idealClasses.get_coordinates(clazz)
+
+        if class_name:
+            if not idealClasses.contains(class_name):
+                raise ValueError(f"Class {class_name} not found.")
+            if structure.coordination() < idealClasses.get_coordination(class_name):
+                raise ValueError(f"Class {class_name} has higher coordination number {idealClasses.get_coordination(class_name)} than {structure.name_code_with_symmetries()}.")
+            
+            if structure.coordination() > idealClasses.get_coordination(class_name) + 1:
+                raise ValueError(f"Class {class_name} has lower coordination number {idealClasses.get_coordination(class_name)} than {structure.name_code_with_symmetries()}.")
+            
+            if structure.coordination() == idealClasses.get_coordination(class_name) + 1:
+                return
+            
+            m_ligand_coord = idealClasses.get_coordinates(class_name)
             main_proc_dist, _, _, _, index = fit(
                 structure.get_coord(), m_ligand_coord)
-            if main_proc_dist < self._thr:
-                yield ClassificationResult(clazz, m_ligand_coord, index, main_proc_dist)
+            yield ClassificationResult(class_name, m_ligand_coord, index, main_proc_dist)
+        else:
+            for clazz in idealClasses.get_ideal_classes():
+                if idealClasses.get_coordination(clazz) != structure.coordination():
+                    continue
+                m_ligand_coord = idealClasses.get_coordinates(clazz)
+                main_proc_dist, _, _, _, index = fit(
+                    structure.get_coord(), m_ligand_coord)
+                if main_proc_dist < self._thr:
+                    yield ClassificationResult(clazz, m_ligand_coord, index, main_proc_dist)
 
 
 idealClasses = Class()

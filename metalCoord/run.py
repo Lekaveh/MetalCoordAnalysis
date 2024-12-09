@@ -1,11 +1,10 @@
 import argparse
+from ast import arg
 import json
 import os
-
-
+from pathlib import Path
 import metalCoord
 from metalCoord.logging import Logger
-from metalCoord.services import update_cif, get_stats, get_coordinations, get_pdbs
 from metalCoord.config import Config
 
 
@@ -47,6 +46,7 @@ def check_positive(value: str) -> int:
             f"{value} is an invalid positive int value")
     return ivalue
 
+
 def check_positive_more_than_two(value: str) -> int:
     """
     Check if the given value is a positive integer greater than 1.
@@ -67,6 +67,7 @@ def check_positive_more_than_two(value: str) -> int:
             f"{value} is an invalid positive int value. It should be more than 1")
     return ivalue
 
+
 def create_parser():
     """
     Create the argument parser for the MetalCoord command-line interface.
@@ -78,6 +79,9 @@ def create_parser():
         prog='metalCoord', description='MetalCoord: Metal coordination analysis.')
     parser.add_argument('--version', action='version',
                         version='%(prog)s ' + metalCoord.__version__)
+
+    parser.add_argument('--no-progress', required=False,
+                        help='Do not show progress bar.', action='store_true')
 
     # Define the subparsers for the two apps
     subparsers = parser.add_subparsers(dest='command')
@@ -99,13 +103,17 @@ def create_parser():
     update_parser.add_argument('--ideal-angles', required=False,
                                help='Provide only ideal angles', default=argparse.SUPPRESS,  action='store_true')
     update_parser.add_argument('-s', '--simple', required=False,
-                              help='Simple distance based filtering', default=argparse.SUPPRESS,  action='store_true')
+                               help='Simple distance based filtering', default=argparse.SUPPRESS,  action='store_true')
     update_parser.add_argument('--save', required=False,
-                              help='Save COD files used in statistics', default=argparse.SUPPRESS,  action='store_true')
+                               help='Save COD files used in statistics', default=argparse.SUPPRESS,  action='store_true')
     update_parser.add_argument('--use-pdb', required=False,
-                              help='Use COD structures based on pdb coordinates', default=argparse.SUPPRESS,  action='store_true')
+                               help='Use COD structures based on pdb coordinates', default=argparse.SUPPRESS,  action='store_true')
     update_parser.add_argument('-c', '--coordination', type=check_positive_more_than_two, required=False,
                                      help='Maximum coordination number.', metavar='<MAXIMUM COORDINATION NUMBER>', default=1000)
+    update_parser.add_argument('--cif', required=False,
+                               help='Read coordinates from mmCIF file', default=argparse.SUPPRESS,  action='store_true')
+    update_parser.add_argument('--cl', required=False,
+                               help='Predefined class/coordination', metavar='<CLASS>', type=str)
 
     # App2
     stats_parser = subparsers.add_parser(
@@ -131,23 +139,28 @@ def create_parser():
     stats_parser.add_argument('--use-pdb', required=False,
                               help='Use COD structures based on pdb coordinates', default=argparse.SUPPRESS,  action='store_true')
     stats_parser.add_argument('-c', '--coordination', type=check_positive_more_than_two, required=False,
-                                     help='Maximum coordination number.', metavar='<MAXIMUM COORDINATION NUMBER>', default=1000)
-
+                              help='Maximum coordination number.', metavar='<MAXIMUM COORDINATION NUMBER>', default=1000)
+    stats_parser.add_argument('--cl', required=False,
+                               help='Predefined class/coordination', metavar='<CLASS>', type=str)
 
     # App3
     coordination_parser = subparsers.add_parser(
         'coord', help='List of coordinations.')
     coordination_parser.add_argument('-n', '--number', type=int, required=False,
                                      help='Coordination number.', metavar='<COORDINATION NUMBER>')
-    
+    coordination_parser.add_argument('-m', '--metal', type=str, required=False)
+    coordination_parser.add_argument('-o', '--output', type=str, required=False,
+                                     help='Output json file.', metavar='<OUTPUT JSON FILE>')
+    coordination_parser.add_argument('--cod', required=False,
+                              help='Include IDs of the COD structures.', default=argparse.SUPPRESS,  action='store_true')
 
     # App4
     pdb_parser = subparsers.add_parser(
         'pdb', help='Get list of PDBs containing the ligand.')
     pdb_parser.add_argument('-l', '--ligand', type=str,
-                               required=True, help='Ligand code.', metavar='<LIGAND CODE>')
-    pdb_parser.add_argument('-o', '--output', type=str, required=True,
-                               help='Output json file.', metavar='<OUTPUT JSON FILE>')
+                            required=True, help='Ligand code.', metavar='<LIGAND CODE>')
+    pdb_parser.add_argument('-o', '--output', type=str, required=False,
+                            help='Output json file.', metavar='<OUTPUT JSON FILE>')
     return parser
 
 
@@ -162,12 +175,12 @@ def main_func():
     """
 
     try:
-        Logger().add_handler()
-        Logger().info(f"Logging started. Logging level: {Logger().logger.level}")
 
         parser = create_parser()
         args = parser.parse_args()
-
+        Logger().add_handler(True, not args.no_progress)
+        Logger().info(
+            f"Logging started. Logging level: {Logger().logger.level}")
 
         if args.command == 'update' or args.command == 'stats':
             Config().ideal_angles = args.ideal_angles if "ideal_angles" in args else False
@@ -177,38 +190,40 @@ def main_func():
             Config().simple = args.simple if "simple" in args else False
             Config().save = args.save if "save" in args else False
             Config().use_pdb = args.use_pdb if "use_pdb" in args else False
-            Config().output_folder = os.path.dirname(args.output)
+            Config().output_folder = os.path.abspath(os.path.dirname(args.output))
             Config().output_file = os.path.basename(args.output)
             Config().max_coordination_number = args.coordination
 
-
         if args.command == 'update':
-            update_cif(args.output, args.input, args.pdb)
-            
+            from metalCoord.service.analysis import update_cif
+            update_cif(args.output, args.input, args.pdb, args.cif if "cif" in args else False, clazz = args.cl)
 
         elif args.command == 'stats':
-            get_stats(args.ligand, args.pdb, args.output)
-        
+            from metalCoord.service.analysis import get_stats
+            get_stats(args.ligand, args.pdb, args.output, clazz = args.cl)
+
         elif args.command == 'coord':
-            print(f"List of coordinations: {get_coordinations(args.number)}")
+            from metalCoord.service.info import process_coordinations
+            process_coordinations(args.number, args.metal, args.output, args.cod if "cod" in args else False)
         elif args.command == 'pdb':
-            get_pdbs(args.ligand, args.output)
+            from metalCoord.service.info import process_pdbs_list
+            process_pdbs_list(args.ligand, args.output)
         else:
             parser.print_help()
-        
+
         if args.command == 'update' or args.command == 'stats' or args.command == 'pdb':
             with open(os.path.join(Config().output_folder, Config().output_file + ".status.json"), 'w', encoding="utf-8") as json_file:
-                json.dump({"status":"Success"}, json_file, 
-                                    indent=4,  
-                                    separators=(',',': '))
+                json.dump({"status": "Success"}, json_file,
+                          indent=4,
+                          separators=(',', ': '))
     except Exception as e:
         Logger().error(f"{str(e)}")
         if args.command == 'update' or args.command == 'stats':
+            Path(Config().output_folder).mkdir(exist_ok=True, parents=True)
             with open(os.path.join(Config().output_folder, Config().output_file + ".status.json"), 'w', encoding="utf-8") as json_file:
-                json.dump({"status":"Failure", "Reason":str(e)}, json_file, 
-                                    indent=4,  
-                                    separators=(',',': '))
-        
+                json.dump({"status": "Failure", "Reason": str(e)}, json_file,
+                          indent=4,
+                          separators=(',', ': '))
 
 
 if __name__ == '__main__':

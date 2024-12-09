@@ -1,0 +1,46 @@
+[tool.poetry]
+name = "metalcoordanalysis"
+version = "0.1.78" 
+description = "Metal Coordination Analysis Tool"
+authors = ["Kaveh Babai <lekaveh@gmail.com>", "Fei Long", "Matrin Maly", "Keitaro Yamashita", "Garib N. Murshudov <garib@mrc-lmb.cam.ac.uk>"]
+readme = "README.md"
+packages = [
+    { include = "metalCoord" }
+]
+
+include = [
+    "metalCoord/data/classes.zip",
+    "metalCoord/data/ideal.csv",
+    "metalCoord/data/ideal_cova_rad_for_all_elememt.list",
+    "metalCoord/data/mons.json"
+]
+
+[tool.poetry.dependencies]
+python = "^3.9"
+numpy = "^1.20"
+pandas = ">=2.0.0"
+tqdm = ">=4.0.0"
+scipy = ">=1.0.0"
+networkx = "^3.2.1"
+scikit-learn = "^1.4.0"
+gemmi = "^0.6.2"
+
+[tool.poetry.scripts]
+metalCoord = "metalCoord.run:main_func"
+
+[tool.poetry.group.dev.dependencies]
+jupyter = "^1.0.0"
+
+[tool.poetry.plugins."poetry.plugin"]
+"dynamic-versioning" = "poetry_dynamic_versioning.plugin"
+
+[tool.poetry-dynamic-versioning]
+enable = true
+
+[tool.poetry-dynamic-versioning.from-file]
+source = "metalCoord/__init__.py"
+pattern = '^__version__ = "(\d+\.\d+\.\d+)"$' 
+
+[build-system]
+requires = ["poetry-core>=1.0.0", "poetry-dynamic-versioning>=1.0.0,<2.0.0"]
+build-backend = "poetry.core.masonry.api"

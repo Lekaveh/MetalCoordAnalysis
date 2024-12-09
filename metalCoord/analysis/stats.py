@@ -89,9 +89,6 @@ def angle(metal, ligand1, ligand2):
 
 
 
-
-from abc import ABC, abstractmethod
-
 class StatsFinder(ABC):
     """
     Abstract base class for finding statistics in metal coordination analysis.
@@ -266,7 +263,7 @@ class StrictCorrespondenceStatsFinder(FileStatsFinder):
 
             cods = {}
             
-            for file in tqdm(files, desc=f"{class_result.clazz} ligands", leave=False, disable=Logger().disabled):
+            for file in tqdm(files, desc=f"{class_result.clazz} ligands", leave=False, disable=not Logger().progress_bars):
                 file_data = self._finder.data(file)
                 m_ligand_coord = get_coordinate(file_data)
                 m_ligand_atoms = np.insert(
@@ -349,7 +346,7 @@ class WeekCorrespondenceStatsFinder(FileStatsFinder):
                 files = np.random.choice(files, MAX_FILES, replace=False)
 
             cods = {}
-            for file in tqdm(files, desc=f"{class_result.clazz} ligands", leave=False, disable=Logger().disabled):
+            for file in tqdm(files, desc=f"{class_result.clazz} ligands", leave=False, disable=not Logger().progress_bars):
                 file_data = self._finder.data(file)
 
                 m_ligand_coord = get_coordinate(file_data)

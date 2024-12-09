@@ -3,46 +3,23 @@ import json
 import os
 from pathlib import Path
 import sys
-from uu import Error
 import gemmi
 import networkx as nx
 import metalCoord
-from metalCoord.analysis.classes import idealClasses
-from metalCoord.analysis.classify import find_classes
+from metalCoord.analysis.classify import find_classes_pdb, find_classes_cif
 from metalCoord.analysis.models import PdbStats
 from metalCoord.config import Config
 from metalCoord.logging import Logger
+from metalCoord.cif.utils import (
+    ACEDRG_CATEGORY, ATOM_CATEGORY, BOND_CATEGORY, ANGLE_CATEGORY, COMP_CATEGORY, COMP_ID,
+    PROGRAM_NAME, PROGRAM_VERSION, TYPE, ATOM_ID, TYPE_SYMBOL, VALUE_DIST, VALUE_DIST_ESD,
+    VALUE_DIST_NUCLEUS, VALUE_DIST_NUCLEUS_ESD, VALUE_ANGLE, VALUE_ANGLE_ESD, ATOM_ID_1, ATOM_ID_2, ATOM_ID_3,
+    ID, THREE_LETTER_CODE, NAME, GROUP, NUMBER_ATOMS_ALL, NUMBER_ATOMS_NH, DESC_LEVEL, ENERGY
+)
+from metalCoord.cif.utils import get_element_name, get_bonds
 
-# Constants
-ANGLE_CATEGORY = "_chem_comp_angle"
-BOND_CATEGORY = "_chem_comp_bond"
-ATOM_CATEGORY = "_chem_comp_atom"
-COMP_CATEGORY = "_chem_comp"
-ACEDRG_CATEGORY = "_acedrg_chem_comp_descriptor"
-
-COMP_ID = "comp_id"
-ATOM_ID = "atom_id"
-TYPE_SYMBOL = "type_symbol"
-ENERGY = "type_energy"
-ATOM_ID_1 = "atom_id_1"
-ATOM_ID_2 = "atom_id_2"
-ATOM_ID_3 = "atom_id_3"
-VALUE_DIST_NUCLEUS = "value_dist_nucleus"
-VALUE_DIST_NUCLEUS_ESD = "value_dist_nucleus_esd"
-VALUE_DIST = "value_dist"
-VALUE_DIST_ESD = "value_dist_esd"
-VALUE_ANGLE = "value_angle"
-VALUE_ANGLE_ESD = "value_angle_esd"
-ID = "id"
-NAME = "name"
-GROUP = "group"
-NUMBER_ATOMS_ALL = "number_atoms_all"
-NUMBER_ATOMS_NH = "number_atoms_nh"
-DESC_LEVEL = "desc_level"
-THREE_LETTER_CODE = "three_letter_code"
-PROGRAM_NAME = "program_name"
-PROGRAM_VERSION = "program_version"
-TYPE = "type"
+d = os.path.dirname(sys.modules["metalCoord"].__file__)
+mons = json.load(open(os.path.join(d, "data/mons.json"), encoding="utf-8"))
 
 
 def decompose(values, n):
@@ -73,10 +50,6 @@ def pack(values):
         list: A list of sublists, each containing the values at the same index.
     """
     return [list(x) for x in zip(*values)]
-
-
-d = os.path.dirname(sys.modules["metalCoord"].__file__)
-mons = json.load(open(os.path.join(d, "data/mons.json"), encoding="utf-8"))
 
 
 def get_distance(clazz, ligand_name):
@@ -173,20 +146,6 @@ def code(ligand1_name, metal_name, ligand2_name):
     return ''.join(sorted([ligand1_name, metal_name, ligand2_name]))
 
 
-def get_element_name(mmcif_atom_category, name):
-    """
-    Get the element name for a given atom name.
-
-    Parameters:
-    - mmcif_atom_category (dict): The mmcif atom category.
-    - name (str): The name of the atom.
-
-    Returns:
-    - element_name (str): The element name of the atom.
-    """
-    for i, _ in enumerate(mmcif_atom_category[ATOM_ID]):
-        if _ == name:
-            return mmcif_atom_category[TYPE_SYMBOL][i]
 
 
 def contains_metal(mmcif_atom_category):
@@ -218,7 +177,7 @@ def find_minimal_cycles(bonds):
     graph = nx.Graph()
     graph.add_edges_from([[a1, a2] for a1, a2 in bonds])
     # Find the cycle basis of the graph
-    cycle_basis = nx.simple_cycles(graph)
+    cycle_basis = nx.simple_cycles(graph, length_bound=4)
 
     return cycle_basis
 
@@ -263,14 +222,18 @@ def save_cods(pdb_stats: PdbStats, path: str):
                     st.write_pdb(os.path.join(output_folder, file))
 
 
-def update_cif(output_path, path, pdb):
+
+
+def update_cif(output_path, path, pdb, use_cif=False, clazz = None):
     """
     Update the CIF file with ligand information.
 
-    Parameters:
-    - output_path (str): The path to save the updated CIF file.
+    Args:
+    - output_path (str): The path where the updated CIF file will be saved.
     - path (str): The path to the original CIF file.
     - pdb (str): The path to the PDB file.
+    - use_cif (bool): Whether to use the CIF file for classification.
+    - clazz (str): Predefined class.
 
     Returns:
     - None
@@ -291,13 +254,14 @@ def update_cif(output_path, path, pdb):
             break
 
     if not name:
-        raise Error("No block found for <name>|comp_<name>. Please check the CIF file.")
+        raise ValueError(
+            "No block found for <name>|comp_<name>. Please check the CIF file.")
 
     block = doc.find_block(f"comp_{name}") if doc.find_block(
         f"comp_{name}") is not None else doc.find_block(f"{name}")
 
     if block is None:
-        raise Error(
+        raise ValueError(
             f"No block found for {name}|comp_{name}. Please check the CIF file.")
 
     block.name = f"comp_{name}"
@@ -321,9 +285,9 @@ def update_cif(output_path, path, pdb):
     angles = block.get_mmcif_category(ANGLE_CATEGORY)
 
     if not atoms:
-        raise Error(
+        raise ValueError(
             f"mmcif category {ATOM_CATEGORY} not found. Please check the CIF file.")
-    
+
     n_atoms = len(atoms[ATOM_ID])
     n_nhatoms = len([x for x in atoms[TYPE_SYMBOL] if x != "H"])
 
@@ -336,61 +300,52 @@ def update_cif(output_path, path, pdb):
         block.set_mmcif_category(ATOM_CATEGORY, new_atoms)
 
     if not bonds:
-        # raise Error(f"mmcif category {BOND_CATEGORY} not found. Please check the CIF file.")
-        Logger().warning(f"mmcif category {BOND_CATEGORY} not found. Please check the CIF file.")
+        # raise Exception(f"mmcif category {BOND_CATEGORY} not found. Please check the CIF file.")
+        Logger().warning(
+            f"mmcif category {BOND_CATEGORY} not found. Please check the CIF file.")
     if contains_metal(atoms):
-        if pdb is None:
-            if name not in mons:
-                raise Error("There is no PDB in our Ligand-PDB database. Please specify the PDB file")
-            Logger().info("Choosing best PDB file")
-            all_candidates = sorted(mons[name], key=lambda x: x[1])
+        if use_cif:
+            pdb_stats = find_classes_cif(name, atoms, bonds, clazz=clazz)
+        else:
+            if pdb is None:
+                if name not in mons:
+                    raise Exception(
+                        "There is no PDB in our Ligand-PDB database. Please specify the PDB file")
+                Logger().info("Choosing best PDB file")
+                all_candidates = sorted(mons[name], key=lambda x: (
+                    not x[2], x[1] if x[1] else 10000))
 
-            candidates = [mon for mon in all_candidates if mon[2]]
+                candidates = [mon for mon in all_candidates if mon[2]]
 
-            if len(candidates) == 0:
-                mon = all_candidates[0]
-            else:
-                mon = candidates[0]
-            if mon[1] > 2:
                 if len(candidates) == 0:
-                    Logger().warning("There is no PDB with necessary resolution and occupancy in our Ligand-PDB database. Please specify the PDB file")
+                    mon = all_candidates[0]
                 else:
-                    Logger().warning("There is no PDB with necessary resolution in our Ligand-PDB database. Please specify the PDB file")
-            else:
-                if len(candidates) == 0:
-                    Logger().warning("There is no PDB with necessary occupancy in our Ligand-PDB database. Please specify the PDB file")
+                    mon = candidates[0]
+                if mon[1] and mon[1] > 2:
+                    if len(candidates) == 0:
+                        Logger().warning("There is no PDB with necessary resolution and occupancy in our Ligand-PDB database. Please specify the PDB file")
+                    else:
+                        Logger().warning("There is no PDB with necessary resolution in our Ligand-PDB database. Please specify the PDB file")
+                else:
+                    if len(candidates) == 0:
+                        Logger().warning("There is no PDB with necessary occupancy in our Ligand-PDB database. Please specify the PDB file")
 
-            pdb = mon[0]
-            Logger().info(f"Best PDB file is {pdb}")
+                pdb = mon[0]
+                Logger().info(f"Best PDB file is {pdb}")
 
-        def get_bonds(atoms, bonds):
-            if not bonds:
-                return {}
-            result = {}
-            for atom1, atom2 in zip(bonds[ATOM_ID_1], bonds[ATOM_ID_2]):
-                if not gemmi.Element(get_element_name(atoms, atom1)).is_metal and not gemmi.Element(get_element_name(atoms, atom2)).is_metal:
-                    continue
-                if gemmi.Element(get_element_name(atoms, atom1)).is_metal and gemmi.Element(get_element_name(atoms, atom2)).is_metal:
-                    continue
-
-                if gemmi.Element(get_element_name(atoms, atom2)).is_metal:
-                    atom1, atom2 = atom2, atom1
-
-                result.setdefault(atom1, []).append(atom2)
-
-            return result
-
-        pdb_stats = find_classes(
-            name, pdb, get_bonds(atoms, bonds), only_best=True)
+            pdb_stats = find_classes_pdb(
+                name, pdb, get_bonds(atoms, bonds), only_best=True, clazz = clazz)
 
         if pdb_stats.is_empty():
             # Logger().info(f"No coordination found for {name}  in {pdb}. Please check the PDB file")
-            raise Error(f"No coordination found for {name}  in {pdb}. Please check the PDB file")
+            raise ValueError(
+                f"No coordination found for {name}  in {pdb}. Please check the PDB file")
 
         Logger().info("Ligand updating started")
         if bonds:
             if VALUE_DIST not in bonds:
-                bonds[VALUE_DIST] = [None for x in range(len(bonds[ATOM_ID_1]))]
+                bonds[VALUE_DIST] = [
+                    None for x in range(len(bonds[ATOM_ID_1]))]
                 bonds[VALUE_DIST_ESD] = [
                     None for x in range(len(bonds[ATOM_ID_1]))]
                 bonds[VALUE_DIST_NUCLEUS] = [
@@ -407,7 +362,8 @@ def update_cif(output_path, path, pdb):
                 if gemmi.Element(get_element_name(atoms, ligand_name)).is_metal:
                     metal_name, ligand_name = ligand_name, metal_name
 
-                bondStat = pdb_stats.get_ligand_distance(metal_name, ligand_name)
+                bondStat = pdb_stats.get_ligand_distance(
+                    metal_name, ligand_name)
                 if bondStat:
                     bonds[VALUE_DIST][i] = bonds[VALUE_DIST_NUCLEUS][i] = str(
                         round(bondStat.distance[0], 3))
@@ -473,6 +429,7 @@ def update_cif(output_path, path, pdb):
             for bond in metal_stat.get_all_distances():
                 v.append((metal_stat.code, bond.ligand.code))
 
+        Logger().info("update cycles")
         for cycle in find_minimal_cycles(v):
             if len(cycle) == 4:
                 if gemmi.Element(cycle[0][1]).is_metal:
@@ -535,6 +492,8 @@ def update_cif(output_path, path, pdb):
         doc.write_file(output_path)
         report_path = output_path + ".json"
         Logger().info(f"Update written to {output_path}")
+        directory = os.path.dirname(output_path)
+        Path(directory).mkdir(exist_ok=True, parents=True)
         with open(report_path, 'w', encoding="utf-8") as json_file:
             json.dump(pdb_stats.json(), json_file,
                       indent=4,
@@ -547,7 +506,7 @@ def update_cif(output_path, path, pdb):
         Logger().info(f"No metal found in {name}")
 
 
-def get_stats(ligand, pdb, output):
+def get_stats(ligand, pdb, output, clazz = None):
     """
     Retrieves statistics for a given ligand and PDB file and writes the results to a JSON file.
 
@@ -555,13 +514,16 @@ def get_stats(ligand, pdb, output):
         ligand (str): The name of the ligand.
         pdb (str): The path to the PDB file.
         output (str): The path to the output JSON file.
+        clazz (str): Predefined class.
 
     Returns:
         None
     """
-    pdb_stats = find_classes(ligand, pdb)
+    pdb_stats = find_classes_pdb(ligand, pdb, clazz=clazz)
     results = pdb_stats.json()
 
+    directory = os.path.dirname(output)
+    Path(directory).mkdir(exist_ok=True, parents=True)
     with open(output, 'w', encoding="utf-8") as json_file:
         json.dump(results, json_file,
                   indent=4,
@@ -570,41 +532,3 @@ def get_stats(ligand, pdb, output):
         save_cods(pdb_stats, os.path.dirname(output))
 
     Logger().info(f"Report written to {output}")
-
-
-def get_coordinations(coordination_num: int = None) -> list:
-    """
-    Retrieves the ideal coordination classes based on the given coordination number.
-
-    Parameters:
-    coordination_num (int): The coordination number to filter the ideal classes. If None, returns all ideal classes.
-
-    Returns:
-    list: A list of ideal coordination classes.
-
-    """
-    if coordination_num:
-        return idealClasses.get_ideal_classes_by_coordination(coordination_num)
-    return idealClasses.get_ideal_classes()
-
-
-def get_pdbs(ligand: str, output: str) -> list:
-    """
-    Retrieves the PDB files containing the given ligand.
-
-    Parameters:
-    ligand (str): The name of the ligand.
-
-    Returns:
-    list: A list of PDB files containing the ligand.
-
-    """
-    pdbs = {ligand: []}
-    if ligand in mons:
-        pdbs = {ligand: sorted(mons[ligand], key=lambda x: (not x[2], x[1]))}
-    with open(output, 'w', encoding="utf-8") as json_file:
-        json.dump(pdbs, json_file,
-                  indent=4,
-                  separators=(',', ': '))
-        Logger().info(f"List of pdbs for {ligand} written to {output}")
-   

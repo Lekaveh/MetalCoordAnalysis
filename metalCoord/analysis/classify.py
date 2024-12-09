@@ -7,10 +7,10 @@ from metalCoord.analysis.data import DB
 from metalCoord.analysis.cod import StrictCandidateFinder, ElementCandidateFinder, ElementInCandidateFinder, AnyElementCandidateFinder, NoCoordinationCandidateFinder, CovalentCandidateFinder
 from metalCoord.analysis.stats import OnlyDistanceStatsFinder, WeekCorrespondenceStatsFinder, StrictCorrespondenceStatsFinder, CovalentStatsFinder
 from metalCoord.analysis.models import MetalStats, PdbStats
-from metalCoord.analysis.structures import get_ligands, Ligand
+from metalCoord.analysis.structures import get_ligands, get_ligands_from_cif, Ligand
+from metalCoord.cif.utils import get_bonds
 from metalCoord.load.rcsb import load_pdb
 from metalCoord.logging import Logger
-
 
 
 def get_structures(ligand, path, bonds=None, only_best=False) -> list[Ligand]:
@@ -61,24 +61,19 @@ strategies = [StrictCorrespondenceStatsFinder(StrictCandidateFinder()),
               ]
 
 
-def find_classes(ligand: str, pdb_name: str, bonds: dict = None, only_best: bool = False) -> PdbStats:
+def find_classes_from_structures(structures, bonds, clazz: str = None):
     """
-    Analyzes structures in a given PDB file for patterns and returns the statistics for ligands (metals) found.
+    Analyzes a list of structures to classify them based on their coordination and other properties.
 
     Args:
-        ligand (str): The name of the ligand.
-        pdb_name (str): The name of the PDB file.
-        bonds (dict, optional): A dictionary of bonds. Defaults to None.
-        only_best (bool, optional): Flag indicating whether to consider only the best structures. Defaults to False.
+        structures (list): A list of structure objects to be analyzed.
+        bonds (int): The number of bonds to consider when cleaning the structures.
 
     Returns:
-        PdbStats: An object containing the statistics for ligands (metals) found.
+        PdbStats: An object containing the statistics of the analyzed structures.
     """
-    if bonds is None:
-        bonds = {}
-    Logger().info(f"Analyzing structures in {pdb_name} for patterns")
-    structures = get_structures(ligand, pdb_name, bonds, only_best)
-    for structure in tqdm(structures):
+
+    for structure in tqdm(structures, disable=not Logger().progress_bars):
         Logger().info(
             f"Structure for {structure} found. Coordination number: {structure.coordination()}. {structure.name_code_with_symmetries()}")
     Logger().info(f"{len(structures)} structures found.")
@@ -86,15 +81,15 @@ def find_classes(ligand: str, pdb_name: str, bonds: dict = None, only_best: bool
     classificator = Classificator()
 
     classes = {}
-    for structure in tqdm(structures, desc="Structures", position=0, disable=Logger().disabled):
+    for structure in tqdm(structures, desc="Structures", position=0, disable=not Logger().progress_bars):
         structure_classes = []
 
-        for class_result in tqdm(classificator.classify(structure), desc="Coordination", position=1, leave=False, disable=Logger().disabled):
+        for class_result in tqdm(classificator.classify(structure, class_name = clazz), desc="Coordination", position=1, leave=False, disable=not Logger().progress_bars):
             structure_classes.append(class_result)
 
         if not structure_classes:
-            new_structure = structure.clean_the_farthest(len(bonds)) 
-            for class_result in tqdm(classificator.classify(new_structure), desc="Coordination", position=1, leave=False, disable=Logger().disabled):
+            new_structure = structure.clean_the_farthest(len(bonds))
+            for class_result in tqdm(classificator.classify(new_structure, class_name = clazz), desc="Coordination", position=1, leave=False, disable=not Logger().progress_bars):
                 structure_classes.append(class_result)
             if structure_classes:
                 structure = new_structure
@@ -106,11 +101,11 @@ def find_classes(ligand: str, pdb_name: str, bonds: dict = None, only_best: bool
             candidantes.append(class_result.clazz)
         Logger().info(f"Candidates for {structure} : {candidantes}")
 
-    for structure in tqdm(classes.keys(), desc="Structures", position=0, disable=Logger().disabled):
+    for structure in tqdm(classes.keys(), desc="Structures", position=0, disable=not Logger().progress_bars):
         metal_stats = MetalStats(structure)
         if classes[structure]:
             for class_result in classes[structure]:
-                for strategy in tqdm(strategies, desc="Strategies", position=1, leave=False, disable=Logger().disabled):
+                for strategy in tqdm(strategies, desc="Strategies", position=1, leave=False, disable=not Logger().progress_bars):
                     ligand_stats = strategy.get_stats(
                         structure, DB.data(), class_result)
                     if ligand_stats:
@@ -127,3 +122,43 @@ def find_classes(ligand: str, pdb_name: str, bonds: dict = None, only_best: bool
     Logger().info(
         f"Analysis completed. Statistics for {int(results.len())} ligands(metals) found.")
     return results
+
+
+def find_classes_pdb(ligand: str, pdb_name: str, bonds: dict = None, only_best: bool = False, clazz: str = None) -> PdbStats:
+    """
+    Analyzes structures in a given PDB file for patterns and returns the statistics for ligands (metals) found.
+
+    Args:
+        ligand (str): The name of the ligand.
+        pdb_name (str): The name of the PDB file.
+        bonds (dict, optional): A dictionary of bonds. Defaults to None.
+        only_best (bool, optional): Flag indicating whether to consider only the best structures. Defaults to False.
+        clazz (str, optional): The class to search for. Defaults to None.
+
+    Returns:
+        PdbStats: An object containing the statistics for ligands (metals) found.
+    """
+    if bonds is None:
+        bonds = {}
+    Logger().info(f"Analyzing structures in {pdb_name} for patterns")
+    structures = get_structures(ligand, pdb_name, bonds, only_best)
+    return find_classes_from_structures(structures, bonds, clazz=clazz)
+
+
+def find_classes_cif(name: str, atoms: gemmi.cif.Table, bonds: gemmi.cif.Table, clazz: str = None) -> PdbStats:
+    """Classify ligands and bonds from CIF data.
+
+    This function takes CIF tables of atoms and bonds, processes them to extract
+    ligands and bonds, and then classifies them into different categories.
+
+    Args:
+        name (str): The name of the ligand.
+        atoms (gemmi.cif.Table): A CIF table containing atomic data.
+        bonds (gemmi.cif.Table): A CIF table containing bond data.
+        clazz (str, optional): The class to search for. Defaults to None.
+
+    Returns:
+        PdbStats: An object containing statistics and classifications of the ligands and bonds.
+    """
+    b = get_bonds(atoms, bonds)
+    return find_classes_from_structures(get_ligands_from_cif(name, atoms, b), b, clazz=clazz)

@@ -1,7 +1,12 @@
 import numpy as np
 
+import metalCoord
+import metalCoord.analysis
+import metalCoord.analysis.structures
+from metalCoord.analysis.data import DB
 
-class Ligand():
+
+class Ligand:
     """
     Represents a ligand atom in a molecular structure.
 
@@ -15,341 +20,232 @@ class Ligand():
         altloc (str): The alternate location identifier of the ligand atom.
     """
 
-    def __init__(self, ligand) -> None:
-        self._name = ligand.atom.name
-        self._element = ligand.atom.element.name
-        self._chain = ligand.chain.name
-        self._residue = ligand.residue.name
-        self._sequence = ligand.residue.seqid.num
-        self._icode = ligand.residue.seqid.icode.strip().replace('\x00', '')
-        self._altloc = ligand.atom.altloc.strip().replace('\x00', '')
-        self._symmetry = ligand.symmetry
-        self._pos = ligand.pos
+    def __init__(self, ligand: object) -> None:
+        self._name: str = ligand.atom.name
+        self._element: str = ligand.atom.element.name
+        self._chain: str = ligand.chain.name
+        self._residue: str = ligand.residue.name
+        self._sequence: int = ligand.residue.seqid.num
+        self._icode: str = ligand.residue.seqid.icode.strip().replace('\x00', '')
+        self._altloc: str = ligand.atom.altloc.strip().replace('\x00', '')
+        self._symmetry: int = ligand.symmetry
+        self._pos: np.ndarray = ligand.pos
 
     @property
-    def name(self):
-        """
-        Returns the name of the object.
-
-        Returns:
-            str: The name of the object.
-        """
+    def name(self) -> str:
+        """Returns the name of the ligand atom."""
         return self._name
 
     @property
-    def element(self):
-        """
-        Returns the element associated with this object.
-
-        Returns:
-            The element associated with this object.
-        """
+    def element(self) -> str:
+        """Returns the element of the ligand atom."""
         return self._element
 
     @property
-    def chain(self):
-        """
-        Returns the chain associated with the object.
-
-        Returns:
-            The chain associated with the object.
-        """
+    def chain(self) -> str:
+        """Returns the chain of the ligand atom."""
         return self._chain
 
     @property
-    def residue(self):
-        """
-        Returns the residue associated with the object.
-
-        Returns:
-            The residue associated with the object.
-        """
+    def residue(self) -> str:
+        """Returns the residue of the ligand atom."""
         return self._residue
 
     @property
-    def sequence(self):
-        """
-        Returns the sequence associated with the object.
-
-        Returns:
-            str: The sequence associated with the object.
-        """
+    def sequence(self) -> int:
+        """Returns the sequence number of the ligand atom."""
         return self._sequence
 
     @property
-    def insertion_code(self):
-        """
-        Returns the insertion code of the atom.
-
-
-        Returns:
-            str: The insertion code of the atom.
-        """
+    def insertion_code(self) -> str:
+        """Returns the insertion code of the ligand atom."""
         if self._icode == "\u0000":
             return "."
         return self._icode if self._icode else "."
 
     @property
-    def symmetry(self):
-        """
-        Returns the symmetry of the atom.
-
-        Returns:
-            str: The symmetry of the atom.
-        """
+    def symmetry(self) -> int:
+        """Returns the symmetry of the ligand atom."""
         return self._symmetry
 
-    def equals(self, other):
-        """
-        Check if the current object is equal to another object.
-
-        Args:
-            other: The other object to compare with.
-
-        Returns:
-            True if the objects are equal, False otherwise.
-        """
-        return self.code == other.code
-
     @property
-    def altloc(self):
-        """
-        Returns the alternative location indicator for the atom.
-
-        If the alternative location indicator is the null character ('\u0000'),
-        an empty string is returned.
-
-        Returns:
-            str: The alternative location indicator for the atom.
-        """
+    def altloc(self) -> str:
+        """Returns the alternate location indicator of the ligand atom."""
         return "" if self._altloc == "\u0000" else self._altloc
 
     @property
-    def code(self):
+    def code(self) -> tuple:
         """
-        Returns a tuple containing the name, element, chain, residue, sequence, and altloc of the object.
+        Returns a tuple containing the name, element, chain, residue, sequence, altloc, and symmetry code.
+        """
+        return (self.name, self.element, self.chain, self.residue, self.sequence, self.altloc, self.symmetry)
+
+    def equals(self, other: 'Ligand') -> bool:
+        """
+        Compares the current object with another Ligand object.
+
+        Args:
+            other (Ligand): The other Ligand object to compare.
 
         Returns:
-            tuple: A tuple containing the name, element, chain, residue, sequence, and altloc.
+            bool: True if the Ligand objects are equal, False otherwise.
         """
-        return (self.name, self.element, self.chain, self.residue, self.sequence, self.altloc)
+        return self.code == other.code
 
-    def to_dict(self):
+    def to_dict(self) -> dict:
+        """
+        Converts the object to a dictionary.
+
+        Returns:
+            dict: A dictionary representation of the ligand object.
+        """
+        return {
+            "name": self.name,
+            "element": self.element,
+            "chain": self.chain,
+            "residue": self.residue,
+            "sequence": self.sequence,
+            "icode": self.insertion_code,
+            "altloc": self.altloc,
+            "symmetry": self.symmetry
+        }
+
+
+class DistanceStats:
+    """
+    Represents statistics for a distance measurement.
+
+    Attributes:
+        ligand (Ligand): The ligand.
+        distance (float): The distance value.
+        std (float): The standard deviation value.
+        distances (np.ndarray): Optional array of distances.
+        procrustes_dists (np.ndarray): Optional array of procrustes distances.
+        description (str): Optional description.
+    """
+
+    def __init__(self, ligand: Ligand, distance: float, std: float, distances: np.ndarray = None,
+                 procrustes_dists: np.ndarray = None, description: str = "") -> None:
+        self._ligand: Ligand = ligand
+        self._distance: float = np.round(distance, 2).tolist()
+        self._std: float = np.round(np.where(std > 0.02, std, 0.02), 2).tolist()
+        self._distances: np.ndarray = distances
+        self._procrustes_dists: np.ndarray = procrustes_dists
+        self._description: str = description
+
+    @property
+    def ligand(self) -> Ligand:
+        """Returns the ligand."""
+        return self._ligand
+
+    @property
+    def distance(self) -> float:
+        """Returns the distance value."""
+        return self._distance
+
+    @property
+    def std(self) -> float:
+        """Returns the standard deviation."""
+        return self._std
+
+    @property
+    def distances(self) -> np.ndarray:
+        """Returns the array of distances."""
+        return self._distances
+
+    @property
+    def procrustes_dists(self) -> np.ndarray:
+        """Returns the array of procrustes distances."""
+        return self._procrustes_dists
+
+    @property
+    def description(self) -> str:
+        """Returns the description."""
+        return self._description
+
+    def to_dict(self) -> dict:
         """
         Converts the object to a dictionary.
 
         Returns:
             dict: A dictionary representation of the object.
         """
-        return {"name": self.name, "element": self.element, "chain": self.chain, "residue": self.residue, "sequence": self.sequence, "icode": self.insertion_code, "altloc": self.altloc, "symmetry": self.symmetry}
-
-
-class DistanceStats():
-    """
-    Represents statistics for a distance measurement.
-
-    Args:
-        ligand (str): The ligand name.
-        distance (float): The distance value.
-        std (float): The standard deviation value.
-        distances (list): Optional list of distances.
-        procrustes_dists (list): Optional list of procrustes distances.
-        description (str): Optional description.
-
-    Attributes:
-        ligand (str): The ligand name.
-        distance (float): The distance value.
-        std (float): The standard deviation value.
-        distances (list): Optional list of distances.
-        procrustes_dists (list): Optional list of procrustes distances.
-        description (str): Optional description.
-    """
-
-    def __init__(self, ligand, distance, std, distances=None, procrustes_dists=None, description: str = "") -> None:
-        self._ligand = ligand
-        self._distance = np.round(distance, 2).tolist()
-        self._std = np.round(np.where(std > 1e-02, std, 0.05), 2).tolist()
-        self._distances = distances
-        self._procrustes_dists = procrustes_dists
-        self._description = description
-
-    @property
-    def ligand(self):
-        """
-        Get the ligand name.
-
-        Returns:
-            str: The ligand name.
-        """
-        return self._ligand
-
-    @property
-    def distance(self):
-        """
-        Get the distance value.
-
-        Returns:
-            float: The distance value.
-        """
-        return self._distance
-
-    @property
-    def std(self):
-        """
-        Get the standard deviation value.
-
-        Returns:
-            float: The standard deviation value.
-        """
-        return self._std
-
-    @property
-    def distances(self):
-        """
-        Get the list of distances.
-
-        Returns:
-            list: The list of distances.
-        """
-        return self._distances
-
-    @property
-    def procrustes_dists(self):
-        """
-        Get the list of procrustes distances.
-
-        Returns:
-            list: The list of procrustes distances.
-        """
-        return self._procrustes_dists
-
-    @property
-    def description(self):
-        """
-        Get the description.
-
-        Returns:
-            str: The description.
-        """
-        return self._description
-
-    def to_dict(self) -> dict:
-        """
-        Converts the object to a dictionary representation.
-
-        Returns:
-            dict: A dictionary containing the ligand, distance, std, and description (if available).
-        """
-        d = {"ligand": self.ligand.to_dict(), "distance": self.distance,
-             "std": self.std}
+        d = {
+            "ligand": self.ligand.to_dict(),
+            "distance": self.distance,
+            "std": self.std
+        }
         if self.description:
             d["description"] = self.description
         return d
 
 
-class AngleStats():
+class AngleStats:
     """
     Class representing angle statistics between two ligands.
+
+    Attributes:
+        ligand1 (Ligand): The first ligand.
+        ligand2 (Ligand): The second ligand.
+        angle (float): The angle value.
+        std (float): The standard deviation.
+        is_ligand (bool): Whether the object represents a ligand.
+        angles (np.ndarray): List of angles.
+        procrustes_dists (np.ndarray): List of procrustes distances.
     """
 
-    def __init__(self, ligand1, ligand2, angle_value, std, is_ligand=True, angles=None, procrustes_dists=None) -> None:
-        """
-        Initialize an AngleStats object.
-
-        Args:
-            ligand1 (Ligand): The first ligand.
-            ligand2 (Ligand): The second ligand.
-            angle_value (float): The angle value.
-            std (float): The standard deviation.
-            is_ligand (bool, optional): Whether the object represents a ligand. Defaults to True.
-            angles (list[float], optional): List of angles. Defaults to None.
-            procrustes_dists (list[float], optional): List of procrustes distances. Defaults to None.
-        """
-        self._ligand1 = ligand1
-        self._ligand2 = ligand2
-        self._angle = angle_value
-        self._std = std if std > 1e-03 else 5
-        self._is_ligand = is_ligand
-        self._angles = angles
-        self._procrustes_dists = procrustes_dists
+    def __init__(self, ligand1: Ligand, ligand2: Ligand, angle_value: float, std: float, is_ligand: bool = True,
+                 angles: np.ndarray = None, procrustes_dists: np.ndarray = None) -> None:
+        self._ligand1: Ligand = ligand1
+        self._ligand2: Ligand = ligand2
+        self._angle: float = np.round(angle_value, 2).tolist()
+        self._std: float = np.round(np.where(std > 3.0, std, 3.0), 2).tolist()
+        self._is_ligand: bool = is_ligand
+        self._angles: np.ndarray = angles
+        self._procrustes_dists: np.ndarray = procrustes_dists
 
     @property
-    def ligand1(self):
-        """
-        Get the first ligand.
-
-        Returns:
-            Ligand: The first ligand.
-        """
+    def ligand1(self) -> Ligand:
+        """Returns the first ligand."""
         return self._ligand1
 
     @property
-    def ligand2(self):
-        """
-        Get the second ligand.
-
-        Returns:
-            Ligand: The second ligand.
-        """
+    def ligand2(self) -> Ligand:
+        """Returns the second ligand."""
         return self._ligand2
 
     @property
-    def angle(self):
-        """
-        Get the angle value.
-
-        Returns:
-            float: The angle value.
-        """
+    def angle(self) -> float:
+        """Returns the angle value."""
         return self._angle
 
     @property
-    def std(self):
-        """
-        Get the standard deviation.
-
-        Returns:
-            float: The standard deviation.
-        """
+    def std(self) -> float:
+        """Returns the standard deviation."""
         return self._std
 
     @property
-    def is_ligand(self):
-        """
-        Check if the object represents a ligand.
-
-        Returns:
-            bool: True if the object represents a ligand, False otherwise.
-        """
+    def is_ligand(self) -> bool:
+        """Returns whether the object represents a ligand."""
         return self._is_ligand
 
     @property
-    def angles(self):
-        """
-        Get the list of angles.
-
-        Returns:
-            list[float]: List of angles.
-        """
+    def angles(self) -> np.ndarray:
+        """Returns the array of angles."""
         return self._angles
 
     @property
-    def procrustes_dists(self):
-        """
-        Get the list of procrustes distances.
-
-        Returns:
-            list[float]: List of procrustes distances.
-        """
+    def procrustes_dists(self) -> np.ndarray:
+        """Returns the array of procrustes distances."""
         return self._procrustes_dists
 
-    def equals(self, code1, code2):
+    def equals(self, code1: tuple, code2: tuple) -> bool:
         """
-        Check if the ligand codes match.
+        Checks if the ligand codes match.
 
         Args:
-            code1 (str): The first ligand code.
-            code2 (str): The second ligand code.
+            code1 (tuple): The first ligand code.
+            code2 (tuple): The second ligand code.
 
         Returns:
             bool: True if the ligand codes match, False otherwise.
@@ -358,17 +254,20 @@ class AngleStats():
 
     def to_dict(self) -> dict:
         """
-        Convert the object to a dictionary representation.
+        Converts the object to a dictionary representation.
 
         Returns:
             dict: A dictionary containing the object's attributes.
         """
-        return {"ligand1": self.ligand1.to_dict(),
-                "ligand2": self.ligand2.to_dict(),
-                "angle": self.angle, "std": self.std}
+        return {
+            "ligand1": self.ligand1.to_dict(),
+            "ligand2": self.ligand2.to_dict(),
+            "angle": self.angle,
+            "std": self.std
+        }
 
 
-class LigandStats():
+class LigandStats:
     """
     Represents the statistics of a ligand.
 
@@ -383,7 +282,7 @@ class LigandStats():
         _description (str): The description of the ligand.
     """
 
-    def __init__(self, clazz, procrustes, coordination, count, description) -> None:
+    def __init__(self, clazz: str, procrustes: float, coordination: int, count: int, description: str) -> None:
         """
         Initializes a LigandStats object.
 
@@ -394,60 +293,61 @@ class LigandStats():
             count (int): The count of the ligand.
             description (str): The description of the ligand.
         """
-        self._clazz = clazz
-        self._procrustes = procrustes
-        self._coordination = coordination
-        self._count = count
-        self._bonds = []
-        self._pdb_bonds = []
-        self._angles = []
-        self._description = description
-        self._cod_files = {}
+        self._clazz: str = clazz
+        self._procrustes: float = procrustes
+        self._coordination: int = coordination
+        self._count: int = count
+        self._bonds: list = []
+        self._pdb_bonds: list = []
+        self._angles: list = []
+        self._description: str = description
+        self._cod_files: dict = {}
 
     @property
-    def clazz(self):
+    def clazz(self) -> str:
         """
         str: The class of the ligand.
         """
         return self._clazz
 
     @property
-    def procrustes(self):
+    def procrustes(self) -> float:
         """
         float: The procrustes value of the ligand.
         """
         return self._procrustes
-
+    
+    
     @property
-    def coordination(self):
+    def coordination(self) -> int:
         """
         int: The coordination number of the ligand.
         """
         return self._coordination
 
     @property
-    def count(self):
+    def count(self) -> int:
         """
         int: The count of the ligand.
         """
         return self._count
 
     @property
-    def description(self):
+    def description(self) -> str:
         """
         str: The description of the ligand.
         """
         return self._description
 
     @property
-    def cod_files(self):
+    def cod_files(self) -> dict:
         """
         dict: The names of COD files associated with the ligand.
         """
         return self._cod_files.keys()
 
     @property
-    def cods(self):
+    def cods(self) -> iter:
         """
         Generator function that yields the key-value pairs of the _cod_files dictionary.
 
@@ -458,14 +358,14 @@ class LigandStats():
             yield key, value
 
     @property
-    def bond_count(self):
+    def bond_count(self) -> int:
         """
         int: The total number of bonds associated with the ligand.
         """
         return len(self._bonds) + len(self._pdb_bonds)
 
     @property
-    def bonds(self):
+    def bonds(self) -> iter:
         """
         Generator: Yields each bond associated with the ligand.
         """
@@ -473,7 +373,7 @@ class LigandStats():
             yield bond
 
     @property
-    def pdb(self):
+    def pdb(self) -> iter:
         """
         Generator: Yields each PDB bond associated with the ligand.
         """
@@ -481,7 +381,7 @@ class LigandStats():
             yield bond
 
     @property
-    def angles(self):
+    def angles(self) -> iter:
         """
         Generator: Yields each angle associated with the ligand.
         """
@@ -489,7 +389,7 @@ class LigandStats():
             yield ligand_angle
 
     @property
-    def ligand_angles(self):
+    def ligand_angles(self) -> iter:
         """
         Generator: Yields each angle associated with the ligand that involves only ligands.
         """
@@ -497,7 +397,23 @@ class LigandStats():
             if ligand_angle.is_ligand:
                 yield ligand_angle
 
-    def get_ligand_bond(self, ligand_name):
+    def weighted_procrustes(self, metal: str) -> float:
+        """
+        Calculates the weighted procrustes score of the ligand.
+
+        Args:
+            metal (str): The metal identifier.
+
+        Returns:
+            float: The weighted procrustes score.
+        """
+        frequencies = DB.get_frequency_metal_ccordination(metal, self.coordination)
+        freqs = [x["frequency"] for x in frequencies.values()]
+        freq = frequencies.get(self.clazz, {}).get("frequency", 1e-7)
+
+        return self.procrustes*(1 - np.exp(freq)/np.sum(np.exp(freqs)))
+
+    def get_ligand_bond(self, ligand_name: str) -> DistanceStats:
         """
         Retrieves the bond associated with the specified ligand name.
 
@@ -512,7 +428,7 @@ class LigandStats():
                 return bond
         return None
 
-    def get_ligand_angle(self, ligand1_name, ligand2_name):
+    def get_ligand_angle(self, ligand1_name: str, ligand2_name: str) -> AngleStats:
         """
         Retrieves the angle associated with the specified ligand names.
 
@@ -528,7 +444,7 @@ class LigandStats():
                 return ligand_angle
         return None
 
-    def get_angle(self, ligand1_code, ligand2_code):
+    def get_angle(self, ligand1_code: str, ligand2_code: str) -> AngleStats:
         """
         Retrieves the angle associated with the specified ligand codes.
 
@@ -544,7 +460,7 @@ class LigandStats():
                 return ligand_angle
         return None
 
-    def add_bond(self, distance):
+    def add_bond(self, distance: DistanceStats) -> None:
         """
         Adds a bond to the ligand.
 
@@ -553,7 +469,7 @@ class LigandStats():
         """
         self._bonds.append(distance)
 
-    def add_pdb_bond(self, distance):
+    def add_pdb_bond(self, distance: DistanceStats) -> None:
         """
         Adds a PDB bond to the ligand.
 
@@ -562,7 +478,7 @@ class LigandStats():
         """
         self._pdb_bonds.append(distance)
 
-    def add_angle(self, new_angle):
+    def add_angle(self, new_angle: DistanceStats) -> None:
         """
         Adds an angle to the ligand.
 
@@ -571,7 +487,7 @@ class LigandStats():
         """
         self._angles.append(new_angle)
 
-    def add_cod_file(self, cod_file, structure):
+    def add_cod_file(self, cod_file: str, structure: metalCoord.analysis.structures.Ligand) -> None:
         """
         Adds a COD file to the ligand.
 
@@ -580,7 +496,7 @@ class LigandStats():
         """
         self._cod_files[cod_file] = structure
 
-    def to_dict(self):
+    def to_dict(self) -> dict:
         """
         Converts the LigandStats object to a dictionary.
 
@@ -598,39 +514,28 @@ class LigandStats():
         return clazz
 
 
-class MetalStats():
-    def __init__(self, structure) -> None:
+class MetalStats:
+    def __init__(self, structure: metalCoord.analysis.structures.Ligand) -> None:
         """
         Initialize a MetalStats object.
 
         Args:
-            metal (str): The metal identifier.
-            metal_element (str): The metal element.
-            chain (str): The chain identifier.
-            residue (str): The residue identifier.
-            sequence (int): The sequence number.
-            mean_occ (float): The mean occupancy.
-            mean_b (float): The mean B-factor.
-            altloc (str): The alternative location identifier.
-            icode (str): The insertion code.
+            structure (object): The structure containing metal information.
         """
-
-        self._metal = structure.metal.atom.name
-        self._metal_element = str(structure.metal.element),
-        if isinstance(self._metal_element, tuple):
-            self._metal_element = self._metal_element[0]
-        self._chain = structure.chain.name
-        self._residue = structure.residue.name
-        self._sequence = structure.residue.seqid.num
-        self._mean_occ = structure.mean_occ()
-        self._mean_b = structure.mean_b()
-        self._icode = structure.residue.seqid.icode.strip().replace('\x00', '')
-        self._altloc = structure.metal.atom.altloc.strip().replace('\x00', '')
-        self._pos = structure.metal.pos
-        self._ligands = []
+        self._metal: str = structure.metal.atom.name
+        self._metal_element: str = str(structure.metal.element)
+        self._chain: str = structure.chain.name
+        self._residue: str = structure.residue.name
+        self._sequence: int = structure.residue.seqid.num
+        self._mean_occ: float = structure.mean_occ()
+        self._mean_b: float = structure.mean_b()
+        self._icode: str = structure.residue.seqid.icode.strip().replace('\x00', '')
+        self._altloc: str = structure.metal.atom.altloc.strip().replace('\x00', '')
+        self._pos: np.ndarray = structure.metal.pos
+        self._ligands: list = []
 
     @property
-    def code(self):
+    def code(self) -> tuple:
         """
         Get the code of the metal.
 
@@ -638,9 +543,9 @@ class MetalStats():
             tuple: A tuple containing the metal, metal element, chain, residue, and sequence.
         """
         return (self._metal, self._metal_element, self._chain, self._residue, str(self._sequence))
-
+    
     @property
-    def metal(self):
+    def metal(self) -> str:
         """
         Get the metal identifier.
 
@@ -650,7 +555,7 @@ class MetalStats():
         return self._metal
 
     @property
-    def metal_element(self):
+    def metal_element(self) -> str:
         """
         Get the metal element.
 
@@ -660,7 +565,7 @@ class MetalStats():
         return self._metal_element
 
     @property
-    def chain(self):
+    def chain(self) -> str:
         """
         Get the chain identifier.
 
@@ -670,7 +575,7 @@ class MetalStats():
         return self._chain
 
     @property
-    def residue(self):
+    def residue(self) -> str:
         """
         Get the residue identifier.
 
@@ -680,7 +585,7 @@ class MetalStats():
         return self._residue
 
     @property
-    def sequence(self):
+    def sequence(self) -> int:
         """
         Get the sequence number.
 
@@ -690,7 +595,7 @@ class MetalStats():
         return self._sequence
 
     @property
-    def altloc(self):
+    def altloc(self) -> str:
         """
         Get the alternative location identifier.
 
@@ -700,7 +605,7 @@ class MetalStats():
         return self._altloc
 
     @property
-    def insertion_code(self):
+    def insertion_code(self) -> str:
         """
         Returns the insertion code of the metal.
 
@@ -712,7 +617,7 @@ class MetalStats():
         return self._icode if self._icode else "."
 
     @property
-    def mean_occ(self):
+    def mean_occ(self) -> float:
         """
         Get the mean occupancy.
 
@@ -722,7 +627,7 @@ class MetalStats():
         return self._mean_occ
 
     @property
-    def mean_b(self):
+    def mean_b(self) -> float:
         """
         Get the mean B-factor.
 
@@ -732,7 +637,7 @@ class MetalStats():
         return self._mean_b
 
     @property
-    def ligands(self):
+    def ligands(self) -> iter:
         """
         Get an iterator over the ligands.
 
@@ -742,7 +647,7 @@ class MetalStats():
         for ligand in self._ligands:
             yield ligand
 
-    def same_metal(self, other):
+    def same_metal(self, other: 'MetalStats') -> bool:
         """
         Check if two MetalStats objects represent the same metal.
 
@@ -752,9 +657,9 @@ class MetalStats():
         Returns:
             bool: True if the metals are the same, False otherwise.
         """
-        return (self.metal == other.metal) and (self.metal_element == other.metalElement)
+        return (self.metal == other.metal) and (self.metal_element == other.metal_element)
 
-    def same_monomer(self, other):
+    def same_monomer(self, other: 'MetalStats') -> bool:
         """
         Check if two MetalStats objects belong to the same monomer.
 
@@ -766,7 +671,7 @@ class MetalStats():
         """
         return (self.chain == other.chain) and (self.residue == other.residue) and (self.sequence == other.sequence)
 
-    def add_ligand(self, ligand):
+    def add_ligand(self, ligand: 'Ligand') -> None:
         """
         Add a ligand to the MetalStats object.
 
@@ -775,19 +680,19 @@ class MetalStats():
         """
         self._ligands.append(ligand)
 
-    def is_ligand_atom(self, atom):
+    def is_ligand_atom(self, atom: object) -> bool:
         """
         Check if an atom is a ligand atom.
 
         Args:
-            atom (Atom): An atom object.
+            atom (object): An atom object.
 
         Returns:
             bool: True if the atom is a ligand atom, False otherwise.
         """
         return (atom.chain == self.chain) and (atom.residue == self.residue) and (atom.sequence == self.sequence)
 
-    def get_coordination(self):
+    def get_coordination(self) -> int:
         """
         Get the maximum coordination number among the ligands.
 
@@ -796,7 +701,7 @@ class MetalStats():
         """
         return np.max([l.coordination for l in self.ligands])
 
-    def get_best_class(self):
+    def get_best_class(self) -> 'Ligand':
         """
         Get the best class of ligands based on the coordination number and procrustes score.
 
@@ -804,9 +709,11 @@ class MetalStats():
             Ligand: The best class of ligands.
         """
         coord = self.get_coordination()
-        return self._ligands[np.argmin([l.procrustes for l in self.ligands if l.coordination == coord])]
+        ligands = [l for l in self._ligands if l.coordination == coord]
+        weighted_procrustes = [l.weighted_procrustes(self.metal_element) for l in ligands]
+        return ligands[np.argmin(weighted_procrustes)]
 
-    def get_all_distances(self):
+    def get_all_distances(self) -> list:
         """
         Get a list of all distances from the best class of ligands.
 
@@ -816,7 +723,7 @@ class MetalStats():
         clazz = self.get_best_class()
         return list(clazz.bonds) + list(clazz.pdb)
 
-    def get_ligand_distances(self):
+    def get_ligand_distances(self) -> list:
         """
         Get a list of distances from the best class of ligands.
 
@@ -826,7 +733,7 @@ class MetalStats():
         clazz = self.get_best_class()
         return list(clazz.bonds)
 
-    def get_all_angles(self):
+    def get_all_angles(self) -> list:
         """
         Get a list of all angles from the best class of ligands.
 
@@ -836,7 +743,7 @@ class MetalStats():
         clazz = self.get_best_class()
         return list(clazz.angles)
 
-    def get_ligand_angles(self):
+    def get_ligand_angles(self) -> list:
         """
         Get a list of ligand angles from the best class of ligands.
 
@@ -846,7 +753,7 @@ class MetalStats():
         clazz = self.get_best_class()
         return [angle for angle in clazz.angles if self.is_ligand_atom(angle.ligand1) and self.is_ligand_atom(angle.ligand2)]
 
-    def get_ligand_bond(self, ligand_name):
+    def get_ligand_bond(self, ligand_name: str) -> 'DistanceStats':
         """
         Get the bond associated with a ligand.
 
@@ -854,12 +761,12 @@ class MetalStats():
             ligand_name (str): The name of the ligand.
 
         Returns:
-            Bond: The bond associated with the ligand.
+            DistanceStats: The bond associated with the ligand.
         """
         clazz = self.get_best_class()
         return clazz.get_ligand_bond(ligand_name)
 
-    def get_ligand_angle(self, ligand1_name, ligand2_name):
+    def get_ligand_angle(self, ligand1_name: str, ligand2_name: str) -> 'AngleStats':
         """
         Get the angle between two ligands.
 
@@ -868,12 +775,12 @@ class MetalStats():
             ligand2_name (str): The name of the second ligand.
 
         Returns:
-            Angle: The angle between the ligands.
+            AngleStats: The angle between the ligands.
         """
         clazz = self.get_best_class()
         return clazz.get_ligand_angle(ligand1_name, ligand2_name)
 
-    def get_angle(self, ligand1_code, ligand2_code):
+    def get_angle(self, ligand1_code: str, ligand2_code: str) -> 'AngleStats':
         """
         Get the angle between two ligands based on their codes.
 
@@ -882,12 +789,12 @@ class MetalStats():
             ligand2_code (str): The code of the second ligand.
 
         Returns:
-            Angle: The angle between the ligands.
+            AngleStats: The angle between the ligands.
         """
         clazz = self.get_best_class()
         return clazz.get_angle(ligand1_code, ligand2_code)
 
-    def is_empty(self):
+    def is_empty(self) -> bool:
         """
         Check if the MetalStats object has any ligands.
 
@@ -896,17 +803,25 @@ class MetalStats():
         """
         return len(self._ligands) == 0
 
-    def to_dict(self):
+    def to_dict(self) -> dict:
         """
         Convert the MetalStats object to a dictionary.
 
         Returns:
             dict: A dictionary representation of the MetalStats object.
         """
-        metal = {"chain": self.chain, "residue": self.residue, "sequence": self.sequence, "metal": self.metal,
-                 "metalElement": self.metal_element, "icode": self.insertion_code, "altloc": self.altloc, "ligands": []}
+        metal = {
+            "chain": self.chain,
+            "residue": self.residue,
+            "sequence": self.sequence,
+            "metal": self.metal,
+            "metalElement": self.metal_element,
+            "icode": self.insertion_code,
+            "altloc": self.altloc,
+            "ligands": []
+        }
 
-        for l in sorted(self.ligands, key=lambda x: (-x.coordination, x.procrustes)):
+        for l in sorted(self.ligands, key=lambda x: (-x.coordination, x.weighted_procrustes(self.metal_element))):
             metal["ligands"].append(l.to_dict())
 
         return metal
@@ -941,14 +856,14 @@ class MonomerStats():
         is_empty(): Checks if the monomer has no associated metals.
     """
 
-    def __init__(self, chain, residue, sequence) -> None:
-        self._chain = chain
-        self._residue = residue
-        self._sequence = sequence
-        self._metals = dict()
+    def __init__(self, chain: str, residue: str, sequence: str) -> None:
+        self._chain: str = chain
+        self._residue: str = residue
+        self._sequence: str = sequence
+        self._metals: dict[str, MetalStats] = dict()
 
     @property
-    def code(self):
+    def code(self) -> tuple[str, str, str]:
         """
         Returns the code of the model.
 
@@ -960,7 +875,7 @@ class MonomerStats():
         return (self._chain, self._residue, self._sequence)
 
     @property
-    def chain(self):
+    def chain(self) -> str:
         """
         Get the chain of the model.
 
@@ -970,7 +885,7 @@ class MonomerStats():
         return self._chain
 
     @property
-    def residue(self):
+    def residue(self) -> str:
         """
         Get the residue associated with this model.
 
@@ -980,7 +895,7 @@ class MonomerStats():
         return self._residue
 
     @property
-    def sequence(self):
+    def sequence(self) -> str:
         """
         Get the sequence of the monomer.
 
@@ -990,7 +905,7 @@ class MonomerStats():
         return self._sequence
 
     @property
-    def metals(self):
+    def metals(self) -> iter:
         """
         Get a generator that yields the metals associated with the monomer.
 
@@ -1000,7 +915,7 @@ class MonomerStats():
         for metal in self._metals.values():
             yield metal
 
-    def metal_names(self):
+    def metal_names(self) -> list[str]:
         """
         Get a list of the names of the metals associated with the monomer.
 
@@ -1009,7 +924,7 @@ class MonomerStats():
         """
         return list(self._metals.keys())
 
-    def get_metal(self, metal_name):
+    def get_metal(self, metal_name: str) -> MetalStats:
         """
         Get the metal with the specified name.
 
@@ -1021,7 +936,7 @@ class MonomerStats():
         """
         return self._metals.get(metal_name, None)
 
-    def is_in(self, atom):
+    def is_in(self, atom: object) -> bool:
         """
         Check if the monomer is associated with the specified atom.
 
@@ -1033,7 +948,7 @@ class MonomerStats():
         """
         return self._chain == atom.chain and self._residue == atom.residue and self._sequence == atom.sequence
 
-    def add_metal(self, metal):
+    def add_metal(self, metal: MetalStats) -> None:
         """
         Add a metal to the monomer if it is associated with the monomer.
 
@@ -1043,7 +958,7 @@ class MonomerStats():
         if self.is_in(metal):
             self._metals.setdefault(metal.metal, metal)
 
-    def contains(self, metal_name):
+    def contains(self, metal_name: str) -> bool:
         """
         Check if the monomer contains a metal with the specified name.
 
@@ -1055,7 +970,7 @@ class MonomerStats():
         """
         return metal_name in self._metals
 
-    def get_best_class(self, metal_name):
+    def get_best_class(self, metal_name: str) -> str:
         """
         Get the best class of the metal with the specified name.
 
@@ -1069,7 +984,7 @@ class MonomerStats():
             return self._metals[metal_name].get_best_class()
         return None
 
-    def get_ligand_bond(self, metal_name, ligand_name):
+    def get_ligand_bond(self, metal_name: str, ligand_name: str) -> DistanceStats:
         """
         Get the bond length between the metal and the specified ligand.
 
@@ -1084,7 +999,7 @@ class MonomerStats():
             return self._metals[metal_name].get_ligand_bond(ligand_name)
         return None
 
-    def get_ligand_angle(self, metal_name, ligand1_name, ligand2_name):
+    def get_ligand_angle(self, metal_name: str, ligand1_name: str, ligand2_name: str) -> AngleStats:
         """
         Get the angle between the metal and the specified ligands.
 
@@ -1100,7 +1015,7 @@ class MonomerStats():
             return self._metals[metal_name].get_ligand_angle(ligand1_name, ligand2_name)
         return None
 
-    def get_angle(self, metal_name, ligand1_code, ligand2_code):
+    def get_angle(self, metal_name: str, ligand1_code: str, ligand2_code: str) -> AngleStats:
         """
         Get the angle between the specified ligands in the metal coordination.
 
@@ -1116,7 +1031,7 @@ class MonomerStats():
             return self._metals[metal_name].get_angle(ligand1_code, ligand2_code)
         return None
 
-    def len(self):
+    def len(self) -> int:
         """
         Get the number of metals associated with the monomer.
 
@@ -1125,7 +1040,7 @@ class MonomerStats():
         """
         return len(self._metals)
 
-    def is_empty(self):
+    def is_empty(self) -> bool:
         """
         Check if the monomer has no associated metals.
 
@@ -1135,7 +1050,7 @@ class MonomerStats():
         return self.len() == 0
 
 
-class PdbStats():
+class PdbStats:
     """
     Represents the statistics of a PDB file.
 
@@ -1159,9 +1074,9 @@ class PdbStats():
     """
 
     def __init__(self) -> None:
-        self._monomers = dict()
+        self._monomers: dict[str, MonomerStats] = dict()
 
-    def add_metal(self, metal):
+    def add_metal(self, metal: MetalStats) -> None:
         """
         Adds a metal to the PDB file.
 
@@ -1175,7 +1090,7 @@ class PdbStats():
             self._monomers.setdefault(metal.chain + metal.residue + str(metal.sequence),
                                       MonomerStats(metal.chain, metal.residue, metal.sequence)).add_metal(metal)
 
-    def monomers(self):
+    def monomers(self) -> iter:
         """
         Returns an iterator over the monomers in the PDB file.
 
@@ -1185,7 +1100,7 @@ class PdbStats():
         for monomer in self._monomers.values():
             yield monomer
 
-    def metal_names(self):
+    def metal_names(self) -> list[str]:
         """
         Returns a list of unique metal names in the PDB file.
 
@@ -1195,7 +1110,7 @@ class PdbStats():
         return np.unique([name for monomer in self._monomers.values() for name in monomer.metal_names()]).tolist()
 
     @property
-    def metals(self):
+    def metals(self) -> iter:
         """
         Returns an iterator over all the metals in the PDB file.
 
@@ -1206,7 +1121,7 @@ class PdbStats():
             for metal in monomer.metals:
                 yield metal
 
-    def get_best_class(self, metal_name):
+    def get_best_class(self, metal_name: str) -> LigandStats:
         """
         Returns the best class for a given metal name.
 
@@ -1214,7 +1129,7 @@ class PdbStats():
             metal_name (str): The name of the metal.
 
         Returns:
-            MetalClass: The best class for the given metal name.
+            LigandStats: The best class for the given metal name.
         """
         metals = [monomer.get_metal(
             metal_name) for monomer in self.monomers() if monomer.contains(metal_name)]
@@ -1226,14 +1141,14 @@ class PdbStats():
             return None
 
         if np.min(coordinations) != np.max(coordinations):
-            b_vlaues = [metal.mean_b for metal in metals]
+            b_values = [metal.mean_b for metal in metals]
             occ_values = [metal.mean_occ for metal in metals]
             best_occ = np.max(occ_values)
-            return classes[np.argmin(np.where(occ_values == best_occ, b_vlaues, np.inf))]
+            return classes[np.argmin(np.where(occ_values == best_occ, b_values, np.inf))]
 
         return classes[np.argmin(procrustes)]
 
-    def get_ligand_distances(self, metal_name):
+    def get_ligand_distances(self, metal_name: str) -> list[DistanceStats]:
         """
         Returns the ligand distances for a given metal name.
 
@@ -1248,7 +1163,7 @@ class PdbStats():
             return clazz.get_ligand_distances()
         return []
 
-    def get_ligand_distance(self, metal_name, ligand_name):
+    def get_ligand_distance(self, metal_name: str, ligand_name: str) -> DistanceStats:
         """
         Returns the ligand distance for a given metal name and ligand name.
 
@@ -1257,14 +1172,14 @@ class PdbStats():
             ligand_name (str): The name of the ligand.
 
         Returns:
-            float: The ligand distance for the given metal name and ligand name.
+            DistanceStats: The ligand distance for the given metal name and ligand name.
         """
         clazz = self.get_best_class(metal_name)
         if clazz:
             return clazz.get_ligand_bond(ligand_name)
         return None
 
-    def get_ligand_angle(self, metal_name, ligand1_name, ligand2_name):
+    def get_ligand_angle(self, metal_name: str, ligand1_name: str, ligand2_name: str) -> AngleStats:
         """
         Returns the ligand angle for a given metal name, ligand1 name, and ligand2 name.
 
@@ -1274,14 +1189,14 @@ class PdbStats():
             ligand2_name (str): The name of the second ligand.
 
         Returns:
-            list: The ligand angle for the given metal name, ligand1 name, and ligand2 name.
+            AngleStats: The ligand angle for the given metal name, ligand1 name, and ligand2 name.
         """
         clazz = self.get_best_class(metal_name)
         if clazz:
             return clazz.get_ligand_angle(ligand1_name, ligand2_name)
-        return []
+        return None
 
-    def get_ligand_angles(self, metal_name):
+    def get_ligand_angles(self, metal_name: str) -> list[AngleStats]:
         """
         Returns the ligand angles for a given metal name.
 
@@ -1292,12 +1207,11 @@ class PdbStats():
             list: The ligand angles for the given metal name.
         """
         clazz = self.get_best_class(metal_name)
-
         if clazz:
             return clazz.ligand_angles
         return []
 
-    def get_all_distances(self, metal_name):
+    def get_all_distances(self, metal_name: str) -> list[DistanceStats]:
         """
         Returns all the distances for a given metal name.
 
@@ -1312,7 +1226,7 @@ class PdbStats():
             return clazz.get_all_distances()
         return []
 
-    def is_empty(self):
+    def is_empty(self) -> bool:
         """
         Checks if the PDB file is empty.
 
@@ -1321,7 +1235,7 @@ class PdbStats():
         """
         return len(self._monomers) == 0
 
-    def len(self):
+    def len(self) -> int:
         """
         Returns the total number of monomers in the PDB file.
 
@@ -1330,7 +1244,7 @@ class PdbStats():
         """
         return np.sum([monomer.len() for monomer in self.monomers()])
 
-    def json(self):
+    def json(self) -> list[dict]:
         """
         Returns a JSON representation of the statistics of the PDB file.
 
