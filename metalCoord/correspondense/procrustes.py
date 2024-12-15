@@ -1,7 +1,5 @@
 import itertools
-
 import numpy as np
-from itertools import permutations
 from scipy.linalg import helmert
 from sklearn.cluster import DBSCAN
 
@@ -152,7 +150,7 @@ def find_rings(coords):
     for cluster in clusters:
         indices = (np.where(clustering.labels_ == cluster)[0] + 1).tolist()
         if cluster == -1:
-            others.extend(indices)
+            others.append(indices)
             continue
 
         cluster_coords = normed_coords[clustering.labels_ == cluster]
@@ -265,9 +263,34 @@ def distance(x1: np.ndarray, x2: np.ndarray) -> np.ndarray:
     z2 = preshape(x2)
     z1 = preshape(x1)
     s = np.linalg.svd(z1.transpose(0, 2, 1) @ z2 @
-                      z2.transpose(0, 2, 1) @ z1)[1]
+                      z2.transpose(0, 2, 1) @ z1, compute_uv=False)
     return np.sqrt(np.abs(1 - np.sum(np.sqrt(s), axis=1)**2))
 
+def frobenius_norm(A: np.ndarray) -> np.ndarray:
+    """
+    Computes the Frobenius norm of a matrix.
+
+    Parameters:
+    A (np.ndarray): The input matrix.
+
+    Returns:
+    np.ndarray: The Frobenius norm of the matrix.
+    """
+    
+    return np.sqrt(np.sum(A**2, axis=(1, 2)))
+
+def frobenius_distance(A: np.ndarray, B: np.ndarray) -> np.ndarray:
+    """
+    Computes the Frobenius distance between two matrices A and B.
+
+    Parameters:
+    A (np.ndarray): The first matrix.
+    B (np.ndarray): The second matrix.
+
+    Returns:
+    np.ndarray: The Frobenius distance between the two matrices.
+    """
+    return frobenius_norm(preshape(A)  - preshape(B) )
 
 def procrustes_fit(A: np.ndarray, B: np.ndarray) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
     """
@@ -293,7 +316,7 @@ def procrustes_fit(A: np.ndarray, B: np.ndarray) -> tuple[np.ndarray, np.ndarray
     c = np.reshape(c, (-1, 1, 1))
 
     approx = c * A @ R
-    return (distance(approx, B), approx, c, R)
+    return (frobenius_distance(approx,  B)/frobenius_norm(B), approx, c, R)
 
 
 def get_combinations(groups=None, rings=None):
@@ -322,7 +345,7 @@ def get_combinations(groups=None, rings=None):
                 list(range(ranges[i], ranges[i + 1]))[::-1])
             c_list.append(np.array(perms + perms_rev))
         else:
-            perms = permutations(range(ranges[i], ranges[i + 1]))
+            perms = itertools.permutations(range(ranges[i], ranges[i + 1]))
             c_list.append(np.array(list(perms), dtype=np.int32))
 
     combinations = np.array([np.concatenate(x)
@@ -557,8 +580,9 @@ def fit_group(coords, ideal_coords, groups=None, rings=None):
     else:
         correspondense = [
             np.hstack(groups[0]).tolist(), np.hstack(groups[1]).tolist()]
+     
         lengths = [len(gr) for gr in groups[0]]
-
+    
     y = np.broadcast_to(ideal_coords[correspondense[1]].astype('float32'),
                         (1, n1, n2))
 
@@ -608,7 +632,7 @@ def create_group(rings, others):
           and optionally followed by `others` if it is not empty.
     """
     if len(others):
-        return [[0]] + rings + [others]
+        return [[0]] + rings + others
     return [[0]] + rings
 
 def find_in_group(groups, index):
@@ -660,28 +684,42 @@ def fit(coords: np.ndarray, ideal_coords: np.ndarray, groups: tuple = None, all:
 
      
     if len(coords) >= 8 and len(rings1) > 0 and have_same_ring_length(rings1, rings2):
-        ring_lengths = [len(ring) for ring in rings2]
-        current_l = -1
-        ring_groups = []
-        for i, l in enumerate(ring_lengths):
-            if current_l == l:
-                ring_groups[-1].append(i)
-            else:
-                ring_groups.append([i])
-            current_l = l
+            
+        # Group rings by length more efficiently
+        ring_length_dict = {}
+        for i, ring in enumerate(rings2):
+            length = len(ring)
+            if length not in ring_length_dict:
+                ring_length_dict[length] = []
+            ring_length_dict[length].append(i)
+        
+        ring_groups = list(ring_length_dict.values())
+        
+        # Handle permutations more efficiently
+       
+        ring_dict_permutations = {}
+        for key, group in ring_length_dict.items():
+            ring_dict_permutations[key] = [list(perm) for perm in itertools.permutations(group)]
 
-        if len(ring_groups) > 1:
-            ring_group_combinations = ([[rings2[i] for perm_group in itertools.permutations(
-                ring_group) for i in perm_group] for ring_group in ring_groups])
-        else:
-            ring_group_combinations = ([[rings2[i] for i in perm_group]
-                                        for perm_group in itertools.permutations(ring_groups[0])])
-
+      
+        # Generate final permutations more memory-efficiently
         ring_group_permutations = []
-        for c in itertools.product(*ring_group_combinations):
-            ring_group_permutations.append(create_group(list(c), others2))
+       
+        if len(ring_dict_permutations) == 1:
+  
+            ring_combinations = list(ring_dict_permutations.values())[0]
+            
+            for combination in ring_combinations:
+                group = create_group(list([rings2[i] for i in combination]), others2)
+                ring_group_permutations.append(group)
+        else:
+            
+            ring_combinations = itertools.product(*ring_dict_permutations.values())
+            for combination in ring_combinations:
+                group = create_group([rings2[i] for gr in list(combination) for i in gr] , others2)
+                ring_group_permutations.append(group)
+        
         ring1_group = create_group(rings1, others1)
-
         results = []
         for ring2_group in ring_group_permutations:
             current_groups = [ring1_group, ring2_group]
@@ -703,6 +741,9 @@ def fit(coords: np.ndarray, ideal_coords: np.ndarray, groups: tuple = None, all:
             else:
                 distances, approxs, c, r, indices, rotated = np.ones(1), np.expand_dims(np.zeros_like(approxs[0]), axis=0),  np.expand_dims(np.zeros_like(
                     c[0]), axis=0),  np.expand_dims(np.zeros_like(r[0]), axis=0),  np.expand_dims(np.zeros_like(indices[0]), axis=0),  np.expand_dims(np.zeros_like(rotated[0]), axis=0)
+    
+    elif len(coords) >= 10:
+        return  fitter.fit(coords, ideal_coords, groups, all, center)
     else:
         distances, approxs, c, r, indices, rotated = fit_group(
             coords, ideal_coords, groups)

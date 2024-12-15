@@ -176,6 +176,16 @@ class Classificator():
         """
         self._thr = thr
 
+    @property
+    def threshold(self):
+        """
+        Gets the threshold for the Procrustes distance.
+
+        Returns:
+            float: The threshold.
+        """
+        return self._thr
+
     def classify(self, structure, class_name = None):
         """
         Classifies a structure.

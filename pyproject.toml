@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "metalcoordanalysis"
-version = "0.1.78" 
+version = "0.1.79" 
 description = "Metal Coordination Analysis Tool"
 authors = ["Kaveh Babai <lekaveh@gmail.com>", "Fei Long", "Matrin Maly", "Keitaro Yamashita", "Garib N. Murshudov <garib@mrc-lmb.cam.ac.uk>"]
 readme = "README.md"
@@ -28,8 +28,15 @@ gemmi = "^0.6.2"
 [tool.poetry.scripts]
 metalCoord = "metalCoord.run:main_func"
 
+
 [tool.poetry.group.dev.dependencies]
 jupyter = "^1.0.0"
+
+
+[tool.poetry.group.test.dependencies]
+pytest = "^8.3.4"
+pytest-cov = "^6.0.0"
+pytest-randomly = "^3.16.0"
 
 [tool.poetry.plugins."poetry.plugin"]
 "dynamic-versioning" = "poetry_dynamic_versioning.plugin"
