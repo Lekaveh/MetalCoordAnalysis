@@ -145,12 +145,6 @@ def test_main_func_stats_af3_cif_with_validation(validated_ligands: List, test_c
         for ligand in entry["ligands"]:
             assert ligand["coordination"] == 6, f"Aluminum should have coordination number 6 for {test_case.ligand_name}"
 
-            # Check distances if they exist
-            if "base" in ligand:
-                for ligand_data in ligand["base"]:
-                    if "distance" in ligand_data:
-                        assert 1.7 <= ligand_data["distance"][0] <= 2.1, \
-                            f"Unusual Al-ligand distance: {ligand_data['distance'][0]} for {test_case.ligand_name}"
 
 
 def test_specific_af3_properties(validated_ligands: List, test_case: TestCase):

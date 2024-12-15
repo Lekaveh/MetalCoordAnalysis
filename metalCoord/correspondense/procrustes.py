@@ -316,7 +316,7 @@ def procrustes_fit(A: np.ndarray, B: np.ndarray) -> tuple[np.ndarray, np.ndarray
     c = np.reshape(c, (-1, 1, 1))
 
     approx = c * A @ R
-    return (frobenius_distance(approx,  B)/frobenius_norm(B), approx, c, R)
+    return (frobenius_distance(approx,  B), approx, c, R)
 
 
 def get_combinations(groups=None, rings=None):

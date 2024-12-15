@@ -11,7 +11,7 @@
             "program": "${workspaceFolder}/run.py",
             "console": "integratedTerminal",
             "justMyCode": true,
-            "args": ["update", "-i", "./test/SF4.cif", "-o", "./test/SF4_upd.cif"]
+            "args": ["update", "-i", "./test/KEG.cif", "-o", "out.cif"]
         }, 
 
         {
@@ -21,7 +21,7 @@
             "program": "${workspaceFolder}/run.py",
             "console": "integratedTerminal",
             "justMyCode": true,
-            "args": ["stats", "-l", "SF4", "-o", "./test/SF4_upd.json", "-p", "5d8v"]
+            "args": ["stats", "-l", "OEX", "-o", "./test/SF4_upd.json", "-p", "./test/5b66.pdb"]
         }
     ]
 }
