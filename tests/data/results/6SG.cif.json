@@ -1,0 +1,1285 @@
+[
+    {
+        "chain": "A",
+        "residue": "6SG",
+        "sequence": 307,
+        "metal": "FE",
+        "metalElement": "Fe",
+        "icode": ".",
+        "altloc": "",
+        "ligands": [
+            {
+                "class": "sandwich_5_5",
+                "procrustes": 0.274,
+                "coordination": 10,
+                "count": 41460,
+                "description": "Strict correspondence",
+                "base": [
+                    {
+                        "ligand": {
+                            "name": "C23",
+                            "element": "C",
+                            "chain": "A",
+                            "residue": "6SG",
+                            "sequence": 307,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0
+                        },
+                        "distance": [
+                            2.04
+                        ],
+                        "std": [
+                            0.02
+                        ]
+                    },
+                    {
+                        "ligand": {
+                            "name": "C24",
+                            "element": "C",
+                            "chain": "A",
+                            "residue": "6SG",
+                            "sequence": 307,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0
+                        },
+                        "distance": [
+                            2.04
+                        ],
+                        "std": [
+                            0.02
+                        ]
+                    },
+                    {
+                        "ligand": {
+                            "name": "C30",
+                            "element": "C",
+                            "chain": "A",
+                            "residue": "6SG",
+                            "sequence": 307,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0
+                        },
+                        "distance": [
+                            2.04
+                        ],
+                        "std": [
+                            0.02
+                        ]
+                    },
+                    {
+                        "ligand": {
+                            "name": "C31",
+                            "element": "C",
+                            "chain": "A",
+                            "residue": "6SG",
+                            "sequence": 307,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0
+                        },
+                        "distance": [
+                            2.04
+                        ],
+                        "std": [
+                            0.02
+                        ]
+                    },
+                    {
+                        "ligand": {
+                            "name": "C32",
+                            "element": "C",
+                            "chain": "A",
+                            "residue": "6SG",
+                            "sequence": 307,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0
+                        },
+                        "distance": [
+                            2.04
+                        ],
+                        "std": [
+                            0.02
+                        ]
+                    },
+                    {
+                        "ligand": {
+                            "name": "C33",
+                            "element": "C",
+                            "chain": "A",
+                            "residue": "6SG",
+                            "sequence": 307,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0
+                        },
+                        "distance": [
+                            2.04
+                        ],
+                        "std": [
+                            0.02
+                        ]
+                    },
+                    {
+                        "ligand": {
+                            "name": "C34",
+                            "element": "C",
+                            "chain": "A",
+                            "residue": "6SG",
+                            "sequence": 307,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0
+                        },
+                        "distance": [
+                            2.04
+                        ],
+                        "std": [
+                            0.02
+                        ]
+                    },
+                    {
+                        "ligand": {
+                            "name": "C20",
+                            "element": "C",
+                            "chain": "A",
+                            "residue": "6SG",
+                            "sequence": 307,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0
+                        },
+                        "distance": [
+                            2.04
+                        ],
+                        "std": [
+                            0.02
+                        ]
+                    },
+                    {
+                        "ligand": {
+                            "name": "C21",
+                            "element": "C",
+                            "chain": "A",
+                            "residue": "6SG",
+                            "sequence": 307,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0
+                        },
+                        "distance": [
+                            2.04
+                        ],
+                        "std": [
+                            0.02
+                        ]
+                    },
+                    {
+                        "ligand": {
+                            "name": "C22",
+                            "element": "C",
+                            "chain": "A",
+                            "residue": "6SG",
+                            "sequence": 307,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0
+                        },
+                        "distance": [
+                            2.04
+                        ],
+                        "std": [
+                            0.02
+                        ]
+                    }
+                ],
+                "angles": [
+                    {
+                        "ligand1": {
+                            "name": "C23",
+                            "element": "C",
+                            "chain": "A",
+                            "residue": "6SG",
+                            "sequence": 307,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0
+                        },
+                        "ligand2": {
+                            "name": "C24",
+                            "element": "C",
+                            "chain": "A",
+                            "residue": "6SG",
+                            "sequence": 307,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0
+                        },
+                        "angle": 40.58,
+                        "std": 3.0
+                    },
+                    {
+                        "ligand1": {
+                            "name": "C23",
+                            "element": "C",
+                            "chain": "A",
+                            "residue": "6SG",
+                            "sequence": 307,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0
+                        },
+                        "ligand2": {
+                            "name": "C30",
+                            "element": "C",
+                            "chain": "A",
+                            "residue": "6SG",
+                            "sequence": 307,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0
+                        },
+                        "angle": 158.86,
+                        "std": 7.45
+                    },
+                    {
+                        "ligand1": {
+                            "name": "C23",
+                            "element": "C",
+                            "chain": "A",
+                            "residue": "6SG",
+                            "sequence": 307,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0
+                        },
+                        "ligand2": {
+                            "name": "C31",
+                            "element": "C",
+                            "chain": "A",
+                            "residue": "6SG",
+                            "sequence": 307,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0
+                        },
+                        "angle": 158.86,
+                        "std": 7.45
+                    },
+                    {
+                        "ligand1": {
+                            "name": "C23",
+                            "element": "C",
+                            "chain": "A",
+                            "residue": "6SG",
+                            "sequence": 307,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0
+                        },
+                        "ligand2": {
+                            "name": "C32",
+                            "element": "C",
+                            "chain": "A",
+                            "residue": "6SG",
+                            "sequence": 307,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0
+                        },
+                        "angle": 123.29,
+                        "std": 5.62
+                    },
+                    {
+                        "ligand1": {
+                            "name": "C23",
+                            "element": "C",
+                            "chain": "A",
+                            "residue": "6SG",
+                            "sequence": 307,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0
+                        },
+                        "ligand2": {
+                            "name": "C33",
+                            "element": "C",
+                            "chain": "A",
+                            "residue": "6SG",
+                            "sequence": 307,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0
+                        },
+                        "angle": 108.22,
+                        "std": 3.0
+                    },
+                    {
+                        "ligand1": {
+                            "name": "C23",
+                            "element": "C",
+                            "chain": "A",
+                            "residue": "6SG",
+                            "sequence": 307,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0
+                        },
+                        "ligand2": {
+                            "name": "C34",
+                            "element": "C",
+                            "chain": "A",
+                            "residue": "6SG",
+                            "sequence": 307,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0
+                        },
+                        "angle": 123.29,
+                        "std": 5.62
+                    },
+                    {
+                        "ligand1": {
+                            "name": "C23",
+                            "element": "C",
+                            "chain": "A",
+                            "residue": "6SG",
+                            "sequence": 307,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0
+                        },
+                        "ligand2": {
+                            "name": "C20",
+                            "element": "C",
+                            "chain": "A",
+                            "residue": "6SG",
+                            "sequence": 307,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0
+                        },
+                        "angle": 68.27,
+                        "std": 3.0
+                    },
+                    {
+                        "ligand1": {
+                            "name": "C23",
+                            "element": "C",
+                            "chain": "A",
+                            "residue": "6SG",
+                            "sequence": 307,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0
+                        },
+                        "ligand2": {
+                            "name": "C21",
+                            "element": "C",
+                            "chain": "A",
+                            "residue": "6SG",
+                            "sequence": 307,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0
+                        },
+                        "angle": 68.27,
+                        "std": 3.0
+                    },
+                    {
+                        "ligand1": {
+                            "name": "C23",
+                            "element": "C",
+                            "chain": "A",
+                            "residue": "6SG",
+                            "sequence": 307,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0
+                        },
+                        "ligand2": {
+                            "name": "C22",
+                            "element": "C",
+                            "chain": "A",
+                            "residue": "6SG",
+                            "sequence": 307,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0
+                        },
+                        "angle": 40.58,
+                        "std": 3.0
+                    },
+                    {
+                        "ligand1": {
+                            "name": "C24",
+                            "element": "C",
+                            "chain": "A",
+                            "residue": "6SG",
+                            "sequence": 307,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0
+                        },
+                        "ligand2": {
+                            "name": "C30",
+                            "element": "C",
+                            "chain": "A",
+                            "residue": "6SG",
+                            "sequence": 307,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0
+                        },
+                        "angle": 158.86,
+                        "std": 7.45
+                    },
+                    {
+                        "ligand1": {
+                            "name": "C24",
+                            "element": "C",
+                            "chain": "A",
+                            "residue": "6SG",
+                            "sequence": 307,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0
+                        },
+                        "ligand2": {
+                            "name": "C31",
+                            "element": "C",
+                            "chain": "A",
+                            "residue": "6SG",
+                            "sequence": 307,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0
+                        },
+                        "angle": 123.29,
+                        "std": 5.62
+                    },
+                    {
+                        "ligand1": {
+                            "name": "C24",
+                            "element": "C",
+                            "chain": "A",
+                            "residue": "6SG",
+                            "sequence": 307,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0
+                        },
+                        "ligand2": {
+                            "name": "C32",
+                            "element": "C",
+                            "chain": "A",
+                            "residue": "6SG",
+                            "sequence": 307,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0
+                        },
+                        "angle": 108.22,
+                        "std": 3.0
+                    },
+                    {
+                        "ligand1": {
+                            "name": "C24",
+                            "element": "C",
+                            "chain": "A",
+                            "residue": "6SG",
+                            "sequence": 307,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0
+                        },
+                        "ligand2": {
+                            "name": "C33",
+                            "element": "C",
+                            "chain": "A",
+                            "residue": "6SG",
+                            "sequence": 307,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0
+                        },
+                        "angle": 123.29,
+                        "std": 5.62
+                    },
+                    {
+                        "ligand1": {
+                            "name": "C24",
+                            "element": "C",
+                            "chain": "A",
+                            "residue": "6SG",
+                            "sequence": 307,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0
+                        },
+                        "ligand2": {
+                            "name": "C34",
+                            "element": "C",
+                            "chain": "A",
+                            "residue": "6SG",
+                            "sequence": 307,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0
+                        },
+                        "angle": 158.86,
+                        "std": 7.45
+                    },
+                    {
+                        "ligand1": {
+                            "name": "C24",
+                            "element": "C",
+                            "chain": "A",
+                            "residue": "6SG",
+                            "sequence": 307,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0
+                        },
+                        "ligand2": {
+                            "name": "C20",
+                            "element": "C",
+                            "chain": "A",
+                            "residue": "6SG",
+                            "sequence": 307,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0
+                        },
+                        "angle": 40.58,
+                        "std": 3.0
+                    },
+                    {
+                        "ligand1": {
+                            "name": "C24",
+                            "element": "C",
+                            "chain": "A",
+                            "residue": "6SG",
+                            "sequence": 307,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0
+                        },
+                        "ligand2": {
+                            "name": "C21",
+                            "element": "C",
+                            "chain": "A",
+                            "residue": "6SG",
+                            "sequence": 307,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0
+                        },
+                        "angle": 68.27,
+                        "std": 3.0
+                    },
+                    {
+                        "ligand1": {
+                            "name": "C24",
+                            "element": "C",
+                            "chain": "A",
+                            "residue": "6SG",
+                            "sequence": 307,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0
+                        },
+                        "ligand2": {
+                            "name": "C22",
+                            "element": "C",
+                            "chain": "A",
+                            "residue": "6SG",
+                            "sequence": 307,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0
+                        },
+                        "angle": 68.27,
+                        "std": 3.0
+                    },
+                    {
+                        "ligand1": {
+                            "name": "C30",
+                            "element": "C",
+                            "chain": "A",
+                            "residue": "6SG",
+                            "sequence": 307,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0
+                        },
+                        "ligand2": {
+                            "name": "C31",
+                            "element": "C",
+                            "chain": "A",
+                            "residue": "6SG",
+                            "sequence": 307,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0
+                        },
+                        "angle": 40.58,
+                        "std": 3.0
+                    },
+                    {
+                        "ligand1": {
+                            "name": "C30",
+                            "element": "C",
+                            "chain": "A",
+                            "residue": "6SG",
+                            "sequence": 307,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0
+                        },
+                        "ligand2": {
+                            "name": "C32",
+                            "element": "C",
+                            "chain": "A",
+                            "residue": "6SG",
+                            "sequence": 307,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0
+                        },
+                        "angle": 68.27,
+                        "std": 3.0
+                    },
+                    {
+                        "ligand1": {
+                            "name": "C30",
+                            "element": "C",
+                            "chain": "A",
+                            "residue": "6SG",
+                            "sequence": 307,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0
+                        },
+                        "ligand2": {
+                            "name": "C33",
+                            "element": "C",
+                            "chain": "A",
+                            "residue": "6SG",
+                            "sequence": 307,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0
+                        },
+                        "angle": 68.27,
+                        "std": 3.0
+                    },
+                    {
+                        "ligand1": {
+                            "name": "C30",
+                            "element": "C",
+                            "chain": "A",
+                            "residue": "6SG",
+                            "sequence": 307,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0
+                        },
+                        "ligand2": {
+                            "name": "C34",
+                            "element": "C",
+                            "chain": "A",
+                            "residue": "6SG",
+                            "sequence": 307,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0
+                        },
+                        "angle": 40.58,
+                        "std": 3.0
+                    },
+                    {
+                        "ligand1": {
+                            "name": "C30",
+                            "element": "C",
+                            "chain": "A",
+                            "residue": "6SG",
+                            "sequence": 307,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0
+                        },
+                        "ligand2": {
+                            "name": "C20",
+                            "element": "C",
+                            "chain": "A",
+                            "residue": "6SG",
+                            "sequence": 307,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0
+                        },
+                        "angle": 123.29,
+                        "std": 5.62
+                    },
+                    {
+                        "ligand1": {
+                            "name": "C30",
+                            "element": "C",
+                            "chain": "A",
+                            "residue": "6SG",
+                            "sequence": 307,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0
+                        },
+                        "ligand2": {
+                            "name": "C21",
+                            "element": "C",
+                            "chain": "A",
+                            "residue": "6SG",
+                            "sequence": 307,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0
+                        },
+                        "angle": 108.22,
+                        "std": 3.0
+                    },
+                    {
+                        "ligand1": {
+                            "name": "C30",
+                            "element": "C",
+                            "chain": "A",
+                            "residue": "6SG",
+                            "sequence": 307,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0
+                        },
+                        "ligand2": {
+                            "name": "C22",
+                            "element": "C",
+                            "chain": "A",
+                            "residue": "6SG",
+                            "sequence": 307,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0
+                        },
+                        "angle": 123.29,
+                        "std": 5.62
+                    },
+                    {
+                        "ligand1": {
+                            "name": "C31",
+                            "element": "C",
+                            "chain": "A",
+                            "residue": "6SG",
+                            "sequence": 307,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0
+                        },
+                        "ligand2": {
+                            "name": "C32",
+                            "element": "C",
+                            "chain": "A",
+                            "residue": "6SG",
+                            "sequence": 307,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0
+                        },
+                        "angle": 40.58,
+                        "std": 3.0
+                    },
+                    {
+                        "ligand1": {
+                            "name": "C31",
+                            "element": "C",
+                            "chain": "A",
+                            "residue": "6SG",
+                            "sequence": 307,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0
+                        },
+                        "ligand2": {
+                            "name": "C33",
+                            "element": "C",
+                            "chain": "A",
+                            "residue": "6SG",
+                            "sequence": 307,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0
+                        },
+                        "angle": 68.27,
+                        "std": 3.0
+                    },
+                    {
+                        "ligand1": {
+                            "name": "C31",
+                            "element": "C",
+                            "chain": "A",
+                            "residue": "6SG",
+                            "sequence": 307,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0
+                        },
+                        "ligand2": {
+                            "name": "C34",
+                            "element": "C",
+                            "chain": "A",
+                            "residue": "6SG",
+                            "sequence": 307,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0
+                        },
+                        "angle": 68.27,
+                        "std": 3.0
+                    },
+                    {
+                        "ligand1": {
+                            "name": "C31",
+                            "element": "C",
+                            "chain": "A",
+                            "residue": "6SG",
+                            "sequence": 307,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0
+                        },
+                        "ligand2": {
+                            "name": "C20",
+                            "element": "C",
+                            "chain": "A",
+                            "residue": "6SG",
+                            "sequence": 307,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0
+                        },
+                        "angle": 108.22,
+                        "std": 3.0
+                    },
+                    {
+                        "ligand1": {
+                            "name": "C31",
+                            "element": "C",
+                            "chain": "A",
+                            "residue": "6SG",
+                            "sequence": 307,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0
+                        },
+                        "ligand2": {
+                            "name": "C21",
+                            "element": "C",
+                            "chain": "A",
+                            "residue": "6SG",
+                            "sequence": 307,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0
+                        },
+                        "angle": 123.29,
+                        "std": 5.62
+                    },
+                    {
+                        "ligand1": {
+                            "name": "C31",
+                            "element": "C",
+                            "chain": "A",
+                            "residue": "6SG",
+                            "sequence": 307,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0
+                        },
+                        "ligand2": {
+                            "name": "C22",
+                            "element": "C",
+                            "chain": "A",
+                            "residue": "6SG",
+                            "sequence": 307,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0
+                        },
+                        "angle": 158.86,
+                        "std": 7.45
+                    },
+                    {
+                        "ligand1": {
+                            "name": "C32",
+                            "element": "C",
+                            "chain": "A",
+                            "residue": "6SG",
+                            "sequence": 307,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0
+                        },
+                        "ligand2": {
+                            "name": "C33",
+                            "element": "C",
+                            "chain": "A",
+                            "residue": "6SG",
+                            "sequence": 307,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0
+                        },
+                        "angle": 40.58,
+                        "std": 3.0
+                    },
+                    {
+                        "ligand1": {
+                            "name": "C32",
+                            "element": "C",
+                            "chain": "A",
+                            "residue": "6SG",
+                            "sequence": 307,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0
+                        },
+                        "ligand2": {
+                            "name": "C34",
+                            "element": "C",
+                            "chain": "A",
+                            "residue": "6SG",
+                            "sequence": 307,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0
+                        },
+                        "angle": 68.27,
+                        "std": 3.0
+                    },
+                    {
+                        "ligand1": {
+                            "name": "C32",
+                            "element": "C",
+                            "chain": "A",
+                            "residue": "6SG",
+                            "sequence": 307,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0
+                        },
+                        "ligand2": {
+                            "name": "C20",
+                            "element": "C",
+                            "chain": "A",
+                            "residue": "6SG",
+                            "sequence": 307,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0
+                        },
+                        "angle": 123.29,
+                        "std": 5.62
+                    },
+                    {
+                        "ligand1": {
+                            "name": "C32",
+                            "element": "C",
+                            "chain": "A",
+                            "residue": "6SG",
+                            "sequence": 307,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0
+                        },
+                        "ligand2": {
+                            "name": "C21",
+                            "element": "C",
+                            "chain": "A",
+                            "residue": "6SG",
+                            "sequence": 307,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0
+                        },
+                        "angle": 158.86,
+                        "std": 7.45
+                    },
+                    {
+                        "ligand1": {
+                            "name": "C32",
+                            "element": "C",
+                            "chain": "A",
+                            "residue": "6SG",
+                            "sequence": 307,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0
+                        },
+                        "ligand2": {
+                            "name": "C22",
+                            "element": "C",
+                            "chain": "A",
+                            "residue": "6SG",
+                            "sequence": 307,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0
+                        },
+                        "angle": 158.86,
+                        "std": 7.45
+                    },
+                    {
+                        "ligand1": {
+                            "name": "C33",
+                            "element": "C",
+                            "chain": "A",
+                            "residue": "6SG",
+                            "sequence": 307,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0
+                        },
+                        "ligand2": {
+                            "name": "C34",
+                            "element": "C",
+                            "chain": "A",
+                            "residue": "6SG",
+                            "sequence": 307,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0
+                        },
+                        "angle": 40.58,
+                        "std": 3.0
+                    },
+                    {
+                        "ligand1": {
+                            "name": "C33",
+                            "element": "C",
+                            "chain": "A",
+                            "residue": "6SG",
+                            "sequence": 307,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0
+                        },
+                        "ligand2": {
+                            "name": "C20",
+                            "element": "C",
+                            "chain": "A",
+                            "residue": "6SG",
+                            "sequence": 307,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0
+                        },
+                        "angle": 158.86,
+                        "std": 7.45
+                    },
+                    {
+                        "ligand1": {
+                            "name": "C33",
+                            "element": "C",
+                            "chain": "A",
+                            "residue": "6SG",
+                            "sequence": 307,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0
+                        },
+                        "ligand2": {
+                            "name": "C21",
+                            "element": "C",
+                            "chain": "A",
+                            "residue": "6SG",
+                            "sequence": 307,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0
+                        },
+                        "angle": 158.86,
+                        "std": 7.45
+                    },
+                    {
+                        "ligand1": {
+                            "name": "C33",
+                            "element": "C",
+                            "chain": "A",
+                            "residue": "6SG",
+                            "sequence": 307,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0
+                        },
+                        "ligand2": {
+                            "name": "C22",
+                            "element": "C",
+                            "chain": "A",
+                            "residue": "6SG",
+                            "sequence": 307,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0
+                        },
+                        "angle": 123.29,
+                        "std": 5.62
+                    },
+                    {
+                        "ligand1": {
+                            "name": "C34",
+                            "element": "C",
+                            "chain": "A",
+                            "residue": "6SG",
+                            "sequence": 307,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0
+                        },
+                        "ligand2": {
+                            "name": "C20",
+                            "element": "C",
+                            "chain": "A",
+                            "residue": "6SG",
+                            "sequence": 307,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0
+                        },
+                        "angle": 158.86,
+                        "std": 7.45
+                    },
+                    {
+                        "ligand1": {
+                            "name": "C34",
+                            "element": "C",
+                            "chain": "A",
+                            "residue": "6SG",
+                            "sequence": 307,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0
+                        },
+                        "ligand2": {
+                            "name": "C21",
+                            "element": "C",
+                            "chain": "A",
+                            "residue": "6SG",
+                            "sequence": 307,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0
+                        },
+                        "angle": 123.29,
+                        "std": 5.62
+                    },
+                    {
+                        "ligand1": {
+                            "name": "C34",
+                            "element": "C",
+                            "chain": "A",
+                            "residue": "6SG",
+                            "sequence": 307,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0
+                        },
+                        "ligand2": {
+                            "name": "C22",
+                            "element": "C",
+                            "chain": "A",
+                            "residue": "6SG",
+                            "sequence": 307,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0
+                        },
+                        "angle": 108.22,
+                        "std": 3.0
+                    },
+                    {
+                        "ligand1": {
+                            "name": "C20",
+                            "element": "C",
+                            "chain": "A",
+                            "residue": "6SG",
+                            "sequence": 307,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0
+                        },
+                        "ligand2": {
+                            "name": "C21",
+                            "element": "C",
+                            "chain": "A",
+                            "residue": "6SG",
+                            "sequence": 307,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0
+                        },
+                        "angle": 40.58,
+                        "std": 3.0
+                    },
+                    {
+                        "ligand1": {
+                            "name": "C20",
+                            "element": "C",
+                            "chain": "A",
+                            "residue": "6SG",
+                            "sequence": 307,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0
+                        },
+                        "ligand2": {
+                            "name": "C22",
+                            "element": "C",
+                            "chain": "A",
+                            "residue": "6SG",
+                            "sequence": 307,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0
+                        },
+                        "angle": 68.27,
+                        "std": 3.0
+                    },
+                    {
+                        "ligand1": {
+                            "name": "C21",
+                            "element": "C",
+                            "chain": "A",
+                            "residue": "6SG",
+                            "sequence": 307,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0
+                        },
+                        "ligand2": {
+                            "name": "C22",
+                            "element": "C",
+                            "chain": "A",
+                            "residue": "6SG",
+                            "sequence": 307,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0
+                        },
+                        "angle": 40.58,
+                        "std": 3.0
+                    }
+                ],
+                "pdb": []
+            }
+        ]
+    }
+]
