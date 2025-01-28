@@ -23,7 +23,7 @@ tqdm = ">=4.0.0"
 scipy = ">=1.0.0"
 networkx = "^3.2.1"
 scikit-learn = "^1.4.0"
-gemmi = "^0.6.2"
+gemmi = ">=0.6.2"
 
 [tool.poetry.scripts]
 metalCoord = "metalCoord.run:main_func"
