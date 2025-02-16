@@ -7,7 +7,7 @@ from typing import Any, List, NamedTuple
 import pytest
 
 
-class TestCase(NamedTuple):
+class StatsModeTestCase(NamedTuple):
     """
     A named tuple representing a test case for metal coordination analysis.
 
@@ -23,28 +23,28 @@ class TestCase(NamedTuple):
 
 # Define test cases
 TEST_CASES = [
-    TestCase("AF3", './tests/data/models/4dl8.cif', "Aluminum fluoride complex. mmCIF file"),
-    TestCase("AF3", './tests/data/models/4dl8.pdb', "Aluminum fluoride complex. pdb file"),
-    TestCase("AF3", '4dl8', "Aluminum fluoride complex. RCSB PDB ID"),
+    StatsModeTestCase("AF3", str(Path('./tests/data/models/4dl8.cif')), "Aluminum fluoride complex. mmCIF file"),
+    StatsModeTestCase("AF3", str(Path('./tests/data/models/4dl8.pdb')), "Aluminum fluoride complex. pdb file"),
+    StatsModeTestCase("AF3", '4dl8', "Aluminum fluoride complex. RCSB PDB ID"),
 ]
 
 root = os.path.abspath(os.path.dirname(__file__))
 
 
 @pytest.fixture(params=TEST_CASES)
-def test_case(request: Any) -> TestCase:
+def test_case(request: Any) -> StatsModeTestCase:
     """Fixture that provides the test case."""
     return request.param
 
 
 @pytest.fixture
-def temp_dir(test_case: TestCase, tmp_path_factory: pytest.TempPathFactory) -> Path:
+def temp_dir(test_case: StatsModeTestCase, tmp_path_factory: pytest.TempPathFactory) -> Path:
     """Create a unique temporary directory for each test case."""
     return tmp_path_factory.mktemp(f"data_{test_case.ligand_name}_{os.urandom(8).hex()}")
 
 
 @pytest.fixture
-def cli_output(temp_dir: Path, test_case: TestCase) -> List:
+def cli_output(temp_dir: Path, test_case: StatsModeTestCase) -> List:
     """Fixture that runs the CLI command and returns the output data."""
     model = test_case.model
     ligand_name = test_case.ligand_name
@@ -112,7 +112,7 @@ def validated_ligands(validated_structure: List) -> List:
     return validated_structure
 
 
-def test_main_func_stats_af3_cif_with_validation(validated_ligands: List, test_case: TestCase):
+def test_main_func_stats_af3_cif_with_validation(validated_ligands: List, test_case: StatsModeTestCase):
     """Main test function that uses validated data."""
     # Test geometry classes
     expected_classes = {
@@ -147,7 +147,7 @@ def test_main_func_stats_af3_cif_with_validation(validated_ligands: List, test_c
 
 
 
-def test_specific_af3_properties(validated_ligands: List, test_case: TestCase):
+def test_specific_af3_properties(validated_ligands: List, test_case: StatsModeTestCase):
     """Test specific properties expected for AF3 ligand."""
     for entry in validated_ligands:
         assert entry["residue"] == "AF3", f"Expected AF3 residue for {test_case.ligand_name}"

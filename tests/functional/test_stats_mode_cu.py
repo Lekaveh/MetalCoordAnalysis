@@ -3,11 +3,21 @@ import os
 import subprocess
 from pathlib import Path
 from typing import Any, Dict, List, NamedTuple
-from dataclasses import dataclass
 import pytest
 
-@dataclass
-class TestCase:
+
+class StatsModeTestCase(NamedTuple):
+    """
+    A test case class for statistical mode analysis of copper coordination in ligands.
+
+    Attributes:
+        ligand_name (str): The name of the ligand being analyzed.
+        model (str): The model used for the analysis.
+        parameters (Dict[str, str]): A dictionary of parameters used in the analysis.
+        output_suffix (str): The suffix to be added to the output files.
+        reference_file (str): The path to the reference file used for comparison.
+        description (str): A brief description of the test case.
+    """
     ligand_name: str
     model: str
     parameters: Dict[str, str]
@@ -79,34 +89,34 @@ def compare_specific_fields(data1: List[Dict], data2: List[Dict]) -> List[str]:
 
 # Test cases
 TEST_CASES = [
-    TestCase(
+    StatsModeTestCase(
         ligand_name="CU",
-        model="./tests/data/models/3kw8.cif",
+        model=str(Path("./tests/data/models/3kw8.cif")),
         parameters={},
         output_suffix="",
-        reference_file="./tests/data/results/3kw8_CU_mc.json",
+        reference_file=str(Path("./tests/data/results/3kw8_CU_mc.json")),
         description="Sodium coordination"
     ),
-    TestCase(
+    StatsModeTestCase(
         ligand_name="CU",
-        model="./tests/data/models/3kw8.cif",
+        model=str(Path("./tests/data/models/3kw8.cif")),
         parameters={"-d": "0.4"},
         output_suffix="-d0p4",
-        reference_file="./tests/data/results/3kw8_CU_mc-d0p4.json",
+        reference_file=str(Path("./tests/data/results/3kw8_CU_mc-d0p4.json")),
         description="Copper coordination with distance cutoff"
     ),
-    TestCase(
+    StatsModeTestCase(
         ligand_name="CU",
-        model="./tests/data/models/3kw8.cif",
+        model=str(Path("./tests/data/models/3kw8.cif")),
         parameters={"-c": "3"},
         output_suffix="-c3",
-        reference_file="./tests/data/results/3kw8_CU_mc-c3.json",
+        reference_file=str(Path("./tests/data/results/3kw8_CU_mc-c3.json")),
         description="Copper coordination with coordination number 3"
     )
 ]
 
 @pytest.fixture(params=TEST_CASES)
-def test_case(request: Any) -> TestCase:
+def test_case(request: Any) -> StatsModeTestCase:
     """Fixture that provides the test case."""
     return request.param
 
@@ -115,7 +125,7 @@ def temp_dir(tmp_path_factory: pytest.TempPathFactory) -> Path:
     """Create a temporary directory for test outputs."""
     return tmp_path_factory.mktemp("metal_coordination_tests")
 
-def test_metal_coordination_specific_fields(test_case: TestCase, temp_dir: Path):
+def test_metal_coordination_specific_fields(test_case: StatsModeTestCase, temp_dir: Path):
     """Test specific fields of metal coordination output."""
     # Build command
     output_file = f"{test_case.ligand_name}_mc{test_case.output_suffix}.json"

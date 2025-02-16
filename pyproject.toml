@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "metalcoordanalysis"
-version = "0.1.79" 
+version = "0.1.80" 
 description = "Metal Coordination Analysis Tool"
 authors = ["Kaveh Babai <lekaveh@gmail.com>", "Fei Long", "Matrin Maly", "Keitaro Yamashita", "Garib N. Murshudov <garib@mrc-lmb.cam.ac.uk>"]
 readme = "README.md"

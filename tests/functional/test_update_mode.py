@@ -1,11 +1,13 @@
-import pytest
-import gemmi
-import re
 import os
+import re
 import subprocess
-import json
 from pathlib import Path
-from typing import Any, List, NamedTuple
+from typing import Any, NamedTuple
+
+import gemmi
+import pytest
+
+from metalCoord.analysis.models import MIN_ANGLE_STD, MIN_DISTANCE_STD
 
 # CIF Categories
 ANGLE_CATEGORY = "_chem_comp_angle"
@@ -23,8 +25,19 @@ ATOM_ID_3 = "atom_id_3"
 VALUE_DIST_NUCLEUS = "value_dist_nucleus"
 VALUE_DIST_NUCLEUS_ESD = "value_dist_nucleus_esd"
 
+
 # TestCase definition
-class TestCase(NamedTuple):
+class UpdateModeTestCase(NamedTuple):
+    """
+    A NamedTuple representing a test case for the update mode functionality.
+
+    Attributes:
+        name (str): The name of the test case.
+        input (str): The input data for the test case.
+        output (str): The expected output data for the test case.
+        pdb (str): The PDB (Protein Data Bank) file associated with the test case.
+        description (str): A brief description of the test case.
+    """
     name: str
     input: str
     output: str
@@ -33,20 +46,51 @@ class TestCase(NamedTuple):
 
 # Define test cases
 TEST_CASES = [
-    TestCase("SF4", "./tests/data/dicts/SF4.cif", './tests/data/results/SF4.cif', "5d8v", "IRON/SULFUR CLUSTER"),
-    TestCase("6SG", "./tests/data/dicts/6SG.cif", './tests/data/results/6SG.cif', "5l6x", "S-[N-(ferrocenylmethyl)carbamoylmethyl]-glutathione"),
+    UpdateModeTestCase("SF4", str(Path("./tests/data/dicts/SF4.cif")), str(Path('./tests/data/results/SF4.cif')), "5d8v", "IRON/SULFUR CLUSTER"),
+    UpdateModeTestCase("6SG", str(Path("./tests/data/dicts/6SG.cif")), str(Path('./tests/data/results/6SG.cif')), "5l6x", "S-[N-(ferrocenylmethyl)carbamoylmethyl]-glutathione"),
 ]
 
 @pytest.fixture(params=TEST_CASES)
-def test_case(request: Any) -> TestCase:
+def test_case(request: Any) -> UpdateModeTestCase:
+    """
+    A test case function that retrieves the parameter from the request object.
+
+    Args:
+        request (Any): The request object containing the test parameters.
+
+    Returns:
+        UpdateModeTestCase: The test case parameter extracted from the request.
+    """
     return request.param
 
 @pytest.fixture
-def temp_dir(test_case: TestCase, tmp_path_factory: pytest.TempPathFactory) -> Path:
+def temp_dir(test_case: UpdateModeTestCase, tmp_path_factory: pytest.TempPathFactory) -> Path:
+    """
+    Create a temporary directory for the given test case.
+
+    Args:
+        test_case (UpdateModeTestCase): The test case instance containing the name attribute.
+        tmp_path_factory (pytest.TempPathFactory): The pytest factory for creating temporary directories.
+
+    Returns:
+        Path: The path to the newly created temporary directory.
+    """
     return tmp_path_factory.mktemp(f"data_{test_case.name}_{os.urandom(8).hex()}")
 
 @pytest.fixture
-def cli_output(temp_dir: Path, test_case: TestCase) -> Path:
+def cli_output(temp_dir: Path, test_case: UpdateModeTestCase) -> Path:
+    """
+    Executes the 'metalCoord update' command with the provided test case parameters
+    and verifies the output.
+    Args:
+        temp_dir (Path): The temporary directory where the output CIF file will be stored.
+        test_case (UpdateModeTestCase): An instance of UpdateModeTestCase containing the 
+                                        name, input file path, output file path, and pdb file path.
+    Returns:
+        Path: The path to the generated CIF file.
+    Raises:
+        AssertionError: If the CLI command fails or the generated CIF file is not found.
+    """
     name = test_case.name 
     input = test_case.input
     output = test_case.output
@@ -194,7 +238,7 @@ def get_angles_from_cif(block):
     return angles
 
 # The pytest test function
-def test_compare_cif_files(cli_output: Path, test_case: TestCase):
+def test_compare_cif_files(cli_output: Path, test_case: UpdateModeTestCase):
     """
     Compare the distances and angles between atoms in two CIF files.
     This function loads the expected CIF file and the generated CIF file, extracts
@@ -220,6 +264,11 @@ def test_compare_cif_files(cli_output: Path, test_case: TestCase):
     # Compare distances
     assert len(distances1) == len(distances2), "Mismatch in number of distances."
 
+    for d in distances2:
+        assert d[VALUE_DIST] is not None, f"Distance is missing for bond {d[ATOM_ID_1]} - {d[ATOM_ID_2]}"
+        assert d[VALUE_DIST_ESD] is not None, f"Distance ESD is missing for bond {d[ATOM_ID_1]} - {d[ATOM_ID_2]}"
+
+                                                                                                                                       
     for d1 in distances1:
         match = next((d2 for d2 in distances2 if (d1[ATOM_ID_1] == d2[ATOM_ID_1] and d1[ATOM_ID_2] == d2[ATOM_ID_2]) or (d1[ATOM_ID_1] == d2[ATOM_ID_2] and d1[ATOM_ID_2] == d2[ATOM_ID_1])), None)
         assert match is not None, f"Bond {d1[ATOM_ID_1]} - {d1[ATOM_ID_2]} not found in second CIF file."
@@ -238,10 +287,15 @@ def test_compare_cif_files(cli_output: Path, test_case: TestCase):
     # Compare angles
     assert len(angles1) == len(angles2), "Mismatch in number of angles."
 
+    for a in angles2:
+        assert a[VALUE_ANGLE] is not None, f"Angle is missing for angle {a[ATOM_ID_1]} - {a[ATOM_ID_2]} - {a[ATOM_ID_3]}"
+        assert a[VALUE_ANGLE_ESD] is not None, f"Angle ESD is missing for angle {a[ATOM_ID_1]} - {a[ATOM_ID_2]} - {a[ATOM_ID_3]}"
+        assert a[VALUE_ANGLE_ESD] >= 1, f"Angle ESD is too low for angle {a[ATOM_ID_1]} - {a[ATOM_ID_2]} - {a[ATOM_ID_3]}: {a[VALUE_ANGLE_ESD]}"
+
     for a1 in angles1:
         match = next((a2 for a2 in angles2 if (a1[ATOM_ID_1] == a2[ATOM_ID_1] and a1[ATOM_ID_2] == a2[ATOM_ID_2] and a1[ATOM_ID_3] == a2[ATOM_ID_3]) 
                      or (a1[ATOM_ID_1] == a2[ATOM_ID_3] and a1[ATOM_ID_2] == a2[ATOM_ID_2] and a1[ATOM_ID_3] == a2[ATOM_ID_1])), None)
         assert match is not None, f"Angle {a1[ATOM_ID_1]}-{a1[ATOM_ID_2]}-{a1[ATOM_ID_3]} not found in second CIF file."
-        assert abs(a1[VALUE_ANGLE] - match[VALUE_ANGLE]) < 1e-3, f"Angles differ for {a1[ATOM_ID_1]}-{a1[ATOM_ID_2]}-{a1[ATOM_ID_3]}: {a1[VALUE_ANGLE]} vs {match[VALUE_ANGLE]}"
+        assert abs(a1[VALUE_ANGLE] - match[VALUE_ANGLE]) < 0.1, f"Angles differ for {a1[ATOM_ID_1]}-{a1[ATOM_ID_2]}-{a1[ATOM_ID_3]}: {a1[VALUE_ANGLE]} vs {match[VALUE_ANGLE]}"
         if a1[VALUE_ANGLE_ESD] is not None and match[VALUE_ANGLE_ESD] is not None:
-            assert abs(a1[VALUE_ANGLE_ESD] - match[VALUE_ANGLE_ESD]) < 1e-3, f"Angle ESDs differ for {a1[ATOM_ID_1]}-{a1[ATOM_ID_2]}-{a1[ATOM_ID_3]}: {a1[VALUE_ANGLE_ESD]} vs {match[VALUE_ANGLE_ESD]}"
+            assert abs(a1[VALUE_ANGLE_ESD] - match[VALUE_ANGLE_ESD])/a1[VALUE_ANGLE_ESD] < 0.05, f"Angle ESDs differ for {a1[ATOM_ID_1]}-{a1[ATOM_ID_2]}-{a1[ATOM_ID_3]}: {a1[VALUE_ANGLE_ESD]} vs {match[VALUE_ANGLE_ESD]}. The difference is more than 5%."

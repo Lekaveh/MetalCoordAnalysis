@@ -5,6 +5,8 @@ import metalCoord.analysis
 import metalCoord.analysis.structures
 from metalCoord.analysis.data import DB
 
+MIN_ANGLE_STD = 3.0
+MIN_DISTANCE_STD = 0.02
 
 class Ligand:
     """
@@ -128,7 +130,7 @@ class DistanceStats:
                  procrustes_dists: np.ndarray = None, description: str = "") -> None:
         self._ligand: Ligand = ligand
         self._distance: float = np.round(distance, 2).tolist()
-        self._std: float = np.round(np.where(std > 0.02, std, 0.02), 2).tolist()
+        self._std: float = np.round(np.where(std > MIN_DISTANCE_STD, std, MIN_DISTANCE_STD), 2).tolist()
         self._distances: np.ndarray = distances
         self._procrustes_dists: np.ndarray = procrustes_dists
         self._description: str = description
@@ -199,7 +201,7 @@ class AngleStats:
         self._ligand1: Ligand = ligand1
         self._ligand2: Ligand = ligand2
         self._angle: float = np.round(angle_value, 2).tolist()
-        self._std: float = np.round(np.where(std > 3.0, std, 3.0), 2).tolist()
+        self._std: float = np.round(np.where(std > MIN_ANGLE_STD, std, MIN_ANGLE_STD), 2).tolist()
         self._is_ligand: bool = is_ligand
         self._angles: np.ndarray = angles
         self._procrustes_dists: np.ndarray = procrustes_dists

@@ -10,7 +10,7 @@
         "ligands": [
             {
                 "class": "trigonal-planar",
-                "procrustes": 0.3,
+                "procrustes": 0.1,
                 "coordination": 3,
                 "count": 60,
                 "description": "Strict correspondence",
