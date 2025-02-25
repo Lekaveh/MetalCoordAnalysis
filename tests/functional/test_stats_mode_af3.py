@@ -21,14 +21,14 @@ class StatsModeTestCase(NamedTuple):
     description: str
 
 
+root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+
 # Define test cases
 TEST_CASES = [
-    StatsModeTestCase("AF3", str(Path('./tests/data/models/4dl8.cif')), "Aluminum fluoride complex. mmCIF file"),
-    StatsModeTestCase("AF3", str(Path('./tests/data/models/4dl8.pdb')), "Aluminum fluoride complex. pdb file"),
+    StatsModeTestCase("AF3", os.path.join(root, str(Path('./data/models/4dl8.cif'))), "Aluminum fluoride complex. mmCIF file"),
+    StatsModeTestCase("AF3", os.path.join(root, str(Path('./data/models/4dl8.pdb'))), "Aluminum fluoride complex. pdb file"),
     StatsModeTestCase("AF3", '4dl8', "Aluminum fluoride complex. RCSB PDB ID"),
 ]
-
-root = os.path.abspath(os.path.dirname(__file__))
 
 
 @pytest.fixture(params=TEST_CASES)
