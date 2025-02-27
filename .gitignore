@@ -173,9 +173,6 @@ cython_debug/
 # Built Visual Studio Code Extensions
 *.vsix
 
-# macromolecular crystallography files
-*.cif
-*.pdb
 
-test/*
+
 notebooks/*

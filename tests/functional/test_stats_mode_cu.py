@@ -97,7 +97,15 @@ TEST_CASES = [
         parameters={},
         output_suffix="",
         reference_file=os.path.join(tests_dir, str(Path("./data/results/3kw8_CU_mc.json"))),
-        description="Sodium coordination"
+        description="Sodium coordination with mmCIF file"
+    ),
+    StatsModeTestCase(
+        ligand_name="CU",
+        model=os.path.join(tests_dir, str(Path("./data/models/3kw8.pdb"))),
+        parameters={},
+        output_suffix="",
+        reference_file=os.path.join(tests_dir, str(Path("./data/results/3kw8_CU_mc.json"))),
+        description="Sodium coordination with PDB file"
     ),
     StatsModeTestCase(
         ligand_name="CU",
