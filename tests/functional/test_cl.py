@@ -20,4 +20,3 @@ def test_version():
     assert result.returncode == 0, "CLI version command failed."
     assert re.search(r"metalCoord \d+\.\d+\.\d+",
                      result.stdout), "Version output does not contain \"metalCoord\" or a version number."
-

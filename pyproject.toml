@@ -39,6 +39,7 @@ jupyter = "^1.0.0"
 pytest = "^8.3.4"
 pytest-cov = "^6.0.0"
 pytest-randomly = "^3.16.0"
+flake8 = "^7.1.2"
 
 [tool.poetry.plugins."poetry.plugin"]
 "dynamic-versioning" = "poetry_dynamic_versioning.plugin"

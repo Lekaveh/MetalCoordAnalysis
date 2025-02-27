@@ -61,12 +61,12 @@ def cli_output(temp_dir: Path, test_case: StatsModeTestCase) -> List:
     model = test_case.model
     ligand_name = test_case.ligand_name
     test_args = [
-        'metalCoord', 'stats', 
-        '-l', ligand_name, 
-        '-p', model, 
+        'metalCoord', 'stats',
+        '-l', ligand_name,
+        '-p', model,
         '-o', os.path.join(temp_dir, f'{ligand_name}.json')
     ]
-    
+
     # Run CLI command
     result = subprocess.run(
         test_args, capture_output=True, text=True, check=True
@@ -77,12 +77,15 @@ def cli_output(temp_dir: Path, test_case: StatsModeTestCase) -> List:
 
     # Verify CLI execution
     assert result.returncode == 0, f"CLI stats command failed for {ligand_name}"
-    assert Path(output_path).exists(), f"Output file not found for {ligand_name}"
-    assert Path(status_path).exists(), f"Status file not found for {ligand_name}"
+    assert Path(output_path).exists(
+    ), f"Output file not found for {ligand_name}"
+    assert Path(status_path).exists(
+    ), f"Status file not found for {ligand_name}"
 
     # Check status file
     status = json.loads(Path(status_path).read_text(encoding='utf-8'))
-    assert status["status"] == "Success", f"Status file does not contain success status for {ligand_name}"
+    assert status[
+        "status"] == "Success", f"Status file does not contain success status for {ligand_name}"
 
     # Read and return the output data
     output_data = json.loads(Path(output_path).read_text(encoding='utf-8'))
@@ -94,15 +97,16 @@ def validated_structure(cli_output: List) -> List:
     """Fixture that validates basic structure and returns validated data."""
     assert isinstance(cli_output, list), "Result should be a list"
     assert len(cli_output) > 0, "Result should not be empty"
-    
+
     for entry in cli_output:
-        required_fields = ["chain", "residue", "sequence", "metal", "metalElement", "ligands"]
+        required_fields = ["chain", "residue", "sequence",
+                           "metal", "metalElement", "ligands"]
         for field in required_fields:
             assert field in entry, f"Missing required field: {field}"
-        
+
         assert isinstance(entry["ligands"], list), "Ligands should be a list"
         assert len(entry["ligands"]) > 0, "Ligands list should not be empty"
-    
+
     return cli_output
 
 
@@ -111,16 +115,22 @@ def validated_ligands(validated_structure: List) -> List:
     """Fixture that validates ligand structure and returns validated data."""
     for entry in validated_structure:
         for ligand in entry["ligands"]:
-            required_fields = ["class", "procrustes", "coordination", "count", "description"]
+            required_fields = ["class", "procrustes",
+                               "coordination", "count", "description"]
             for field in required_fields:
                 assert field in ligand, f"Missing required field in ligand: {field}"
-            
-            assert isinstance(ligand["class"], str), "Ligand class should be a string"
-            assert isinstance(ligand["procrustes"], float), "Procrustes should be a float"
-            assert isinstance(ligand["coordination"], int), "Coordination should be an integer"
-            assert isinstance(ligand["count"], int), "Count should be an integer"
-            assert isinstance(ligand["description"], str), "Description should be a string"
-    
+
+            assert isinstance(
+                ligand["class"], str), "Ligand class should be a string"
+            assert isinstance(ligand["procrustes"],
+                              float), "Procrustes should be a float"
+            assert isinstance(ligand["coordination"],
+                              int), "Coordination should be an integer"
+            assert isinstance(
+                ligand["count"], int), "Count should be an integer"
+            assert isinstance(ligand["description"],
+                              str), "Description should be a string"
+
     return validated_structure
 
 
@@ -136,12 +146,12 @@ def test_main_func_stats_af3_cif_with_validation(validated_ligands: List, test_c
         "hexagonal-planar",
         "sandwich_5_1"
     }
-    
+
     found_classes = set()
     for entry in validated_ligands:
         for ligand in entry["ligands"]:
             found_classes.add(ligand["class"])
-    
+
     assert found_classes.issubset(expected_classes), \
         f"Unexpected geometry classes found for {test_case.ligand_name}: {found_classes - expected_classes}"
 
@@ -152,18 +162,19 @@ def test_main_func_stats_af3_cif_with_validation(validated_ligands: List, test_c
                 f"Coordination number {ligand['coordination']} outside expected range (2-8) for {test_case.ligand_name}"
 
     # Test aluminum-specific properties
-    al_entries = [entry for entry in validated_ligands if entry["metalElement"] == "Al"]
+    al_entries = [
+        entry for entry in validated_ligands if entry["metalElement"] == "Al"]
     for entry in al_entries:
         for ligand in entry["ligands"]:
-            assert ligand["coordination"] == 6, f"Aluminum should have coordination number 6 for {test_case.ligand_name}"
-
+            assert ligand[
+                "coordination"] == 6, f"Aluminum should have coordination number 6 for {test_case.ligand_name}"
 
 
 def test_specific_af3_properties(validated_ligands: List, test_case: StatsModeTestCase):
     """Test specific properties expected for AF3 ligand."""
     for entry in validated_ligands:
         assert entry["residue"] == "AF3", f"Expected AF3 residue for {test_case.ligand_name}"
-        
+
         # Test for expected ligand properties
         for ligand in entry["ligands"]:
             if ligand["class"] == "octahedral":

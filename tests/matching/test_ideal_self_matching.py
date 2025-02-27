@@ -15,6 +15,7 @@ def ideal_classes():
     """
     return Class()
 
+
 def permute(coord: np.ndarray) -> np.ndarray:
     """
     Permute the rows of the input array.
@@ -32,6 +33,7 @@ def permute(coord: np.ndarray) -> np.ndarray:
     perm = np.insert(perm, 0, 0)
     return coord[perm]
 
+
 def test_non_sandwiches(ideal_classes: Class):
     """
     Test function to validate the fit of ideal classes that do not contain the term "sandwich".
@@ -42,10 +44,11 @@ def test_non_sandwiches(ideal_classes: Class):
     This function filters out any ideal classes that contain the term "sandwich" and then validates the fit of the remaining ideal classes.
     """
 
-
     ideals = ideal_classes.get_ideal_classes()
-    ideals = [ideal for ideal in ideals if "sandwich" not in ideal and ideal != "penta-trigonal-planar" and ideal_classes.get_coordination(ideal) <= 12]
+    ideals = [ideal for ideal in ideals if "sandwich" not in ideal and ideal !=
+              "penta-trigonal-planar" and ideal_classes.get_coordination(ideal) <= 12]
     validate_ideal_class_fit(ideal_classes, ideals)
+
 
 def test_sandwiches(ideal_classes: Class):
     """
@@ -58,10 +61,11 @@ def test_sandwiches(ideal_classes: Class):
         None
     """
 
-
     ideals = ideal_classes.get_ideal_classes()
-    ideals = [ideal for ideal in ideals if "sandwich" in ideal or ideal == "penta-trigonal-planar"]
+    ideals = [ideal for ideal in ideals if "sandwich" in ideal or ideal ==
+              "penta-trigonal-planar"]
     validate_ideal_class_fit(ideal_classes, ideals)
+
 
 def validate_ideal_class_fit(ideal_classes, ideals):
     """
@@ -80,11 +84,8 @@ def validate_ideal_class_fit(ideal_classes, ideals):
     for ideal in (pbar := tqdm(ideals, desc="Testing Ideal Classes")):
         pbar.set_postfix(ideal=ideal)
 
-        
         coord = ideal_classes.get_coordinates(ideal)
         assert np.allclose([fit(coord, coord)[0]], [0], atol=1e-5)
 
-
         permuted_coord = permute(coord)
         assert np.allclose([fit(coord, permuted_coord)[0]], [0], atol=1e-5)
-    

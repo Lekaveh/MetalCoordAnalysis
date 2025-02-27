@@ -7,7 +7,6 @@ from typing import Any, NamedTuple
 import gemmi
 import pytest
 
-from metalCoord.analysis.models import MIN_ANGLE_STD, MIN_DISTANCE_STD
 
 # CIF Categories
 ANGLE_CATEGORY = "_chem_comp_angle"
@@ -65,6 +64,7 @@ TEST_CASES = [
     ),
 ]
 
+
 @pytest.fixture(params=TEST_CASES)
 def test_case(request: Any) -> UpdateModeTestCase:
     """
@@ -77,6 +77,7 @@ def test_case(request: Any) -> UpdateModeTestCase:
         UpdateModeTestCase: The test case parameter extracted from the request.
     """
     return request.param
+
 
 @pytest.fixture
 def temp_dir(test_case: UpdateModeTestCase, tmp_path_factory: pytest.TempPathFactory) -> Path:
@@ -92,6 +93,7 @@ def temp_dir(test_case: UpdateModeTestCase, tmp_path_factory: pytest.TempPathFac
     """
     return tmp_path_factory.mktemp(f"data_{test_case.name}_{os.urandom(8).hex()}")
 
+
 @pytest.fixture
 def cli_output(temp_dir: Path, test_case: UpdateModeTestCase) -> Path:
     """
@@ -99,36 +101,37 @@ def cli_output(temp_dir: Path, test_case: UpdateModeTestCase) -> Path:
     and verifies the output.
     Args:
         temp_dir (Path): The temporary directory where the output CIF file will be stored.
-        test_case (UpdateModeTestCase): An instance of UpdateModeTestCase containing the 
-                                        name, input file path, output file path, and pdb file path.
+        test_case (UpdateModeTestCase): An instance of UpdateModeTestCase containing the name,
+        input file path, output file path, and pdb file path.
     Returns:
         Path: The path to the generated CIF file.
     Raises:
         AssertionError: If the CLI command fails or the generated CIF file is not found.
     """
-    name = test_case.name 
+    name = test_case.name
     input = test_case.input
-    output = test_case.output
     pdb = test_case.pdb
     output_path = os.path.join(temp_dir, f"{name}.cif")
 
     test_args = [
-        'metalCoord', 'update', 
-        '-i', input, 
-        '-p', pdb, 
+        'metalCoord', 'update',
+        '-i', input,
+        '-p', pdb,
         '-o', output_path
     ]
-    
+
     result = subprocess.run(
         test_args, capture_output=True, text=True, check=True
     )
 
     assert result.returncode == 0, f"CLI command failed for {name}"
-    assert Path(output_path).exists(), f"Generated CIF file not found for {name}"
-    
+    assert Path(output_path).exists(
+    ), f"Generated CIF file not found for {name}"
+
     return output_path
 
 # Helper functions to extract distances and angles from CIF
+
 
 def get_block_from_cif(path):
     """
@@ -168,6 +171,7 @@ def get_block_from_cif(path):
 
     return block
 
+
 def get_distances_from_cif(block):
     """
     Extracts bond distance information from a CIF (Crystallographic Information File) block.
@@ -190,9 +194,12 @@ def get_distances_from_cif(block):
         atom_id_1_list = bonds[ATOM_ID_1]
         atom_id_2_list = bonds[ATOM_ID_2]
         value_dist_list = bonds[VALUE_DIST]
-        value_dist_esd_list = bonds.get(VALUE_DIST_ESD, [None] * len(atom_id_1_list))
-        value_dist_nucleus_list = bonds.get(VALUE_DIST_NUCLEUS, [None] * len(atom_id_1_list))
-        value_dist_nucleus_esd_list = bonds.get(VALUE_DIST_NUCLEUS_ESD, [None] * len(atom_id_1_list))
+        value_dist_esd_list = bonds.get(
+            VALUE_DIST_ESD, [None] * len(atom_id_1_list))
+        value_dist_nucleus_list = bonds.get(
+            VALUE_DIST_NUCLEUS, [None] * len(atom_id_1_list))
+        value_dist_nucleus_esd_list = bonds.get(
+            VALUE_DIST_NUCLEUS_ESD, [None] * len(atom_id_1_list))
 
         for atom_id_1, atom_id_2, value_dist, value_dist_esd, value_dist_nucleus, value_dist_nucleus_esd in zip(
             atom_id_1_list,
@@ -208,9 +215,11 @@ def get_distances_from_cif(block):
                 VALUE_DIST: float(value_dist),
                 VALUE_DIST_ESD: float(value_dist_esd) if value_dist_esd else None,
                 VALUE_DIST_NUCLEUS: float(value_dist_nucleus) if value_dist_nucleus else None,
-                VALUE_DIST_NUCLEUS_ESD: float(value_dist_nucleus_esd) if value_dist_nucleus_esd else None
+                VALUE_DIST_NUCLEUS_ESD: float(
+                    value_dist_nucleus_esd) if value_dist_nucleus_esd else None
             })
     return distances
+
 
 def get_angles_from_cif(block):
     """
@@ -234,7 +243,8 @@ def get_angles_from_cif(block):
         atom_id_2_list = angle_data[ATOM_ID_2]
         atom_id_3_list = angle_data[ATOM_ID_3]
         value_angle_list = angle_data[VALUE_ANGLE]
-        value_angle_esd_list = angle_data.get(VALUE_ANGLE_ESD, [None] * len(atom_id_1_list))
+        value_angle_esd_list = angle_data.get(
+            VALUE_ANGLE_ESD, [None] * len(atom_id_1_list))
 
         for atom_id_1, atom_id_2, atom_id_3, value_angle, value_angle_esd in zip(
             atom_id_1_list,
@@ -248,11 +258,14 @@ def get_angles_from_cif(block):
                 ATOM_ID_2: atom_id_2,
                 ATOM_ID_3: atom_id_3,
                 VALUE_ANGLE: float(value_angle),
-                VALUE_ANGLE_ESD: float(value_angle_esd) if value_angle_esd else None
+                VALUE_ANGLE_ESD: float(
+                    value_angle_esd) if value_angle_esd else None
             })
     return angles
 
 # The pytest test function
+
+
 def test_compare_cif_files(cli_output: Path, test_case: UpdateModeTestCase):
     """
     Compare the distances and angles between atoms in two CIF files.
@@ -268,32 +281,65 @@ def test_compare_cif_files(cli_output: Path, test_case: UpdateModeTestCase):
     """
     # Load the expected CIF file
     expected_block = get_block_from_cif(test_case.output)
-    
+
     # Load the generated CIF file
     generated_block = get_block_from_cif(cli_output)
 
-    #Extract distances
+    # Extract distances
     distances1 = get_distances_from_cif(expected_block)
     distances2 = get_distances_from_cif(generated_block)
 
     # Compare distances
-    assert len(distances1) == len(distances2), "Mismatch in number of distances."
+    assert len(distances1) == len(
+        distances2), "Mismatch in number of distances."
 
     for d in distances2:
         assert d[VALUE_DIST] is not None, f"Distance is missing for bond {d[ATOM_ID_1]} - {d[ATOM_ID_2]}"
         assert d[VALUE_DIST_ESD] is not None, f"Distance ESD is missing for bond {d[ATOM_ID_1]} - {d[ATOM_ID_2]}"
 
-                                                                                                                                       
     for d1 in distances1:
-        match = next((d2 for d2 in distances2 if (d1[ATOM_ID_1] == d2[ATOM_ID_1] and d1[ATOM_ID_2] == d2[ATOM_ID_2]) or (d1[ATOM_ID_1] == d2[ATOM_ID_2] and d1[ATOM_ID_2] == d2[ATOM_ID_1])), None)
-        assert match is not None, f"Bond {d1[ATOM_ID_1]} - {d1[ATOM_ID_2]} not found in second CIF file."
-        assert abs(d1[VALUE_DIST] - match[VALUE_DIST]) < 1e-3, f"Distances differ for bond {d1[ATOM_ID_1]} - {d1[ATOM_ID_2]}: {d1[VALUE_DIST]} vs {match[VALUE_DIST]}"
+        match = next(
+            (
+                d2
+                for d2 in distances2
+                if (
+                    (d1[ATOM_ID_1] == d2[ATOM_ID_1]
+                     and d1[ATOM_ID_2] == d2[ATOM_ID_2])
+                    or (d1[ATOM_ID_1] == d2[ATOM_ID_2] and d1[ATOM_ID_2] == d2[ATOM_ID_1])
+                )
+            ),
+            None,
+        )
+
+        assert match is not None, (
+            f"Bond {d1[ATOM_ID_1]} - {d1[ATOM_ID_2]} not found in second CIF file."
+        )
+
+        assert abs(d1[VALUE_DIST] - match[VALUE_DIST]) < 1e-3, (
+            f"Distances differ for bond {d1[ATOM_ID_1]} - {d1[ATOM_ID_2]}: "
+            f"{d1[VALUE_DIST]} vs {match[VALUE_DIST]}"
+        )
+
         if d1[VALUE_DIST_ESD] is not None and match[VALUE_DIST_ESD] is not None:
-            assert abs(d1[VALUE_DIST_ESD] - match[VALUE_DIST_ESD]) < 1e-3, f"Distance ESDs differ for bond {d1[ATOM_ID_1]} - {d1[ATOM_ID_2]}: {d1[VALUE_DIST_ESD]} vs {match[VALUE_DIST_ESD]}"
+            assert abs(d1[VALUE_DIST_ESD] - match[VALUE_DIST_ESD]) < 1e-3, (
+                f"Distance ESDs differ for bond {d1[ATOM_ID_1]} - {d1[ATOM_ID_2]}: "
+                f"{d1[VALUE_DIST_ESD]} vs {match[VALUE_DIST_ESD]}"
+            )
+
         if d1[VALUE_DIST_NUCLEUS] is not None and match[VALUE_DIST_NUCLEUS] is not None:
-            assert abs(d1[VALUE_DIST_NUCLEUS] - match[VALUE_DIST_NUCLEUS]) < 1e-3, f"Nucleus distances differ for bond {d1[ATOM_ID_1]} - {d1[ATOM_ID_2]}: {d1[VALUE_DIST_NUCLEUS]} vs {match[VALUE_DIST_NUCLEUS]}"
-        if d1[VALUE_DIST_NUCLEUS_ESD] is not None and match[VALUE_DIST_NUCLEUS_ESD] is not None:
-            assert abs(d1[VALUE_DIST_NUCLEUS_ESD] - match[VALUE_DIST_NUCLEUS_ESD]) < 1e-3, f"Nucleus distance ESDs differ for bond {d1[ATOM_ID_1]} - {d1[ATOM_ID_2]}: {d1[VALUE_DIST_NUCLEUS_ESD]} vs {match[VALUE_DIST_NUCLEUS_ESD]}"
+            assert abs(d1[VALUE_DIST_NUCLEUS] - match[VALUE_DIST_NUCLEUS]) < 1e-3, (
+                f"Nucleus distances differ for bond {d1[ATOM_ID_1]} - {d1[ATOM_ID_2]}: "
+                f"{d1[VALUE_DIST_NUCLEUS]} vs {match[VALUE_DIST_NUCLEUS]}"
+            )
+
+        if (
+            d1[VALUE_DIST_NUCLEUS_ESD] is not None
+            and match[VALUE_DIST_NUCLEUS_ESD] is not None
+        ):
+            assert abs(d1[VALUE_DIST_NUCLEUS_ESD] - match[VALUE_DIST_NUCLEUS_ESD]) < 1e-3, (
+                f"Nucleus distance ESDs differ for bond {d1[ATOM_ID_1]} - {d1[ATOM_ID_2]}: "
+                f"{d1[VALUE_DIST_NUCLEUS_ESD]} vs {match[VALUE_DIST_NUCLEUS_ESD]}"
+            )
 
     # Extract angles
     angles1 = get_angles_from_cif(expected_block)
@@ -301,16 +347,38 @@ def test_compare_cif_files(cli_output: Path, test_case: UpdateModeTestCase):
 
     # Compare angles
     assert len(angles1) == len(angles2), "Mismatch in number of angles."
-
     for a in angles2:
-        assert a[VALUE_ANGLE] is not None, f"Angle is missing for angle {a[ATOM_ID_1]} - {a[ATOM_ID_2]} - {a[ATOM_ID_3]}"
-        assert a[VALUE_ANGLE_ESD] is not None, f"Angle ESD is missing for angle {a[ATOM_ID_1]} - {a[ATOM_ID_2]} - {a[ATOM_ID_3]}"
-        assert a[VALUE_ANGLE_ESD] >= 1, f"Angle ESD is too low for angle {a[ATOM_ID_1]} - {a[ATOM_ID_2]} - {a[ATOM_ID_3]}: {a[VALUE_ANGLE_ESD]}"
+        assert a[VALUE_ANGLE] is not None, (
+            f"Angle is missing for angle {a[ATOM_ID_1]} - {a[ATOM_ID_2]} - {a[ATOM_ID_3]}"
+        )
+        assert a[VALUE_ANGLE_ESD] is not None, (
+            f"Angle ESD is missing for angle {a[ATOM_ID_1]} - {a[ATOM_ID_2]} - {a[ATOM_ID_3]}"
+        )
+        assert a[VALUE_ANGLE_ESD] >= 1, (
+            f"Angle ESD is too low for angle {a[ATOM_ID_1]} - {a[ATOM_ID_2]} - {a[ATOM_ID_3]}: {a[VALUE_ANGLE_ESD]}"
+        )
 
     for a1 in angles1:
-        match = next((a2 for a2 in angles2 if (a1[ATOM_ID_1] == a2[ATOM_ID_1] and a1[ATOM_ID_2] == a2[ATOM_ID_2] and a1[ATOM_ID_3] == a2[ATOM_ID_3]) 
-                     or (a1[ATOM_ID_1] == a2[ATOM_ID_3] and a1[ATOM_ID_2] == a2[ATOM_ID_2] and a1[ATOM_ID_3] == a2[ATOM_ID_1])), None)
-        assert match is not None, f"Angle {a1[ATOM_ID_1]}-{a1[ATOM_ID_2]}-{a1[ATOM_ID_3]} not found in second CIF file."
-        assert abs(a1[VALUE_ANGLE] - match[VALUE_ANGLE]) < 0.1, f"Angles differ for {a1[ATOM_ID_1]}-{a1[ATOM_ID_2]}-{a1[ATOM_ID_3]}: {a1[VALUE_ANGLE]} vs {match[VALUE_ANGLE]}"
+        match = next(
+            (
+                a2
+                for a2 in angles2
+                if (
+                    (a1[ATOM_ID_1] == a2[ATOM_ID_1] and a1[ATOM_ID_2] ==
+                     a2[ATOM_ID_2] and a1[ATOM_ID_3] == a2[ATOM_ID_3])
+                    or (a1[ATOM_ID_1] == a2[ATOM_ID_3] and a1[ATOM_ID_2] == a2[ATOM_ID_2] and a1[ATOM_ID_3] == a2[ATOM_ID_1])
+                )
+            ),
+            None,
+        )
+        assert match is not None, (
+            f"Angle {a1[ATOM_ID_1]}-{a1[ATOM_ID_2]}-{a1[ATOM_ID_3]} not found in second CIF file."
+        )
+        assert abs(a1[VALUE_ANGLE] - match[VALUE_ANGLE]) < 0.1, (
+            f"Angles differ for {a1[ATOM_ID_1]}-{a1[ATOM_ID_2]}-{a1[ATOM_ID_3]}: {a1[VALUE_ANGLE]} vs {match[VALUE_ANGLE]}"
+        )
         if a1[VALUE_ANGLE_ESD] is not None and match[VALUE_ANGLE_ESD] is not None:
-            assert abs(a1[VALUE_ANGLE_ESD] - match[VALUE_ANGLE_ESD])/a1[VALUE_ANGLE_ESD] < 0.05, f"Angle ESDs differ for {a1[ATOM_ID_1]}-{a1[ATOM_ID_2]}-{a1[ATOM_ID_3]}: {a1[VALUE_ANGLE_ESD]} vs {match[VALUE_ANGLE_ESD]}. The difference is more than 5%."
+            assert abs(a1[VALUE_ANGLE_ESD] - match[VALUE_ANGLE_ESD]) / a1[VALUE_ANGLE_ESD] < 0.05, (
+                f"Angle ESDs differ for {a1[ATOM_ID_1]}-{a1[ATOM_ID_2]}-{a1[ATOM_ID_3]}: "
+                f"{a1[VALUE_ANGLE_ESD]} vs {match[VALUE_ANGLE_ESD]}. The difference is more than 5%."
+            )
