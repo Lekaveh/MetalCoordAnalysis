@@ -87,30 +87,32 @@ def compare_specific_fields(data1: List[Dict], data2: List[Dict]) -> List[str]:
     
     return differences
 
+tests_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+
 # Test cases
 TEST_CASES = [
     StatsModeTestCase(
         ligand_name="CU",
-        model=str(Path("./tests/data/models/3kw8.cif")),
+        model=os.path.join(tests_dir, str(Path("./data/models/3kw8.cif"))),
         parameters={},
         output_suffix="",
-        reference_file=str(Path("./tests/data/results/3kw8_CU_mc.json")),
+        reference_file=os.path.join(tests_dir, str(Path("./data/results/3kw8_CU_mc.json"))),
         description="Sodium coordination"
     ),
     StatsModeTestCase(
         ligand_name="CU",
-        model=str(Path("./tests/data/models/3kw8.cif")),
+        model=os.path.join(tests_dir, str(Path("./data/models/3kw8.cif"))),
         parameters={"-d": "0.4"},
         output_suffix="-d0p4",
-        reference_file=str(Path("./tests/data/results/3kw8_CU_mc-d0p4.json")),
+        reference_file=os.path.join(tests_dir, str(Path("./data/results/3kw8_CU_mc-d0p4.json"))),
         description="Copper coordination with distance cutoff"
     ),
     StatsModeTestCase(
         ligand_name="CU",
-        model=str(Path("./tests/data/models/3kw8.cif")),
+        model=os.path.join(tests_dir, str(Path("./data/models/3kw8.cif"))),
         parameters={"-c": "3"},
         output_suffix="-c3",
-        reference_file=str(Path("./tests/data/results/3kw8_CU_mc-c3.json")),
+        reference_file=os.path.join(tests_dir, str(Path("./data/results/3kw8_CU_mc-c3.json"))),
         description="Copper coordination with coordination number 3"
     )
 ]

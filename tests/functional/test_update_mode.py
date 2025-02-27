@@ -44,10 +44,25 @@ class UpdateModeTestCase(NamedTuple):
     pdb: str
     description: str
 
+
+tests_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+
 # Define test cases
 TEST_CASES = [
-    UpdateModeTestCase("SF4", str(Path("./tests/data/dicts/SF4.cif")), str(Path('./tests/data/results/SF4.cif')), "5d8v", "IRON/SULFUR CLUSTER"),
-    UpdateModeTestCase("6SG", str(Path("./tests/data/dicts/6SG.cif")), str(Path('./tests/data/results/6SG.cif')), "5l6x", "S-[N-(ferrocenylmethyl)carbamoylmethyl]-glutathione"),
+    UpdateModeTestCase(
+        "SF4",
+        os.path.join(tests_dir, str(Path("./data/dicts/SF4.cif"))),
+        os.path.join(tests_dir, str(Path('./data/results/SF4.cif'))),
+        "5d8v",
+        "IRON/SULFUR CLUSTER"
+    ),
+    UpdateModeTestCase(
+        "6SG",
+        os.path.join(tests_dir, str(Path("./data/dicts/6SG.cif"))),
+        os.path.join(tests_dir, str(Path('./data/results/6SG.cif'))),
+        "5l6x",
+        "S-[N-(ferrocenylmethyl)carbamoylmethyl]-glutathione"
+    ),
 ]
 
 @pytest.fixture(params=TEST_CASES)
