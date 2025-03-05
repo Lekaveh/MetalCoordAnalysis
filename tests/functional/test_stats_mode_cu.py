@@ -18,6 +18,7 @@ class StatsModeTestCase(NamedTuple):
         reference_file (str): The path to the reference file used for comparison.
         description (str): A brief description of the test case.
     """
+
     ligand_name: str
     model: str
     parameters: Dict[str, str]
@@ -34,11 +35,17 @@ def compare_specific_fields(data1: List[Dict], data2: List[Dict]) -> List[str]:
     differences = []
 
     # Top level fields to check
-    top_fields = ["chain", "residue", "sequence",
-                  "metal", "metalElement", "icode", "altloc"]
+    top_fields = [
+        "chain",
+        "residue",
+        "sequence",
+        "metal",
+        "metalElement",
+        "icode",
+        "altloc",
+    ]
     # First ligand fields to check
-    ligand_fields = ["class", "procrustes",
-                     "coordination", "count", "description"]
+    ligand_fields = ["class", "procrustes", "coordination", "count", "description"]
 
     # Compare first entry only
     if not data1 or not data2:
@@ -74,8 +81,7 @@ def compare_fields(entry1: Dict, entry2: Dict, fields: List[str]) -> List[str]:
     differences = []
     for field in fields:
         if field not in entry1 or field not in entry2:
-            differences.append(
-                f"Field '{field}' missing in one of the structures")
+            differences.append(f"Field '{field}' missing in one of the structures")
             continue
 
         val1 = entry1[field]
@@ -83,16 +89,14 @@ def compare_fields(entry1: Dict, entry2: Dict, fields: List[str]) -> List[str]:
 
         if isinstance(val1, float) and isinstance(val2, float):
             if abs(val1 - val2) > 0.01:
-                differences.append(
-                    f"Field '{field}' values differ: {val1} vs {val2}")
+                differences.append(f"Field '{field}' values differ: {val1} vs {val2}")
         elif val1 != val2:
-            differences.append(
-                f"Field '{field}' values differ: {val1} vs {val2}")
+            differences.append(f"Field '{field}' values differ: {val1} vs {val2}")
 
     return differences
 
 
-tests_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+tests_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 
 # Test cases
 TEST_CASES = [
@@ -101,37 +105,41 @@ TEST_CASES = [
         model=os.path.join(tests_dir, str(Path("./data/models/3kw8.cif"))),
         parameters={},
         output_suffix="",
-        reference_file=os.path.join(tests_dir, str(
-            Path("./data/results/3kw8_CU_mc.json"))),
-        description="Sodium coordination with mmCIF file"
+        reference_file=os.path.join(
+            tests_dir, str(Path("./data/results/3kw8_CU_mc.json"))
+        ),
+        description="Sodium coordination with mmCIF file",
     ),
     StatsModeTestCase(
         ligand_name="CU",
         model=os.path.join(tests_dir, str(Path("./data/models/3kw8.pdb"))),
         parameters={},
         output_suffix="",
-        reference_file=os.path.join(tests_dir, str(
-            Path("./data/results/3kw8_CU_mc.json"))),
-        description="Sodium coordination with PDB file"
+        reference_file=os.path.join(
+            tests_dir, str(Path("./data/results/3kw8_CU_mc.json"))
+        ),
+        description="Sodium coordination with PDB file",
     ),
     StatsModeTestCase(
         ligand_name="CU",
         model=os.path.join(tests_dir, str(Path("./data/models/3kw8.cif"))),
         parameters={"-d": "0.4"},
         output_suffix="-d0p4",
-        reference_file=os.path.join(tests_dir, str(
-            Path("./data/results/3kw8_CU_mc-d0p4.json"))),
-        description="Copper coordination with distance cutoff"
+        reference_file=os.path.join(
+            tests_dir, str(Path("./data/results/3kw8_CU_mc-d0p4.json"))
+        ),
+        description="Copper coordination with distance cutoff",
     ),
     StatsModeTestCase(
         ligand_name="CU",
         model=os.path.join(tests_dir, str(Path("./data/models/3kw8.cif"))),
         parameters={"-c": "3"},
         output_suffix="-c3",
-        reference_file=os.path.join(tests_dir, str(
-            Path("./data/results/3kw8_CU_mc-c3.json"))),
-        description="Copper coordination with coordination number 3"
-    )
+        reference_file=os.path.join(
+            tests_dir, str(Path("./data/results/3kw8_CU_mc-c3.json"))
+        ),
+        description="Copper coordination with coordination number 3",
+    ),
 ]
 
 
@@ -147,17 +155,23 @@ def temp_dir(tmp_path_factory: pytest.TempPathFactory) -> Path:
     return tmp_path_factory.mktemp("metal_coordination_tests")
 
 
-def test_metal_coordination_specific_fields(test_case: StatsModeTestCase, temp_dir: Path):
+def test_metal_coordination_specific_fields(
+    test_case: StatsModeTestCase, temp_dir: Path
+):
     """Test specific fields of metal coordination output."""
     # Build command
     output_file = f"{test_case.ligand_name}_mc{test_case.output_suffix}.json"
     output_path = os.path.join(temp_dir, output_file)
 
     cmd = [
-        'metalCoord', 'stats',
-        '-l', test_case.ligand_name,
-        '-p', test_case.model,
-        '-o', output_path
+        "metalCoord",
+        "stats",
+        "-l",
+        test_case.ligand_name,
+        "-p",
+        test_case.model,
+        "-o",
+        output_path,
     ]
 
     # Add additional parameters
@@ -165,17 +179,16 @@ def test_metal_coordination_specific_fields(test_case: StatsModeTestCase, temp_d
         cmd.extend([param, value])
 
     # Run command
-    result = subprocess.run(cmd, capture_output=True, text=True)
+    result = subprocess.run(cmd, capture_output=True, text=True, check=True, shell=True)
     assert result.returncode == 0, f"Command failed with: {result.stderr}"
 
     # Verify output file exists
-    assert Path(output_path).exists(
-    ), f"Output file not created: {output_path}"
+    assert Path(output_path).exists(), f"Output file not created: {output_path}"
 
     # Load output and reference
-    with open(output_path, 'r') as f:
+    with open(output_path, "r") as f:
         output_data = json.load(f)
-    with open(test_case.reference_file, 'r') as f:
+    with open(test_case.reference_file, "r") as f:
         reference_data = json.load(f)
 
     # Compare specific fields
@@ -186,5 +199,4 @@ def test_metal_coordination_specific_fields(test_case: StatsModeTestCase, temp_d
         print(f"\nDifferences found for {test_case.description}:")
         for diff in differences:
             print(f"  {diff}")
-        pytest.fail(
-            f"Output differs from reference for {test_case.ligand_name}")
+        pytest.fail(f"Output differs from reference for {test_case.ligand_name}")

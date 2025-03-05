@@ -121,7 +121,7 @@ def cli_output(temp_dir: Path, test_case: UpdateModeTestCase) -> Path:
     ]
 
     result = subprocess.run(
-        test_args, capture_output=True, text=True, check=True
+        test_args, capture_output=True, text=True, check=True, shell=True
     )
 
     assert result.returncode == 0, f"CLI command failed for {name}"

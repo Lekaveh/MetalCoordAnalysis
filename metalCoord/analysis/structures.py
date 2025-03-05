@@ -52,7 +52,7 @@ class Atom(IAtom):
         self._residue = residue
         self._chain = chain
         self._mark = mark
-        self._mark_pos = mark.pos if mark else None
+        self._mark_pos = gemmi.Position(mark.pos.x, mark.pos.y, mark.pos.z) if mark else None
         self._symmetry = mark.image_idx if mark else 0
         self._st = st
         self._metal = metal

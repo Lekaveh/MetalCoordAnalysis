@@ -69,7 +69,7 @@ def cli_output(temp_dir: Path, test_case: StatsModeTestCase) -> List:
 
     # Run CLI command
     result = subprocess.run(
-        test_args, capture_output=True, text=True, check=True
+        test_args, capture_output=True, text=True, check=True, shell = True
     )
 
     output_path = os.path.join(temp_dir, f'{ligand_name}.json')
