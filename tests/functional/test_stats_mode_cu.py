@@ -1,10 +1,12 @@
 import json
 import os
 import subprocess
+import sys
 from pathlib import Path
 from typing import Any, Dict, List, NamedTuple
 import pytest
 
+is_windows = sys.platform.startswith('win')
 
 class StatsModeTestCase(NamedTuple):
     """
@@ -179,7 +181,7 @@ def test_metal_coordination_specific_fields(
         cmd.extend([param, value])
 
     # Run command
-    result = subprocess.run(cmd, capture_output=True, text=True, check=True, shell=True)
+    result = subprocess.run(cmd, capture_output=True, text=True, check=True, shell=is_windows)
     assert result.returncode == 0, f"Command failed with: {result.stderr}"
 
     # Verify output file exists

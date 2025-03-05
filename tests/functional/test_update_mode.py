@@ -1,6 +1,7 @@
 import os
 import re
 import subprocess
+import sys
 from pathlib import Path
 from typing import Any, NamedTuple
 
@@ -24,6 +25,8 @@ ATOM_ID_3 = "atom_id_3"
 VALUE_DIST_NUCLEUS = "value_dist_nucleus"
 VALUE_DIST_NUCLEUS_ESD = "value_dist_nucleus_esd"
 
+
+is_windows = sys.platform.startswith('win')
 
 # TestCase definition
 class UpdateModeTestCase(NamedTuple):
@@ -121,7 +124,7 @@ def cli_output(temp_dir: Path, test_case: UpdateModeTestCase) -> Path:
     ]
 
     result = subprocess.run(
-        test_args, capture_output=True, text=True, check=True, shell=True
+        test_args, capture_output=True, text=True, check=True, shell=is_windows
     )
 
     assert result.returncode == 0, f"CLI command failed for {name}"

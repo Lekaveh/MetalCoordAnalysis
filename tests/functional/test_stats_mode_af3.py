@@ -1,11 +1,13 @@
 import json
 import os
 import subprocess
+import sys
 from pathlib import Path
 from typing import Any, List, NamedTuple
 
 import pytest
 
+is_windows = sys.platform.startswith('win')
 
 class StatsModeTestCase(NamedTuple):
     """
@@ -69,7 +71,7 @@ def cli_output(temp_dir: Path, test_case: StatsModeTestCase) -> List:
 
     # Run CLI command
     result = subprocess.run(
-        test_args, capture_output=True, text=True, check=True, shell = True
+        test_args, capture_output=True, text=True, check=True, shell = is_windows
     )
 
     output_path = os.path.join(temp_dir, f'{ligand_name}.json')
