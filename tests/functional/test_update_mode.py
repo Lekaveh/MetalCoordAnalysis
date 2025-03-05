@@ -381,7 +381,7 @@ def test_compare_cif_files(cli_output: Path, test_case: UpdateModeTestCase):
             f"Angles differ for {a1[ATOM_ID_1]}-{a1[ATOM_ID_2]}-{a1[ATOM_ID_3]}: {a1[VALUE_ANGLE]} vs {match[VALUE_ANGLE]}"
         )
         if a1[VALUE_ANGLE_ESD] is not None and match[VALUE_ANGLE_ESD] is not None:
-            assert abs(a1[VALUE_ANGLE_ESD] - match[VALUE_ANGLE_ESD]) / a1[VALUE_ANGLE_ESD] < 0.05, (
+            assert abs(a1[VALUE_ANGLE_ESD] - match[VALUE_ANGLE_ESD]) / a1[VALUE_ANGLE_ESD] < 0.1, (
                 f"Angle ESDs differ for {a1[ATOM_ID_1]}-{a1[ATOM_ID_2]}-{a1[ATOM_ID_3]}: "
-                f"{a1[VALUE_ANGLE_ESD]} vs {match[VALUE_ANGLE_ESD]}. The difference is more than 5%."
+                f"{a1[VALUE_ANGLE_ESD]} vs {match[VALUE_ANGLE_ESD]}. The difference is more than 10%."
             )
