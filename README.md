@@ -25,9 +25,9 @@ The Metal Coordination Analysis Tool is a Python application designed for analyz
 
 ### Prerequisites
 
-- Python 3.x
+- Python>=3.9
 - gemmi>=0.6.2
-- numpy>=1.20
+- numpy>=1.26
 - pandas>=2.0.0
 - tensorflow>=2.9.1
 - tqdm>=4.0.0

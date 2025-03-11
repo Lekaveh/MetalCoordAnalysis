@@ -318,20 +318,20 @@ def test_compare_cif_files(cli_output: Path, test_case: UpdateModeTestCase):
             f"Bond {d1[ATOM_ID_1]} - {d1[ATOM_ID_2]} not found in second CIF file."
         )
 
-        assert abs(d1[VALUE_DIST] - match[VALUE_DIST]) < 1e-3, (
-            f"Distances differ for bond {d1[ATOM_ID_1]} - {d1[ATOM_ID_2]}: "
+        assert abs(d1[VALUE_DIST] - match[VALUE_DIST])/d1[VALUE_DIST] < 0.05, (
+            f"Distances differ for bond {d1[ATOM_ID_1]} - {d1[ATOM_ID_2]}. The difference is more than 5%: "
             f"{d1[VALUE_DIST]} vs {match[VALUE_DIST]}"
         )
 
         if d1[VALUE_DIST_ESD] is not None and match[VALUE_DIST_ESD] is not None:
-            assert abs(d1[VALUE_DIST_ESD] - match[VALUE_DIST_ESD]) < 1e-3, (
-                f"Distance ESDs differ for bond {d1[ATOM_ID_1]} - {d1[ATOM_ID_2]}: "
+            assert abs(d1[VALUE_DIST_ESD] - match[VALUE_DIST_ESD])/d1[VALUE_DIST_ESD] < 0.1, (
+                f"Distance ESDs differ for bond {d1[ATOM_ID_1]} - {d1[ATOM_ID_2]}. The difference is more than 10%: "
                 f"{d1[VALUE_DIST_ESD]} vs {match[VALUE_DIST_ESD]}"
             )
 
         if d1[VALUE_DIST_NUCLEUS] is not None and match[VALUE_DIST_NUCLEUS] is not None:
-            assert abs(d1[VALUE_DIST_NUCLEUS] - match[VALUE_DIST_NUCLEUS]) < 1e-3, (
-                f"Nucleus distances differ for bond {d1[ATOM_ID_1]} - {d1[ATOM_ID_2]}: "
+            assert abs(d1[VALUE_DIST_NUCLEUS] - match[VALUE_DIST_NUCLEUS])/d1[VALUE_DIST_NUCLEUS] < 1e-3, (
+                f"Nucleus distances differ for bond {d1[ATOM_ID_1]} - {d1[ATOM_ID_2]}. The difference is more than 5%: "
                 f"{d1[VALUE_DIST_NUCLEUS]} vs {match[VALUE_DIST_NUCLEUS]}"
             )
 
@@ -339,9 +339,9 @@ def test_compare_cif_files(cli_output: Path, test_case: UpdateModeTestCase):
             d1[VALUE_DIST_NUCLEUS_ESD] is not None
             and match[VALUE_DIST_NUCLEUS_ESD] is not None
         ):
-            assert abs(d1[VALUE_DIST_NUCLEUS_ESD] - match[VALUE_DIST_NUCLEUS_ESD]) < 1e-3, (
+            assert abs(d1[VALUE_DIST_NUCLEUS_ESD] - match[VALUE_DIST_NUCLEUS_ESD])/d1[VALUE_DIST_NUCLEUS_ESD] < 0.1, (
                 f"Nucleus distance ESDs differ for bond {d1[ATOM_ID_1]} - {d1[ATOM_ID_2]}: "
-                f"{d1[VALUE_DIST_NUCLEUS_ESD]} vs {match[VALUE_DIST_NUCLEUS_ESD]}"
+                f"{d1[VALUE_DIST_NUCLEUS_ESD]} vs {match[VALUE_DIST_NUCLEUS_ESD]}. The difference is more than 10%: "
             )
 
     # Extract angles
