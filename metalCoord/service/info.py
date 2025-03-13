@@ -86,7 +86,7 @@ def get_coordinations(coordination_num: int = None, metal: str = None, cod: bool
         return DB.get_frequency_coordination(coordination_num, cod=cod)
         
     if metal and coordination_num:
-        return DB.get_frequency_metal_ccordination(metal, coordination_num, cod=cod)
+        return DB.get_frequency_metal_coordination(metal, coordination_num, cod=cod)
     
     if metal and not coordination_num:
         return DB.get_frequency_metal(metal, cod=cod)

@@ -16,6 +16,16 @@ class IAtom(ABC):
 
     @property
     @abstractmethod
+    def name(self):
+        """Get the name of the atom."""
+
+    @property
+    @abstractmethod
+    def element(self):
+        """Get the element of the atom."""
+
+    @property
+    @abstractmethod
     def residue(self):
         """Get the residue the atom belongs to."""
 
@@ -47,12 +57,22 @@ class Atom(IAtom):
         metal (gemmi.Atom, optional): The metal atom associated with this atom, if any.
     """
 
-    def __init__(self, atom: gemmi.Atom, residue: gemmi.Residue, chain: gemmi.Chain, mark: gemmi.NeighborSearch.Mark, st: gemmi.Structure, metal: gemmi.Atom = None):
+    def __init__(
+        self,
+        atom: gemmi.Atom,
+        residue: gemmi.Residue,
+        chain: gemmi.Chain,
+        mark: gemmi.NeighborSearch.Mark,
+        st: gemmi.Structure,
+        metal: gemmi.Atom = None,
+    ):
         self._atom = atom
         self._residue = residue
         self._chain = chain
         self._mark = mark
-        self._mark_pos = gemmi.Position(mark.pos.x, mark.pos.y, mark.pos.z) if mark else None
+        self._mark_pos = (
+            gemmi.Position(mark.pos.x, mark.pos.y, mark.pos.z) if mark else None
+        )
         self._symmetry = mark.image_idx if mark else 0
         self._st = st
         self._metal = metal
@@ -128,7 +148,9 @@ class Atom(IAtom):
 
         if self._mark_pos and self._metal:
             if self.symmetry:
-                return self._st.cell.find_nearest_pbc_position(self._metal.pos, self._mark_pos, 0)
+                return self._st.cell.find_nearest_pbc_position(
+                    self._metal.pos, self._mark_pos, 0
+                )
         return self._atom.pos
 
 
@@ -219,7 +241,7 @@ class CifAtom(IAtom):
 
 
 class Ligand:
-    """ The `Ligand` class represents a metal coordination structure with ligands and extra ligands.
+    """The `Ligand` class represents a metal coordination structure with ligands and extra ligands.
     Attributes:
         _metal (IAtom): The metal atom associated with the structure.
         _ligands (list): A list of ligand atoms.
@@ -246,8 +268,14 @@ class Ligand:
         """
         atoms = self._ligands + self._extra_ligands if free else self._extra_ligands
         # Sort the ligands by distance and get the atoms of the n farthest
-        to_delete_atoms = [l[0] for l in sorted([[l, self._cov_dist_coeff(l)]
-                                                for l in atoms], key=lambda x: x[1], reverse=True)[:n]]
+        to_delete_atoms = [
+            l[0]
+            for l in sorted(
+                [[l, self._cov_dist_coeff(l)] for l in atoms],
+                key=lambda x: x[1],
+                reverse=True,
+            )[:n]
+        ]
         cleaned_ligand = Ligand(self._metal)
 
         for l in self._ligands:
@@ -297,7 +325,10 @@ class Ligand:
         Returns:
             The covalent distance between the metal and the ligand atom.
         """
-        return gemmi.Element(self.metal.atom.element.name).covalent_r + gemmi.Element(l.atom.element.name).covalent_r
+        return (
+            gemmi.Element(self.metal.atom.element.name).covalent_r
+            + gemmi.Element(l.atom.element.name).covalent_r
+        )
 
     def _cov_dist_coeff(self, l: IAtom):
         """
@@ -423,7 +454,9 @@ class Ligand:
         Returns:
             A sorted list of element names.
         """
-        return sorted([ligand.atom.element.name for ligand in self._ligands + self._extra_ligands])
+        return sorted(
+            [ligand.atom.element.name for ligand in self._ligands + self._extra_ligands]
+        )
 
     def names(self):
         """
@@ -432,7 +465,9 @@ class Ligand:
         Returns:
             A sorted list of  names.
         """
-        return sorted([ligand.atom.name for ligand in self._ligands + self._extra_ligands])
+        return sorted(
+            [ligand.atom.name for ligand in self._ligands + self._extra_ligands]
+        )
 
     def symmetry_names(self):
         """
@@ -441,7 +476,12 @@ class Ligand:
         Returns:
             A sorted list of  names.
         """
-        return sorted([f"{ligand.name} {'(' + str(ligand.symmetry) + ')' if ligand.symmetry else ''}" for ligand in self._ligands + self._extra_ligands])
+        return sorted(
+            [
+                f"{ligand.name} {'(' + str(ligand.symmetry) + ')' if ligand.symmetry else ''}"
+                for ligand in self._ligands + self._extra_ligands
+            ]
+        )
 
     def atoms(self):
         """
@@ -450,7 +490,9 @@ class Ligand:
         Returns:
             A list of element names.
         """
-        return [ligand.atom.element.name for ligand in self._ligands + self._extra_ligands]
+        return [
+            ligand.atom.element.name for ligand in self._ligands + self._extra_ligands
+        ]
 
     def code(self):
         """
@@ -491,7 +533,10 @@ class Ligand:
         Returns:
             An array containing the coordinates of the metal and ligand atoms.
         """
-        return np.array([self._metal.pos.tolist()] + [ligand.pos.tolist() for ligand in self._ligands + self._extra_ligands])
+        return np.array(
+            [self._metal.pos.tolist()]
+            + [ligand.pos.tolist() for ligand in self._ligands + self._extra_ligands]
+        )
 
     def coordination(self):
         """
@@ -525,8 +570,9 @@ class Ligand:
                     to_delete.append(i)
                     break
         if to_delete:
-            self._extra_ligands = [atom for i, atom in enumerate(
-                self._extra_ligands) if i not in to_delete]
+            self._extra_ligands = [
+                atom for i, atom in enumerate(self._extra_ligands) if i not in to_delete
+            ]
 
     def filter_base(self):
         """
@@ -538,8 +584,9 @@ class Ligand:
                 to_delete.append(i)
 
         if to_delete:
-            self._ligands = [atom for i, atom in enumerate(
-                self._ligands) if i not in to_delete]
+            self._ligands = [
+                atom for i, atom in enumerate(self._ligands) if i not in to_delete
+            ]
 
     def mean_occ(self):
         """
@@ -548,7 +595,10 @@ class Ligand:
         Returns:
             The mean occupancy.
         """
-        return np.mean([self._metal.atom.occ] + [ligand.atom.occ for ligand in self._ligands + self._extra_ligands])
+        return np.mean(
+            [self._metal.atom.occ]
+            + [ligand.atom.occ for ligand in self._ligands + self._extra_ligands]
+        )
 
     def mean_b(self):
         """
@@ -557,15 +607,17 @@ class Ligand:
         Returns:
             The mean B-factor.
         """
-        return np.mean([self._metal.atom.b_iso] + [ligand.atom.b_iso for ligand in self._ligands + self._extra_ligands])
+        return np.mean(
+            [self._metal.atom.b_iso]
+            + [ligand.atom.b_iso for ligand in self._ligands + self._extra_ligands]
+        )
 
     def __str__(self) -> str:
         return f"{self._metal.atom.name} - {self.chain.name} - {self.residue.name} - {self.residue.seqid.num}"
 
     def __repr__(self) -> str:
         ligands = " ".join([ligand.atom.name for ligand in self._ligands])
-        extra_ligands = " ".join(
-            [ligand.atom.name for ligand in self._extra_ligands])
+        extra_ligands = " ".join([ligand.atom.name for ligand in self._extra_ligands])
         return f"{self._metal.atom.name} - {self.chain.name} - {self.chain.name} - {self.residue.seqid.num} - {ligands} - {extra_ligands}"
 
 
@@ -583,8 +635,10 @@ def angle(atom1: IAtom, atom2: IAtom, atom3: IAtom):
     """
     vec1 = atom1.pos - atom2.pos
     vec2 = atom3.pos - atom2.pos
-    cosine_angle = vec1.dot(
-        vec2) / (np.linalg.norm([vec1.x, vec1.y, vec1.z]) * np.linalg.norm([vec2.x, vec2.y, vec2.z]))
+    cosine_angle = vec1.dot(vec2) / (
+        np.linalg.norm([vec1.x, vec1.y, vec1.z])
+        * np.linalg.norm([vec2.x, vec2.y, vec2.z])
+    )
     return np.degrees(np.arccos(cosine_angle))
 
 
@@ -634,20 +688,25 @@ def get_ligands(st, ligand, bonds=None, max_dist=10, only_best=False) -> list[Li
             l_n1 = len(n1)
             angles = [
                 (angle(a1, center, a2), a1, a2)
-                for a1 in n1 + n0 for a2 in n1 + n0 if a1 != a2
+                for a1 in n1 + n0
+                for a2 in n1 + n0
+                if a1 != a2
             ]
 
             if all(a > angle1 for a, _, _ in angles):
                 return n0, n1
 
-            angles = list(
-                filter(lambda x: (x[1] in n1) or (x[2] in n1), angles))
+            angles = list(filter(lambda x: (x[1] in n1) or (x[2] in n1), angles))
             _, min_a1, min_a2 = min(angles, key=lambda x: x[0])
 
-            coef_i = distance(center, min_a1) / (covalent_radii(
-                center.atom.element.name) + covalent_radii(min_a1.atom.element.name))
-            coef_j = distance(center, min_a2) / (covalent_radii(
-                center.atom.element.name) + covalent_radii(min_a2.atom.element.name))
+            coef_i = distance(center, min_a1) / (
+                covalent_radii(center.atom.element.name)
+                + covalent_radii(min_a1.atom.element.name)
+            )
+            coef_j = distance(center, min_a2) / (
+                covalent_radii(center.atom.element.name)
+                + covalent_radii(min_a2.atom.element.name)
+            )
             max_coef_atom = min_a1 if coef_i > coef_j else min_a2
 
             if max_coef_atom in n1 and max(coef_i, coef_j) > beta_c:
@@ -680,14 +739,21 @@ def get_ligands(st, ligand, bonds=None, max_dist=10, only_best=False) -> list[Li
                     metal = Atom(atom, residue, chain, None, st)
                     ligand_obj = Ligand(metal)
 
-                    marks = ns.find_neighbors(
-                        atom, min_dist=0.1, max_dist=max_dist)
+                    marks = ns.find_neighbors(atom, min_dist=0.1, max_dist=max_dist)
 
-                    marks1 = [k for k in marks if k.image_idx ==
-                              0 and not k.to_cra(st[0]).atom.element.is_metal]
+                    marks1 = [
+                        k
+                        for k in marks
+                        if k.image_idx == 0
+                        and not k.to_cra(st[0]).atom.element.is_metal
+                    ]
                     # if not bonds:
-                    marks2 = [k for k in marks if k.image_idx !=
-                              0 and not k.to_cra(st[0]).atom.element.is_metal]
+                    marks2 = [
+                        k
+                        for k in marks
+                        if k.image_idx != 0
+                        and not k.to_cra(st[0]).atom.element.is_metal
+                    ]
                     if not bonds:
                         for mark2 in marks2:
                             cra2 = mark2.to_cra(st[0])
@@ -696,8 +762,12 @@ def get_ligands(st, ligand, bonds=None, max_dist=10, only_best=False) -> list[Li
                                 continue
                             for mark1 in marks1:
                                 cra1 = mark1.to_cra(st[0])
-                                if (cra1.atom.name == cra2.atom.name and cra1.residue.seqid.num == cra2.residue.seqid.num and
-                                        cra1.chain.name == cra2.chain.name and cra1.atom.occ + cra2.atom.occ > atom.occ):
+                                if (
+                                    cra1.atom.name == cra2.atom.name
+                                    and cra1.residue.seqid.num == cra2.residue.seqid.num
+                                    and cra1.chain.name == cra2.chain.name
+                                    and cra1.atom.occ + cra2.atom.occ > atom.occ
+                                ):
                                     break
                             else:
                                 marks1.append(mark2)
@@ -708,16 +778,38 @@ def get_ligands(st, ligand, bonds=None, max_dist=10, only_best=False) -> list[Li
                             if cra.atom.element.is_metal:
                                 continue
 
-                            l = Atom(cra.atom, cra.residue,
-                                     cra.chain, mark, st, atom)
+                            l = Atom(cra.atom, cra.residue, cra.chain, mark, st, atom)
                             if bonds:
-                                if cra.residue.name == ligand and cra.residue.seqid.num == residue.seqid.num and cra.chain.name == chain.name and l.symmetry == 0:
+                                if (
+                                    cra.residue.name == ligand
+                                    and cra.residue.seqid.num == residue.seqid.num
+                                    and cra.chain.name == chain.name
+                                    and l.symmetry == 0
+                                ):
                                     if cra.atom.name in metal_bonds:
                                         ligand_obj.add_ligand(l)
-                                elif distance(metal, l) <= (covalent_radii(metal.atom.element.name) + covalent_radii(cra.atom.element.name)) * scale:
+                                elif (
+                                    distance(metal, l)
+                                    <= (
+                                        covalent_radii(metal.atom.element.name)
+                                        + covalent_radii(cra.atom.element.name)
+                                    )
+                                    * scale
+                                ):
                                     ligand_obj.add_extra_ligand(l)
-                            elif distance(metal, l) <= (covalent_radii(metal.atom.element.name) + covalent_radii(cra.atom.element.name)) * scale:
-                                if cra.residue.name == ligand and cra.residue.seqid.num == residue.seqid.num and cra.chain.name == chain.name:
+                            elif (
+                                distance(metal, l)
+                                <= (
+                                    covalent_radii(metal.atom.element.name)
+                                    + covalent_radii(cra.atom.element.name)
+                                )
+                                * scale
+                            ):
+                                if (
+                                    cra.residue.name == ligand
+                                    and cra.residue.seqid.num == residue.seqid.num
+                                    and cra.chain.name == chain.name
+                                ):
                                     ligand_obj.add_ligand(l)
                                 else:
                                     ligand_obj.add_extra_ligand(l)
@@ -729,26 +821,61 @@ def get_ligands(st, ligand, bonds=None, max_dist=10, only_best=False) -> list[Li
                         for mark in marks:
                             cra = mark.to_cra(st[0])
                             neighbour_atoms.append(
-                                Atom(cra.atom, cra.residue, cra.chain, mark, st, atom))
+                                Atom(cra.atom, cra.residue, cra.chain, mark, st, atom)
+                            )
 
                         ligand_atoms = []
                         if bonds:
-                            ligand_atoms = [a for a in neighbour_atoms if a.atom.name in metal_bonds and a.residue.name ==
-                                            ligand and a.residue.seqid.num == residue.seqid.num and a.chain.name == chain.name and a.symmetry == 0]
+                            ligand_atoms = [
+                                a
+                                for a in neighbour_atoms
+                                if a.atom.name in metal_bonds
+                                and a.residue.name == ligand
+                                and a.residue.seqid.num == residue.seqid.num
+                                and a.chain.name == chain.name
+                                and a.symmetry == 0
+                            ]
                             neighbour_atoms = [
-                                a for a in neighbour_atoms if a not in ligand_atoms and (a.residue.name !=
-                                                                                         ligand or a.residue.seqid.num != residue.seqid.num or a.chain.name != chain.name) and a.symmetry == 0]
+                                a
+                                for a in neighbour_atoms
+                                if a not in ligand_atoms
+                                and (
+                                    a.residue.name != ligand
+                                    or a.residue.seqid.num != residue.seqid.num
+                                    or a.chain.name != chain.name
+                                )
+                                and a.symmetry == 0
+                            ]
 
                         n1 = [
-                            neighbour_atom for neighbour_atom in neighbour_atoms
-                            if not neighbour_atom.atom.element.is_metal and distance(metal, neighbour_atom) < (covalent_radii(metal.atom.element.name) + covalent_radii(neighbour_atom.atom.element.name)) * alpha
-                            and distance(metal, neighbour_atom) > (covalent_radii(metal.atom.element.name) + covalent_radii(neighbour_atom.atom.element.name)) * alpha1
+                            neighbour_atom
+                            for neighbour_atom in neighbour_atoms
+                            if not neighbour_atom.atom.element.is_metal
+                            and distance(metal, neighbour_atom)
+                            < (
+                                covalent_radii(metal.atom.element.name)
+                                + covalent_radii(neighbour_atom.atom.element.name)
+                            )
+                            * alpha
+                            and distance(metal, neighbour_atom)
+                            > (
+                                covalent_radii(metal.atom.element.name)
+                                + covalent_radii(neighbour_atom.atom.element.name)
+                            )
+                            * alpha1
                         ]
 
                         # Step 2: Select all atoms for which d(m, i) <= alpha1 * (r_m + r_i). Denote this set n0.
                         n0 = [
-                            neighbour_atom for neighbour_atom in neighbour_atoms
-                            if not neighbour_atom.atom.element.is_metal and distance(metal, neighbour_atom) <= (covalent_radii(metal.atom.element.name) + covalent_radii(neighbour_atom.atom.element.name)) * alpha1
+                            neighbour_atom
+                            for neighbour_atom in neighbour_atoms
+                            if not neighbour_atom.atom.element.is_metal
+                            and distance(metal, neighbour_atom)
+                            <= (
+                                covalent_radii(metal.atom.element.name)
+                                + covalent_radii(neighbour_atom.atom.element.name)
+                            )
+                            * alpha1
                         ] + ligand_atoms
 
                         # Step 3: Remove atoms in n0 from n1
@@ -758,7 +885,8 @@ def get_ligands(st, ligand, bonds=None, max_dist=10, only_best=False) -> list[Li
                         beta_c = beta1[k]
                         while k >= 0:
                             n0, n1 = find_min_angle_and_update(
-                                ligand_obj.metal, n0, n1, beta_c)
+                                ligand_obj.metal, n0, n1, beta_c
+                            )
                             k -= 1
                             beta_c = beta1[k]
 
@@ -767,14 +895,20 @@ def get_ligands(st, ligand, bonds=None, max_dist=10, only_best=False) -> list[Li
                         # Add atoms to ligand_obj
                         neighbour_atoms = neighbour_atoms + ligand_atoms
                         for a in n0:
-                            idx = [i for i, x in enumerate(
-                                neighbour_atoms) if x == a][0]
+                            idx = [i for i, x in enumerate(neighbour_atoms) if x == a][
+                                0
+                            ]
                             mark = marks[idx]
                             if mark.image_idx:
                                 Logger().info(
-                                    f"This atom {a.atom.name} in {chain.name} - {residue.name} - {residue.seqid.num} come from symmetry copy {mark.image_idx}")
+                                    f"This atom {a.atom.name} in {chain.name} - {residue.name} - {residue.seqid.num} come from symmetry copy {mark.image_idx}"
+                                )
 
-                            if a.residue.name == ligand and a.residue.seqid.num == residue.seqid.num and a.chain.name == chain.name:
+                            if (
+                                a.residue.name == ligand
+                                and a.residue.seqid.num == residue.seqid.num
+                                and a.chain.name == chain.name
+                            ):
                                 ligand_obj.add_ligand(a)
 
                             else:
@@ -783,29 +917,41 @@ def get_ligands(st, ligand, bonds=None, max_dist=10, only_best=False) -> list[Li
                     # ligand_obj.filter_base()
                     ligand_obj.filter_extra()
 
-                    if Config().max_coordination_number and ligand_obj.coordination() > Config().max_coordination_number:
+                    if (
+                        Config().max_coordination_number
+                        and ligand_obj.coordination() > Config().max_coordination_number
+                    ):
                         ligand_obj = ligand_obj.clean_the_farthest(
-                            free=bool(bonds), n=ligand_obj.coordination() - Config().max_coordination_number)
+                            free=bool(bonds),
+                            n=ligand_obj.coordination()
+                            - Config().max_coordination_number,
+                        )
 
-                    if bonds and set(metal_bonds) != set([l.atom.name for l in ligand_obj.ligands]):
+                    if bonds and set(metal_bonds) != set(
+                        [l.atom.name for l in ligand_obj.ligands]
+                    ):
                         raise ValueError(
-                            f"There is inconsistency between ligand(s) in the PDB and monomer file. Metal {metal_name} in {chain.name} - {residue.name} - {residue.seqid.num} has different number of neighbours than expected. Expected: {sorted(bonds.get(metal_name, []))}, found: {sorted([l.atom.name for l in ligand_obj.ligands])}")
+                            f"There is inconsistency between ligand(s) in the PDB and monomer file. Metal {metal_name} in {chain.name} - {residue.name} - {residue.seqid.num} has different number of neighbours than expected. Expected: {sorted(bonds.get(metal_name, []))}, found: {sorted([l.atom.name for l in ligand_obj.ligands])}"
+                        )
 
                     structures.append(ligand_obj)
 
     if only_best:
         best_structures = []
         metals = np.unique(
-            [structure.metal.atom.name for structure in structures]).tolist()
+            [structure.metal.atom.name for structure in structures]
+        ).tolist()
 
         for metal_name in metals:
-            metal_stuctures = [
-                s for s in structures if metal_name == s.metal.name]
+            metal_stuctures = [s for s in structures if metal_name == s.metal.name]
             b_vlaues = [metal.mean_b() for metal in metal_stuctures]
             occ_values = [metal.mean_occ() for metal in metal_stuctures]
             best_occ = np.max(occ_values)
-            best_structures.append(metal_stuctures[np.argmin(
-                np.where(occ_values == best_occ, b_vlaues, np.inf))])
+            best_structures.append(
+                metal_stuctures[
+                    np.argmin(np.where(occ_values == best_occ, b_vlaues, np.inf))
+                ]
+            )
         structures = best_structures
 
     return structures
@@ -840,8 +986,14 @@ def get_coord_sym(atoms: gemmi.cif.Table) -> list:
         list: The coordinate symbols.
     """
     for coord_sym in COORDS:
-        if coord_sym[0] in atoms and all([is_float(x) & is_float(y)
-                                          & is_float(z) for x, y, z in zip(atoms[coord_sym[0]], atoms[coord_sym[1]], atoms[coord_sym[2]])]):
+        if coord_sym[0] in atoms and all(
+            [
+                is_float(x) & is_float(y) & is_float(z)
+                for x, y, z in zip(
+                    atoms[coord_sym[0]], atoms[coord_sym[1]], atoms[coord_sym[2]]
+                )
+            ]
+        ):
             return coord_sym
     return None
 
@@ -862,7 +1014,13 @@ def get_row(atoms: gemmi.cif.Table, metal: str):
     if not coord_syms:
         raise ValueError("Could not find coordinates in the CIF file.")
 
-    for atom, element, x, y, z in zip(atoms[ATOM_ID], atoms[TYPE_SYMBOL], atoms[coord_syms[0]], atoms[coord_syms[1]], atoms[coord_syms[2]]):
+    for atom, element, x, y, z in zip(
+        atoms[ATOM_ID],
+        atoms[TYPE_SYMBOL],
+        atoms[coord_syms[0]],
+        atoms[coord_syms[1]],
+        atoms[coord_syms[2]],
+    ):
         if atom == metal:
             return atom, element, float(x), float(y), float(z)
 
@@ -890,7 +1048,9 @@ def create_atom(atoms, atom_name):
     return ligand
 
 
-def get_ligands_from_cif(name: str, atoms: gemmi.cif.Table, bonds: dict) -> list[Ligand]:
+def get_ligands_from_cif(
+    name: str, atoms: gemmi.cif.Table, bonds: dict
+) -> list[Ligand]:
     """
     Extracts ligands from a CIF (Crystallographic Information File) and returns them as a list of Ligand objects.
     Args:

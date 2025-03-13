@@ -4,7 +4,7 @@ import pandas as pd
 from metalCoord.analysis.utlis import elementCode
 
 
-class StatsData():
+class StatsData:
     """
     A class that represents statistical data for metal coordination analysis.
 
@@ -30,18 +30,23 @@ class StatsData():
         Loads the data for analysis.
         """
         d = os.path.dirname(sys.modules["metalCoord"].__file__)
-        self.__data = pd.read_csv(os.path.join(
-            d, "data/classes.zip"), keep_default_na=False)
-        self.__data.loc[self.__data.index, 'Code'] = self.__data.File.map(
-            self.__data.groupby('File').Ligand.agg(lambda x: "".join(sorted(x))))
-        self.__data.loc[self.__data.index,
-                        "Code"] = self.__data.Metal + self.__data.Code
-        self.__data = self.__data[self.__data.Metal !=
-                                  self.__data.Metal.str.lower()]
+        self.__data = pd.read_csv(
+            os.path.join(d, "data/classes.zip"), keep_default_na=False
+        )
+        self.__data.loc[self.__data.index, "Code"] = self.__data.File.map(
+            self.__data.groupby("File").Ligand.agg(lambda x: "".join(sorted(x)))
+        )
+        self.__data.loc[self.__data.index, "Code"] = (
+            self.__data.Metal + self.__data.Code
+        )
+        self.__data = self.__data[self.__data.Metal != self.__data.Metal.str.lower()]
         self.__data["ElementCode"] = self.__data.Code.apply(elementCode)
         self.__data["COD"] = self.__data["File"].str[:7]
-        self.__distances = self.__data.groupby(["Metal", "Ligand"]).Distance.agg([
-            "mean", "std", "count"]).reset_index()
+        self.__distances = (
+            self.__data.groupby(["Metal", "Ligand"])
+            .Distance.agg(["mean", "std", "count"])
+            .reset_index()
+        )
 
     def get_distance_stats(self, metal, ligand):
         """
@@ -54,8 +59,9 @@ class StatsData():
         Returns:
             tuple: A tuple containing the mean, standard deviation, and count of distances.
         """
-        result = self.__distances[(self.__distances.Metal == metal) & (
-            self.__distances.Ligand == ligand)][["mean", "std", "count"]].values
+        result = self.__distances[
+            (self.__distances.Metal == metal) & (self.__distances.Ligand == ligand)
+        ][["mean", "std", "count"]].values
         return result[0] if len(result) > 0 else (0, 0, 0)
 
     def get_frequency(self, cod=False):
@@ -81,9 +87,13 @@ class StatsData():
             dict: The frequency of each class for the coordination.
         """
         selection = self.__data.loc[self.__data.Coordination == coordination]
-        return self._get_stats(selection, cod=cod)
+        data = self._get_stats(selection, cod=cod)
+        sorted_data = sorted(
+            data.items(), key=lambda x: x[1]["frequency"], reverse=True
+        )
+        return {key: value for key, value in sorted_data}
 
-    def get_frequency_metal_ccordination(self, metal, coordination, cod=False):
+    def get_frequency_metal_coordination(self, metal, coordination, cod=False):
         """
         Retrieves the frequency of each class for the specific coordination for a given metal.
 
@@ -95,9 +105,14 @@ class StatsData():
             int: The frequency of each class for the coordination for the given metal.
         """
 
-        selection = self.__data.loc[(self.__data.Metal == metal) & (
-            self.__data.Coordination == coordination)]
-        return self._get_stats(selection, cod=cod)
+        selection = self.__data.loc[
+            (self.__data.Metal == metal) & (self.__data.Coordination == coordination)
+        ]
+        data = self._get_stats(selection, cod=cod)
+        sorted_data = sorted(
+            data.items(), key=lambda x: x[1]["frequency"], reverse=True
+        )
+        return {key: value for key, value in sorted_data}
 
     def get_frequency_metal(self, metal, cod=False):
         """
@@ -122,8 +137,8 @@ class StatsData():
         cod (bool, optional): If True, include 'COD' column in the aggregation. Defaults to False.
 
         Returns:
-        dict: A dictionary where keys are the unique values from the 'Class' column and values are dictionaries 
-              containing 'frequency' (proportion of each class), 'coordination' (first value of 'Coordination' column), 
+        dict: A dictionary where keys are the unique values from the 'Class' column and values are dictionaries
+              containing 'frequency' (proportion of each class), 'coordination' (first value of 'Coordination' column),
               and optionally 'cod' (sorted list of unique 'COD' values if cod is True).
         """
         group = data.groupby("Class")
@@ -131,15 +146,17 @@ class StatsData():
         if cod:
             agg["COD"] = "unique"
         stats = group.agg(agg)
-        stats["Freq"] = stats["File"]/data.shape[0]
+        stats["Freq"] = stats["File"] / data.shape[0]
         result = dict()
         for index, row in stats.iterrows():
-            result[index] = {"frequency": float(row["Freq"]),
-                             "coordination": int(row["Coordination"]),
-                             "count": int(row["File"])}
+            result[index] = {
+                "frequency": float(row["Freq"]),
+                "coordination": int(row["Coordination"]),
+                "count": int(row["File"]),
+            }
             if cod:
                 result[index]["cod"] = sorted(row["COD"].tolist())
-        return dict(sorted(result.items(), key = lambda item,: item[1]["coordination"]))
+        return dict(sorted(result.items(), key=lambda item,: item[1]["coordination"]))
 
     def data(self):
         """

@@ -41,7 +41,7 @@ pip install git+https://github.com/Lekaveh/MetalCoordAnalysis
 
 ### Usage
 - **Metal Coordination Analysis**: 
-    - metalCoord [--no-progress] stats -l <LIGAND_CODE> -p <PDB_CODE|PDB_FILE> -o OUTPUT_JSON_FILE [-d <DISTANCE_THRESHOLD>] [-t <PROCRUSTES_DISTANCE_THRESHOLD>] [-m <MINIMUM_SAMPLE_SIZE>] [--ideal_angles] [-s] [--save]
+    - metalCoord [--no-progress] stats -l <LIGAND_CODE> -p <PDB_CODE|PDB_FILE> -o OUTPUT_JSON_FILE [-d <DISTANCE_THRESHOLD>] [-t <PROCRUSTES_DISTANCE_THRESHOLD>] [-m <MINIMUM_SAMPLE_SIZE>] [--ideal_angles] [-s] [--save] [--use-pdb] [-c <MAXIMUM_COORDINATION_NUMBER>] [--cl <PREDEFINED_CLASS>]
         - -l, --ligand: Ligand code.
         - -o, --output: Output JSON file.
         - -p, --pdb: PDB code or PDB file.
@@ -54,10 +54,10 @@ pip install git+https://github.com/Lekaveh/MetalCoordAnalysis
         - --use-pdb Use COD structures based on pdb coordinates.
         - -c, --coordination: Defines maximum coordination number.
         - --cif: Read coordinates from mmCIF file
-        - --cl Predefined class
+        - --cl Predefined class or  "most_common" for the most frequent coordination class
         - --no-progress: Do not show progress bars
 - **Ligand Update**: 
-    - metalCoord [--no-progress] update -i <INPUT_CIF_FILE> -o <OUTPUT_CIF_FILE> [-p <PDB_CODE|PDB_FILE>] [-d <DISTANCE_THRESHOLD>] [-t <PROCRUSTES_DISTANCE_THRESHOLD>] [-m <MINIMUM_SAMPLE_SIZE>] [--ideal_angles] [-s] [--save]
+    - metalCoord [--no-progress] update -i <INPUT_CIF_FILE> -o <OUTPUT_CIF_FILE> [-p <PDB_CODE|PDB_FILE>] [-d <DISTANCE_THRESHOLD>] [-t <PROCRUSTES_DISTANCE_THRESHOLD>] [-m <MINIMUM_SAMPLE_SIZE>] [--ideal_angles] [-s] [--save] [--use-pdb] [-c <MAXIMUM_COORDINATION_NUMBER>] [--cif] [--cl <PREDEFINED_CLASS>]
         - -i, --input: CIF file.
         - -o, --output: Output CIF file.
         - -p, --pdb: PDB code or PDB file.
@@ -69,10 +69,10 @@ pip install git+https://github.com/Lekaveh/MetalCoordAnalysis
         - --save: Save COD files used in statistics.
         - --use-pdb Use COD structures based on pdb coordinates.
         - -c, --coordination: Defines maximum coordination number.
-        - --cl Predefined class
+        - --cl Predefined class or  "most_common" for the most frequent coordination class
         - --no-progress: Do not show progress bars
 - **Coordination List**: 
-    - metalCoord [--no-progress] coord [-n <COORDINATION_NUMBER>] [-m <METAL_ELEMENT_NAME>] [-o <OUTPUT_JSON_FILE>]
+    - metalCoord [--no-progress] coord [-n <COORDINATION_NUMBER>] [-m <METAL_ELEMENT_NAME>] [-o <OUTPUT_JSON_FILE>] [--cod]
         - -n, --number: Coordination number.
         - -m, --metal: Metal element name.
         - -o, --output: Output JSON file

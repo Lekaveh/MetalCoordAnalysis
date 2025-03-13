@@ -2,10 +2,14 @@ import operator
 import os
 import sys
 import pandas as pd
+from metalCoord.analysis.data import DB
+from metalCoord.analysis.structures import Ligand
 from metalCoord.correspondense.procrustes import fit
 
+MOST_COMMON_CLASS = "most_common"
 
-class Class():
+
+class Class:
     """
     Represents a class of data points.
 
@@ -55,8 +59,9 @@ class Class():
         Returns:
             dict_keys: The names of the ideal classes.
         """
-        return [key for key, _ in sorted(self.__classes.items(), key = operator.itemgetter(1))]
-    
+        return [
+            key for key, _ in sorted(self.__classes.items(), key=operator.itemgetter(1))
+        ]
 
     def get_ideal_classes_by_coordination(self, coordination_num: int):
         """
@@ -68,8 +73,12 @@ class Class():
         Returns:
             dict_keys: The names of the ideal classes with the specified coordination.
         """
-        return [clazz for clazz in self.__classes.keys() if self.__classes[clazz] == coordination_num + 1]
-    
+        return [
+            clazz
+            for clazz in self.__classes.keys()
+            if self.__classes[clazz] == coordination_num + 1
+        ]
+
     def get_coordination(self, class_name: str):
         """
         Retrieves the coordination number of a class.
@@ -83,7 +92,7 @@ class Class():
         return self.__classes.get(class_name, 1) - 1
 
 
-class ClassificationResult():
+class ClassificationResult:
     """
     Represents the result of a classification.
 
@@ -159,7 +168,7 @@ class ClassificationResult():
         return f"Class: {self.clazz}, Procrustes: {self.proc}, Coordination: {len(self.coord) - 1}"
 
 
-class Classificator():
+class Classificator:
     """
     Represents a classificator.
 
@@ -186,7 +195,7 @@ class Classificator():
         """
         return self._thr
 
-    def classify(self, structure, class_name = None):
+    def classify(self, structure: Ligand, class_name: str = None):
         """
         Classifies a structure.
 
@@ -199,30 +208,54 @@ class Classificator():
         """
 
         if class_name:
-            if not idealClasses.contains(class_name):
-                raise ValueError(f"Class {class_name} not found.")
-            if structure.coordination() < idealClasses.get_coordination(class_name):
-                raise ValueError(f"Class {class_name} has higher coordination number {idealClasses.get_coordination(class_name)} than {structure.name_code_with_symmetries()}.")
-            
-            if structure.coordination() > idealClasses.get_coordination(class_name) + 1:
-                raise ValueError(f"Class {class_name} has lower coordination number {idealClasses.get_coordination(class_name)} than {structure.name_code_with_symmetries()}.")
-            
-            if structure.coordination() == idealClasses.get_coordination(class_name) + 1:
-                return
-            
-            m_ligand_coord = idealClasses.get_coordinates(class_name)
-            main_proc_dist, _, _, _, index = fit(
-                structure.get_coord(), m_ligand_coord)
-            yield ClassificationResult(class_name, m_ligand_coord, index, main_proc_dist)
+            if class_name == MOST_COMMON_CLASS:
+                classes = DB.get_frequency_metal_coordination(
+                    structure.metal.element, structure.coordination()
+                )
+                if not classes:
+                    return
+                clazz = next(iter(classes.keys()), None)
+
+            else:
+                if not idealClasses.contains(class_name):
+                    raise ValueError(f"Class {class_name} not found.")
+                if structure.coordination() < idealClasses.get_coordination(class_name):
+                    raise ValueError(
+                        f"Class {class_name} has higher coordination number {idealClasses.get_coordination(class_name)} than {structure.name_code_with_symmetries()}."
+                    )
+
+                if (
+                    structure.coordination()
+                    > idealClasses.get_coordination(class_name) + 1
+                ):
+                    raise ValueError(
+                        f"Class {class_name} has lower coordination number {idealClasses.get_coordination(class_name)} than {structure.name_code_with_symmetries()}."
+                    )
+
+                if (
+                    structure.coordination()
+                    == idealClasses.get_coordination(class_name) + 1
+                ):
+                    return
+                clazz = class_name
+
+            m_ligand_coord = idealClasses.get_coordinates(clazz)
+            main_proc_dist, _, _, _, index = fit(structure.get_coord(), m_ligand_coord)
+            yield ClassificationResult(
+                clazz, m_ligand_coord, index, main_proc_dist
+            )
         else:
             for clazz in idealClasses.get_ideal_classes():
                 if idealClasses.get_coordination(clazz) != structure.coordination():
                     continue
                 m_ligand_coord = idealClasses.get_coordinates(clazz)
                 main_proc_dist, _, _, _, index = fit(
-                    structure.get_coord(), m_ligand_coord)
+                    structure.get_coord(), m_ligand_coord
+                )
                 if main_proc_dist < self._thr:
-                    yield ClassificationResult(clazz, m_ligand_coord, index, main_proc_dist)
+                    yield ClassificationResult(
+                        clazz, m_ligand_coord, index, main_proc_dist
+                    )
 
 
 idealClasses = Class()

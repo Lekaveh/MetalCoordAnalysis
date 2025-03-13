@@ -1,11 +1,22 @@
-
 import os
 import gemmi
 from tqdm import tqdm
 from metalCoord.analysis.classes import Classificator
 from metalCoord.analysis.data import DB
-from metalCoord.analysis.cod import StrictCandidateFinder, ElementCandidateFinder, ElementInCandidateFinder, AnyElementCandidateFinder, NoCoordinationCandidateFinder, CovalentCandidateFinder
-from metalCoord.analysis.stats import OnlyDistanceStatsFinder, WeekCorrespondenceStatsFinder, StrictCorrespondenceStatsFinder, CovalentStatsFinder
+from metalCoord.analysis.cod import (
+    StrictCandidateFinder,
+    ElementCandidateFinder,
+    ElementInCandidateFinder,
+    AnyElementCandidateFinder,
+    NoCoordinationCandidateFinder,
+    CovalentCandidateFinder,
+)
+from metalCoord.analysis.stats import (
+    OnlyDistanceStatsFinder,
+    WeekCorrespondenceStatsFinder,
+    StrictCorrespondenceStatsFinder,
+    CovalentStatsFinder,
+)
 from metalCoord.analysis.models import MetalStats, PdbStats
 from metalCoord.analysis.structures import get_ligands, get_ligands_from_cif, Ligand
 from metalCoord.cif.utils import get_bonds
@@ -39,7 +50,7 @@ def get_structures(ligand, path, bonds=None, only_best=False) -> list[Ligand]:
 
     elif len(path) == 4:
         pdb, file_type = load_pdb(path)
-        if file_type == 'cif':
+        if file_type == "cif":
             cif_block = gemmi.cif.read_string(pdb)[0]
             st = gemmi.make_structure_from_block(cif_block)
         else:
@@ -48,20 +59,24 @@ def get_structures(ligand, path, bonds=None, only_best=False) -> list[Ligand]:
 
     else:
         raise FileNotFoundError(
-            "Existing pdb or mmcif file path should be provided or 4 letter pdb code")
+            "Existing pdb or mmcif file path should be provided or 4 letter pdb code"
+        )
 
 
 convalent_strategy = CovalentStatsFinder(CovalentCandidateFinder())
-strategies = [StrictCorrespondenceStatsFinder(StrictCandidateFinder()),
-              WeekCorrespondenceStatsFinder(ElementCandidateFinder()),
-              WeekCorrespondenceStatsFinder(ElementInCandidateFinder()),
-              WeekCorrespondenceStatsFinder(AnyElementCandidateFinder()),
-              OnlyDistanceStatsFinder(NoCoordinationCandidateFinder()),
-              convalent_strategy
-              ]
+strategies = [
+    StrictCorrespondenceStatsFinder(StrictCandidateFinder()),
+    WeekCorrespondenceStatsFinder(ElementCandidateFinder()),
+    WeekCorrespondenceStatsFinder(ElementInCandidateFinder()),
+    WeekCorrespondenceStatsFinder(AnyElementCandidateFinder()),
+    OnlyDistanceStatsFinder(NoCoordinationCandidateFinder()),
+    convalent_strategy,
+]
 
 
-def find_classes_from_structures(structures, bonds, clazz: str = None):
+def find_classes_from_structures(
+    structures: list[Ligand], bonds: dict, clazz: str = None
+):
     """
     Analyzes a list of structures to classify them based on their coordination and other properties.
 
@@ -75,21 +90,36 @@ def find_classes_from_structures(structures, bonds, clazz: str = None):
 
     for structure in tqdm(structures, disable=not Logger().progress_bars):
         Logger().info(
-            f"Structure for {structure} found. Coordination number: {structure.coordination()}. {structure.name_code_with_symmetries()}")
+            f"Structure for {structure} found. Coordination number: {structure.coordination()}. {structure.name_code_with_symmetries()}"
+        )
     Logger().info(f"{len(structures)} structures found.")
     results = PdbStats()
     classificator = Classificator()
 
     classes = {}
-    for structure in tqdm(structures, desc="Structures", position=0, disable=not Logger().progress_bars):
+    for structure in tqdm(
+        structures, desc="Structures", position=0, disable=not Logger().progress_bars
+    ):
         structure_classes = []
 
-        for class_result in tqdm(classificator.classify(structure, class_name = clazz), desc="Coordination", position=1, leave=False, disable=not Logger().progress_bars):
+        for class_result in tqdm(
+            classificator.classify(structure, class_name=clazz),
+            desc="Coordination",
+            position=1,
+            leave=False,
+            disable=not Logger().progress_bars,
+        ):
             structure_classes.append(class_result)
 
         if not structure_classes:
             new_structure = structure.clean_the_farthest(len(bonds))
-            for class_result in tqdm(classificator.classify(new_structure, class_name = clazz), desc="Coordination", position=1, leave=False, disable=not Logger().progress_bars):
+            for class_result in tqdm(
+                classificator.classify(new_structure, class_name=clazz),
+                desc="Coordination",
+                position=1,
+                leave=False,
+                disable=not Logger().progress_bars,
+            ):
                 structure_classes.append(class_result)
             if structure_classes:
                 structure = new_structure
@@ -101,30 +131,48 @@ def find_classes_from_structures(structures, bonds, clazz: str = None):
             candidantes.append(class_result.clazz)
         Logger().info(f"Candidates for {structure} : {candidantes}")
 
-    for structure in tqdm(classes.keys(), desc="Structures", position=0, disable=not Logger().progress_bars):
+    for structure in tqdm(
+        classes.keys(),
+        desc="Structures",
+        position=0,
+        disable=not Logger().progress_bars,
+    ):
         metal_stats = MetalStats(structure)
         if classes[structure]:
             for class_result in classes[structure]:
-                for strategy in tqdm(strategies, desc="Strategies", position=1, leave=False, disable=not Logger().progress_bars):
+                for strategy in tqdm(
+                    strategies,
+                    desc="Strategies",
+                    position=1,
+                    leave=False,
+                    disable=not Logger().progress_bars,
+                ):
                     ligand_stats = strategy.get_stats(
-                        structure, DB.data(), class_result)
+                        structure, DB.data(), class_result
+                    )
                     if ligand_stats:
                         metal_stats.add_ligand(ligand_stats)
                         break
         else:
-            ligand_stats = convalent_strategy.get_stats(
-                structure, DB.data(), None)
+            ligand_stats = convalent_strategy.get_stats(structure, DB.data(), None)
             metal_stats.add_ligand(ligand_stats)
 
         if not metal_stats.is_empty():
             results.add_metal(metal_stats)
 
     Logger().info(
-        f"Analysis completed. Statistics for {int(results.len())} ligands(metals) found.")
+        f"Analysis completed. Statistics for {int(results.len())} ligands(metals) found."
+    )
     return results
 
 
-def find_classes_pdb(ligand: str, pdb_name: str, bonds: dict = None, only_best: bool = False, clazz: str = None) -> PdbStats:
+def find_classes_pdb(
+    ligand: str,
+    pdb_name: str,
+    bonds: dict = None,
+    only_best: bool = False,
+    clazz: str = None,
+) -> PdbStats:
     """
     Analyzes structures in a given PDB file for patterns and returns the statistics for ligands (metals) found.
 
@@ -145,7 +193,9 @@ def find_classes_pdb(ligand: str, pdb_name: str, bonds: dict = None, only_best: 
     return find_classes_from_structures(structures, bonds, clazz=clazz)
 
 
-def find_classes_cif(name: str, atoms: gemmi.cif.Table, bonds: gemmi.cif.Table, clazz: str = None) -> PdbStats:
+def find_classes_cif(
+    name: str, atoms: gemmi.cif.Table, bonds: gemmi.cif.Table, clazz: str = None
+) -> PdbStats:
     """Classify ligands and bonds from CIF data.
 
     This function takes CIF tables of atoms and bonds, processes them to extract
@@ -161,4 +211,6 @@ def find_classes_cif(name: str, atoms: gemmi.cif.Table, bonds: gemmi.cif.Table, 
         PdbStats: An object containing statistics and classifications of the ligands and bonds.
     """
     b = get_bonds(atoms, bonds)
-    return find_classes_from_structures(get_ligands_from_cif(name, atoms, b), b, clazz=clazz)
+    return find_classes_from_structures(
+        get_ligands_from_cif(name, atoms, b), b, clazz=clazz
+    )
