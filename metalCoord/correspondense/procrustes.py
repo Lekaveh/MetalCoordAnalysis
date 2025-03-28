@@ -110,8 +110,10 @@ def sort_ring(coords, ring):
     Returns:
         list of int: The indices of the ring sorted by their angular position around the center point.
     """
+   
     center, n = find_intersection(
         coords[0], coords[ring[0]], coords[ring[1]], coords[ring[2]])
+    
     return sorted(ring, key=lambda x: angle(center, coords[ring[0]], coords[x], n))
 
 
@@ -674,14 +676,16 @@ def fit(coords: np.ndarray, ideal_coords: np.ndarray, groups: tuple = None, all:
         - float: The minimum distance after fitting.
         - np.ndarray: The rotated coordinates.
     """
-
+    
+    if groups is None:
+        groups = [[[0], list(range(1, len(coords)))], [[0], list(range(1, len(ideal_coords)))]]
+                  
     if center:
         coords = coords - coords[0]
         ideal_coords = ideal_coords - ideal_coords[0]
 
     rings1, others1 = find_rings(coords)
     rings2, others2 = find_rings(ideal_coords)
-
      
     if len(coords) >= 8 and len(rings1) > 0 and have_same_ring_length(rings1, rings2):
             
@@ -692,8 +696,6 @@ def fit(coords: np.ndarray, ideal_coords: np.ndarray, groups: tuple = None, all:
             if length not in ring_length_dict:
                 ring_length_dict[length] = []
             ring_length_dict[length].append(i)
-        
-        ring_groups = list(ring_length_dict.values())
         
         # Handle permutations more efficiently
        
@@ -748,10 +750,11 @@ def fit(coords: np.ndarray, ideal_coords: np.ndarray, groups: tuple = None, all:
         distances, approxs, c, r, indices, rotated = fit_group(
             coords, ideal_coords, groups)
 
+
     min_arg = np.argmin(distances)
     if all:
         return (distances, indices, distances[min_arg].squeeze(), rotated)
-
+    
     return (distances[min_arg].squeeze(), approxs[min_arg][indices[min_arg]].squeeze(),  c[min_arg].ravel()[0], r[min_arg].squeeze(), indices[min_arg].ravel())
 
 
