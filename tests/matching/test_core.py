@@ -31,7 +31,7 @@ def test_classificator_thr(classificator):
     This test checks if the '_thr' attribute of the Classificator instance
     is correctly initialized to the value 0.3.
     """
-    assert classificator.threshold == 0.3
+    assert abs(classificator.threshold - 0.3) < 1e-9
 
 
 def test_classificator_initialization(classificator):

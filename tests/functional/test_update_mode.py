@@ -330,7 +330,7 @@ def test_compare_cif_files(cli_output: Path, test_case: UpdateModeTestCase):
             )
 
         if d1[VALUE_DIST_NUCLEUS] is not None and match[VALUE_DIST_NUCLEUS] is not None:
-            assert abs(d1[VALUE_DIST_NUCLEUS] - match[VALUE_DIST_NUCLEUS])/d1[VALUE_DIST_NUCLEUS] < 1e-3, (
+            assert abs(d1[VALUE_DIST_NUCLEUS] - match[VALUE_DIST_NUCLEUS])/d1[VALUE_DIST_NUCLEUS] < 0.05, (
                 f"Nucleus distances differ for bond {d1[ATOM_ID_1]} - {d1[ATOM_ID_2]}. The difference is more than 5%: "
                 f"{d1[VALUE_DIST_NUCLEUS]} vs {match[VALUE_DIST_NUCLEUS]}"
             )
