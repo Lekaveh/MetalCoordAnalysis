@@ -672,11 +672,15 @@ def get_ligands(st, ligand, bonds=None, max_dist=10, only_best=False) -> list[Li
     """
     scale = Config().scale()
     alpha = Config().distance_threshold + 1
-    beta1 = [1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 1.8, 1.9, 2.0]
-    beta1 = [b for b in beta1 if b < alpha]
-    alpha1 = 1.1
+    beta1 = [0.8, 0.9, 1.0, 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 1.8, 1.9, 2.0]
+    alpha1 = 1.1    
     angle1 = 60
-
+    
+    alpha = np.floor(alpha*10)/10
+    if alpha1 > alpha - 0.1:
+        alpha1 = np.round(alpha - 0.2, 1)
+    beta1 = [b for b in beta1 if b < alpha and b > alpha1]
+    
     def covalent_radii(element):
         return gemmi.Element(element).covalent_r
 
