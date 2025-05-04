@@ -48,7 +48,7 @@ def get_element_name(mmcif_atom_category, name):
     """
     for i, _ in enumerate(mmcif_atom_category[ATOM_ID]):
         if _ == name:
-            return mmcif_atom_category[TYPE_SYMBOL][i]
+            return gemmi.Element(mmcif_atom_category[TYPE_SYMBOL][i]).name
         
 
 def get_bonds(atoms: gemmi.cif.Table, bonds: gemmi.cif.Table) -> dict:

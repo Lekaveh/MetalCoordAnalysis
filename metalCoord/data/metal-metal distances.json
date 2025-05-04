@@ -1,0 +1,4727 @@
+[
+    {
+        "metal1": "Sr",
+        "metal2": "V",
+        "mean": 3.59,
+        "std": 0.19,
+        "count": 2739
+    },
+    {
+        "metal1": "Sr",
+        "metal2": "Sr",
+        "mean": 3.99,
+        "std": 0.32,
+        "count": 25985
+    },
+    {
+        "metal1": "Na",
+        "metal2": "Na",
+        "mean": 3.41,
+        "std": 0.23,
+        "count": 43103
+    },
+    {
+        "metal1": "Al",
+        "metal2": "Na",
+        "mean": 3.29,
+        "std": 0.12,
+        "count": 1987
+    },
+    {
+        "metal1": "Ba",
+        "metal2": "Ba",
+        "mean": 4.06,
+        "std": 0.23,
+        "count": 58516
+    },
+    {
+        "metal1": "Al",
+        "metal2": "Ca",
+        "mean": 3.16,
+        "std": 0.12,
+        "count": 3939
+    },
+    {
+        "metal1": "Ca",
+        "metal2": "Ca",
+        "mean": 3.59,
+        "std": 0.22,
+        "count": 26358
+    },
+    {
+        "metal1": "Ca",
+        "metal2": "Mg",
+        "mean": 3.38,
+        "std": 0.12,
+        "count": 1328
+    },
+    {
+        "metal1": "Mg",
+        "metal2": "Mg",
+        "mean": 3.17,
+        "std": 0.2,
+        "count": 8738
+    },
+    {
+        "metal1": "Bi",
+        "metal2": "Li",
+        "mean": 2.83,
+        "std": 0.05,
+        "count": 1342
+    },
+    {
+        "metal1": "Bi",
+        "metal2": "Bi",
+        "mean": 3.65,
+        "std": 0.3,
+        "count": 21032
+    },
+    {
+        "metal1": "Pd",
+        "metal2": "Pd",
+        "mean": 2.81,
+        "std": 0.1,
+        "count": 29506
+    },
+    {
+        "metal1": "Al",
+        "metal2": "Sr",
+        "mean": 3.36,
+        "std": 0.12,
+        "count": 2541
+    },
+    {
+        "metal1": "Na",
+        "metal2": "Sr",
+        "mean": 3.65,
+        "std": 0.14,
+        "count": 1138
+    },
+    {
+        "metal1": "Al",
+        "metal2": "Al",
+        "mean": 2.78,
+        "std": 0.11,
+        "count": 78887
+    },
+    {
+        "metal1": "Rb",
+        "metal2": "Rb",
+        "mean": 4.48,
+        "std": 0.43,
+        "count": 13011
+    },
+    {
+        "metal1": "Rb",
+        "metal2": "V",
+        "mean": 4.05,
+        "std": 0.37,
+        "count": 1117
+    },
+    {
+        "metal1": "V",
+        "metal2": "V",
+        "mean": 3.11,
+        "std": 0.15,
+        "count": 57838
+    },
+    {
+        "metal1": "Al",
+        "metal2": "Rb",
+        "mean": 3.88,
+        "std": 0.19,
+        "count": 744
+    },
+    {
+        "metal1": "Na",
+        "metal2": "Rb",
+        "mean": 4.12,
+        "std": 0.48,
+        "count": 680
+    },
+    {
+        "metal1": "Cr",
+        "metal2": "Rb",
+        "mean": 3.98,
+        "std": 0.23,
+        "count": 541
+    },
+    {
+        "metal1": "Cr",
+        "metal2": "Cr",
+        "mean": 2.62,
+        "std": 0.13,
+        "count": 8491
+    },
+    {
+        "metal1": "Fe",
+        "metal2": "Pb",
+        "mean": 3.43,
+        "std": 0.37,
+        "count": 519
+    },
+    {
+        "metal1": "Fe",
+        "metal2": "Mn",
+        "mean": 3.41,
+        "std": 0.32,
+        "count": 637
+    },
+    {
+        "metal1": "Mn",
+        "metal2": "Pb",
+        "mean": 3.4,
+        "std": 0.3,
+        "count": 821
+    },
+    {
+        "metal1": "Pb",
+        "metal2": "Pb",
+        "mean": 3.18,
+        "std": 0.13,
+        "count": 16323
+    },
+    {
+        "metal1": "Mn",
+        "metal2": "Mn",
+        "mean": 2.77,
+        "std": 0.17,
+        "count": 52127
+    },
+    {
+        "metal1": "Al",
+        "metal2": "Ba",
+        "mean": 3.76,
+        "std": 0.33,
+        "count": 4332
+    },
+    {
+        "metal1": "Al",
+        "metal2": "Cs",
+        "mean": 4.2,
+        "std": 0.39,
+        "count": 602
+    },
+    {
+        "metal1": "Cs",
+        "metal2": "Cs",
+        "mean": 4.6,
+        "std": 0.32,
+        "count": 17820
+    },
+    {
+        "metal1": "Ba",
+        "metal2": "Zr",
+        "mean": 4.08,
+        "std": 0.28,
+        "count": 587
+    },
+    {
+        "metal1": "Zr",
+        "metal2": "Zr",
+        "mean": 3.53,
+        "std": 0.22,
+        "count": 12295
+    },
+    {
+        "metal1": "Ba",
+        "metal2": "K",
+        "mean": 4.18,
+        "std": 0.36,
+        "count": 716
+    },
+    {
+        "metal1": "Al",
+        "metal2": "K",
+        "mean": 3.65,
+        "std": 0.2,
+        "count": 3094
+    },
+    {
+        "metal1": "K",
+        "metal2": "K",
+        "mean": 4.31,
+        "std": 0.43,
+        "count": 52369
+    },
+    {
+        "metal1": "Ba",
+        "metal2": "Hg",
+        "mean": 3.87,
+        "std": 0.13,
+        "count": 1376
+    },
+    {
+        "metal1": "Ba",
+        "metal2": "Ru",
+        "mean": 3.57,
+        "std": 0.12,
+        "count": 2642
+    },
+    {
+        "metal1": "Ba",
+        "metal2": "Ga",
+        "mean": 3.7,
+        "std": 0.29,
+        "count": 1930
+    },
+    {
+        "metal1": "Na",
+        "metal2": "V",
+        "mean": 3.34,
+        "std": 0.17,
+        "count": 2589
+    },
+    {
+        "metal1": "Li",
+        "metal2": "Li",
+        "mean": 2.58,
+        "std": 0.17,
+        "count": 41249
+    },
+    {
+        "metal1": "Ca",
+        "metal2": "Na",
+        "mean": 3.6,
+        "std": 0.26,
+        "count": 1812
+    },
+    {
+        "metal1": "Fe",
+        "metal2": "Fe",
+        "mean": 2.51,
+        "std": 0.07,
+        "count": 77998
+    },
+    {
+        "metal1": "Fe",
+        "metal2": "Li",
+        "mean": 2.81,
+        "std": 0.11,
+        "count": 1736
+    },
+    {
+        "metal1": "Li",
+        "metal2": "Mn",
+        "mean": 2.89,
+        "std": 0.15,
+        "count": 6538
+    },
+    {
+        "metal1": "Ba",
+        "metal2": "Fe",
+        "mean": 3.58,
+        "std": 0.19,
+        "count": 5845
+    },
+    {
+        "metal1": "Ba",
+        "metal2": "Co",
+        "mean": 3.58,
+        "std": 0.4,
+        "count": 6783
+    },
+    {
+        "metal1": "Co",
+        "metal2": "Fe",
+        "mean": 2.86,
+        "std": 0.28,
+        "count": 561
+    },
+    {
+        "metal1": "Ba",
+        "metal2": "Cr",
+        "mean": 3.63,
+        "std": 0.17,
+        "count": 1196
+    },
+    {
+        "metal1": "Ba",
+        "metal2": "Na",
+        "mean": 3.79,
+        "std": 0.23,
+        "count": 1640
+    },
+    {
+        "metal1": "Cr",
+        "metal2": "Na",
+        "mean": 3.62,
+        "std": 0.32,
+        "count": 866
+    },
+    {
+        "metal1": "Fe",
+        "metal2": "Na",
+        "mean": 3.5,
+        "std": 0.23,
+        "count": 2706
+    },
+    {
+        "metal1": "Ba",
+        "metal2": "Cu",
+        "mean": 3.62,
+        "std": 0.4,
+        "count": 16571
+    },
+    {
+        "metal1": "Cu",
+        "metal2": "Cu",
+        "mean": 2.69,
+        "std": 0.13,
+        "count": 119294
+    },
+    {
+        "metal1": "Cu",
+        "metal2": "Fe",
+        "mean": 2.53,
+        "std": 0.05,
+        "count": 3885
+    },
+    {
+        "metal1": "Hg",
+        "metal2": "Hg",
+        "mean": 2.64,
+        "std": 0.15,
+        "count": 4354
+    },
+    {
+        "metal1": "Na",
+        "metal2": "Ni",
+        "mean": 3.1,
+        "std": 0.15,
+        "count": 1782
+    },
+    {
+        "metal1": "Ni",
+        "metal2": "Ni",
+        "mean": 2.58,
+        "std": 0.13,
+        "count": 40539
+    },
+    {
+        "metal1": "Fe",
+        "metal2": "Ni",
+        "mean": 2.74,
+        "std": 0.22,
+        "count": 742
+    },
+    {
+        "metal1": "Cr",
+        "metal2": "Cs",
+        "mean": 4.34,
+        "std": 0.4,
+        "count": 961
+    },
+    {
+        "metal1": "Cs",
+        "metal2": "Sb",
+        "mean": 4.09,
+        "std": 0.19,
+        "count": 692
+    },
+    {
+        "metal1": "Sb",
+        "metal2": "Sb",
+        "mean": 3.02,
+        "std": 0.15,
+        "count": 21675
+    },
+    {
+        "metal1": "Sr",
+        "metal2": "Zn",
+        "mean": 3.5,
+        "std": 0.21,
+        "count": 799
+    },
+    {
+        "metal1": "Cs",
+        "metal2": "Nb",
+        "mean": 4.3,
+        "std": 0.29,
+        "count": 595
+    },
+    {
+        "metal1": "Mn",
+        "metal2": "Na",
+        "mean": 3.48,
+        "std": 0.22,
+        "count": 3360
+    },
+    {
+        "metal1": "Ga",
+        "metal2": "Na",
+        "mean": 3.22,
+        "std": 0.09,
+        "count": 1290
+    },
+    {
+        "metal1": "Fe",
+        "metal2": "Sr",
+        "mean": 3.3,
+        "std": 0.07,
+        "count": 1880
+    },
+    {
+        "metal1": "Ce",
+        "metal2": "Ce",
+        "mean": 4.17,
+        "std": 0.39,
+        "count": 9965
+    },
+    {
+        "metal1": "Cr",
+        "metal2": "Sr",
+        "mean": 3.41,
+        "std": 0.18,
+        "count": 1595
+    },
+    {
+        "metal1": "Cu",
+        "metal2": "Sr",
+        "mean": 3.25,
+        "std": 0.06,
+        "count": 3968
+    },
+    {
+        "metal1": "Al",
+        "metal2": "Fe",
+        "mean": 2.65,
+        "std": 0.31,
+        "count": 6149
+    },
+    {
+        "metal1": "Ga",
+        "metal2": "Ga",
+        "mean": 2.61,
+        "std": 0.09,
+        "count": 10267
+    },
+    {
+        "metal1": "Ba",
+        "metal2": "Zn",
+        "mean": 3.57,
+        "std": 0.21,
+        "count": 3312
+    },
+    {
+        "metal1": "Ba",
+        "metal2": "Ni",
+        "mean": 3.56,
+        "std": 0.19,
+        "count": 2263
+    },
+    {
+        "metal1": "Ba",
+        "metal2": "Mn",
+        "mean": 3.55,
+        "std": 0.13,
+        "count": 2188
+    },
+    {
+        "metal1": "Mn",
+        "metal2": "Ni",
+        "mean": 2.72,
+        "std": 0.08,
+        "count": 1165
+    },
+    {
+        "metal1": "Fe",
+        "metal2": "Zn",
+        "mean": 2.6,
+        "std": 0.08,
+        "count": 2006
+    },
+    {
+        "metal1": "Na",
+        "metal2": "Zn",
+        "mean": 3.26,
+        "std": 0.14,
+        "count": 1886
+    },
+    {
+        "metal1": "Ba",
+        "metal2": "V",
+        "mean": 3.63,
+        "std": 0.14,
+        "count": 4050
+    },
+    {
+        "metal1": "Cu",
+        "metal2": "V",
+        "mean": 3.37,
+        "std": 0.21,
+        "count": 3722
+    },
+    {
+        "metal1": "Cd",
+        "metal2": "Cd",
+        "mean": 3.04,
+        "std": 0.12,
+        "count": 23769
+    },
+    {
+        "metal1": "Cd",
+        "metal2": "Na",
+        "mean": 3.41,
+        "std": 0.14,
+        "count": 1976
+    },
+    {
+        "metal1": "Cu",
+        "metal2": "Pb",
+        "mean": 2.91,
+        "std": 0.09,
+        "count": 1408
+    },
+    {
+        "metal1": "Pb",
+        "metal2": "V",
+        "mean": 3.82,
+        "std": 0.29,
+        "count": 1693
+    },
+    {
+        "metal1": "Fe",
+        "metal2": "V",
+        "mean": 2.81,
+        "std": 0.12,
+        "count": 1058
+    },
+    {
+        "metal1": "Fe",
+        "metal2": "Rb",
+        "mean": 3.86,
+        "std": 0.17,
+        "count": 731
+    },
+    {
+        "metal1": "Ba",
+        "metal2": "Ca",
+        "mean": 3.68,
+        "std": 0.09,
+        "count": 1324
+    },
+    {
+        "metal1": "Ba",
+        "metal2": "Sm",
+        "mean": 3.81,
+        "std": 0.1,
+        "count": 1168
+    },
+    {
+        "metal1": "Sm",
+        "metal2": "Sm",
+        "mean": 4.02,
+        "std": 0.34,
+        "count": 7630
+    },
+    {
+        "metal1": "Ba",
+        "metal2": "La",
+        "mean": 3.89,
+        "std": 0.17,
+        "count": 846
+    },
+    {
+        "metal1": "La",
+        "metal2": "La",
+        "mean": 3.92,
+        "std": 0.18,
+        "count": 22944
+    },
+    {
+        "metal1": "Cs",
+        "metal2": "Na",
+        "mean": 4.24,
+        "std": 0.3,
+        "count": 1056
+    },
+    {
+        "metal1": "Ge",
+        "metal2": "Rb",
+        "mean": 3.84,
+        "std": 0.23,
+        "count": 996
+    },
+    {
+        "metal1": "Ge",
+        "metal2": "Ge",
+        "mean": 2.58,
+        "std": 0.08,
+        "count": 9073
+    },
+    {
+        "metal1": "Rb",
+        "metal2": "Ti",
+        "mean": 3.94,
+        "std": 0.16,
+        "count": 648
+    },
+    {
+        "metal1": "Nb",
+        "metal2": "Rb",
+        "mean": 4.29,
+        "std": 0.39,
+        "count": 636
+    },
+    {
+        "metal1": "Nb",
+        "metal2": "Nb",
+        "mean": 3.27,
+        "std": 0.22,
+        "count": 6648
+    },
+    {
+        "metal1": "Ta",
+        "metal2": "Ta",
+        "mean": 3.16,
+        "std": 0.19,
+        "count": 10175
+    },
+    {
+        "metal1": "Bi",
+        "metal2": "Cd",
+        "mean": 2.92,
+        "std": 0.16,
+        "count": 946
+    },
+    {
+        "metal1": "Ag",
+        "metal2": "Ag",
+        "mean": 2.94,
+        "std": 0.12,
+        "count": 103127
+    },
+    {
+        "metal1": "Ag",
+        "metal2": "Sb",
+        "mean": 2.81,
+        "std": 0.06,
+        "count": 2005
+    },
+    {
+        "metal1": "Rb",
+        "metal2": "Ta",
+        "mean": 4.33,
+        "std": 0.38,
+        "count": 603
+    },
+    {
+        "metal1": "Ba",
+        "metal2": "Ge",
+        "mean": 3.52,
+        "std": 0.14,
+        "count": 1766
+    },
+    {
+        "metal1": "Ba",
+        "metal2": "Sn",
+        "mean": 3.85,
+        "std": 0.21,
+        "count": 3631
+    },
+    {
+        "metal1": "Ge",
+        "metal2": "Sn",
+        "mean": 2.76,
+        "std": 0.13,
+        "count": 668
+    },
+    {
+        "metal1": "Sn",
+        "metal2": "W",
+        "mean": 2.77,
+        "std": 0.06,
+        "count": 932
+    },
+    {
+        "metal1": "Sn",
+        "metal2": "Sn",
+        "mean": 2.96,
+        "std": 0.1,
+        "count": 29129
+    },
+    {
+        "metal1": "W",
+        "metal2": "W",
+        "mean": 3.54,
+        "std": 0.18,
+        "count": 140274
+    },
+    {
+        "metal1": "Ti",
+        "metal2": "Ti",
+        "mean": 3.06,
+        "std": 0.15,
+        "count": 21653
+    },
+    {
+        "metal1": "K",
+        "metal2": "Ti",
+        "mean": 3.74,
+        "std": 0.17,
+        "count": 1447
+    },
+    {
+        "metal1": "Rb",
+        "metal2": "Sn",
+        "mean": 4.08,
+        "std": 0.19,
+        "count": 1033
+    },
+    {
+        "metal1": "Cs",
+        "metal2": "Ti",
+        "mean": 4.2,
+        "std": 0.28,
+        "count": 1147
+    },
+    {
+        "metal1": "Cs",
+        "metal2": "Ge",
+        "mean": 3.97,
+        "std": 0.19,
+        "count": 1018
+    },
+    {
+        "metal1": "Cs",
+        "metal2": "Sn",
+        "mean": 4.02,
+        "std": 0.12,
+        "count": 1933
+    },
+    {
+        "metal1": "Ge",
+        "metal2": "K",
+        "mean": 3.65,
+        "std": 0.2,
+        "count": 2318
+    },
+    {
+        "metal1": "Bi",
+        "metal2": "Zn",
+        "mean": 2.78,
+        "std": 0.14,
+        "count": 519
+    },
+    {
+        "metal1": "Ta",
+        "metal2": "Zn",
+        "mean": 3.36,
+        "std": 0.25,
+        "count": 774
+    },
+    {
+        "metal1": "K",
+        "metal2": "Zn",
+        "mean": 3.57,
+        "std": 0.14,
+        "count": 1548
+    },
+    {
+        "metal1": "Mg",
+        "metal2": "Zn",
+        "mean": 3.07,
+        "std": 0.16,
+        "count": 1089
+    },
+    {
+        "metal1": "K",
+        "metal2": "Mg",
+        "mean": 3.73,
+        "std": 0.21,
+        "count": 1214
+    },
+    {
+        "metal1": "Mg",
+        "metal2": "Na",
+        "mean": 3.4,
+        "std": 0.2,
+        "count": 1071
+    },
+    {
+        "metal1": "La",
+        "metal2": "Mo",
+        "mean": 3.58,
+        "std": 0.14,
+        "count": 2771
+    },
+    {
+        "metal1": "Cu",
+        "metal2": "Rb",
+        "mean": 3.99,
+        "std": 0.24,
+        "count": 1348
+    },
+    {
+        "metal1": "Cu",
+        "metal2": "Ta",
+        "mean": 3.25,
+        "std": 0.14,
+        "count": 1005
+    },
+    {
+        "metal1": "Pb",
+        "metal2": "Ti",
+        "mean": 3.48,
+        "std": 0.14,
+        "count": 1024
+    },
+    {
+        "metal1": "Np",
+        "metal2": "Np",
+        "mean": 4.1,
+        "std": 0.27,
+        "count": 1231
+    },
+    {
+        "metal1": "Cr",
+        "metal2": "Li",
+        "mean": 2.51,
+        "std": 0.05,
+        "count": 817
+    },
+    {
+        "metal1": "Li",
+        "metal2": "Sb",
+        "mean": 2.97,
+        "std": 0.12,
+        "count": 910
+    },
+    {
+        "metal1": "K",
+        "metal2": "Mo",
+        "mean": 3.89,
+        "std": 0.24,
+        "count": 9489
+    },
+    {
+        "metal1": "Rb",
+        "metal2": "W",
+        "mean": 4.23,
+        "std": 0.44,
+        "count": 1756
+    },
+    {
+        "metal1": "Re",
+        "metal2": "Re",
+        "mean": 2.62,
+        "std": 0.05,
+        "count": 12806
+    },
+    {
+        "metal1": "Cs",
+        "metal2": "Mo",
+        "mean": 4.09,
+        "std": 0.16,
+        "count": 3869
+    },
+    {
+        "metal1": "Cs",
+        "metal2": "U",
+        "mean": 4.54,
+        "std": 0.27,
+        "count": 3165
+    },
+    {
+        "metal1": "U",
+        "metal2": "U",
+        "mean": 3.83,
+        "std": 0.15,
+        "count": 12571
+    },
+    {
+        "metal1": "Mo",
+        "metal2": "Mo",
+        "mean": 2.7,
+        "std": 0.1,
+        "count": 137911
+    },
+    {
+        "metal1": "Mo",
+        "metal2": "Rb",
+        "mean": 3.93,
+        "std": 0.14,
+        "count": 3275
+    },
+    {
+        "metal1": "Ba",
+        "metal2": "Cd",
+        "mean": 3.82,
+        "std": 0.19,
+        "count": 1624
+    },
+    {
+        "metal1": "Mo",
+        "metal2": "Na",
+        "mean": 3.62,
+        "std": 0.18,
+        "count": 6894
+    },
+    {
+        "metal1": "K",
+        "metal2": "V",
+        "mean": 3.94,
+        "std": 0.43,
+        "count": 6895
+    },
+    {
+        "metal1": "Na",
+        "metal2": "Ti",
+        "mean": 3.2,
+        "std": 0.05,
+        "count": 1157
+    },
+    {
+        "metal1": "Fe",
+        "metal2": "K",
+        "mean": 3.58,
+        "std": 0.12,
+        "count": 3857
+    },
+    {
+        "metal1": "Rb",
+        "metal2": "Zn",
+        "mean": 3.98,
+        "std": 0.26,
+        "count": 723
+    },
+    {
+        "metal1": "Pb",
+        "metal2": "Sr",
+        "mean": 3.78,
+        "std": 0.26,
+        "count": 813
+    },
+    {
+        "metal1": "K",
+        "metal2": "Nb",
+        "mean": 3.86,
+        "std": 0.26,
+        "count": 3272
+    },
+    {
+        "metal1": "Ca",
+        "metal2": "Cu",
+        "mean": 3.17,
+        "std": 0.05,
+        "count": 2312
+    },
+    {
+        "metal1": "Ba",
+        "metal2": "Mo",
+        "mean": 3.71,
+        "std": 0.22,
+        "count": 1475
+    },
+    {
+        "metal1": "Co",
+        "metal2": "Sr",
+        "mean": 3.36,
+        "std": 0.16,
+        "count": 1011
+    },
+    {
+        "metal1": "Na",
+        "metal2": "Nb",
+        "mean": 3.47,
+        "std": 0.1,
+        "count": 1321
+    },
+    {
+        "metal1": "Cd",
+        "metal2": "V",
+        "mean": 3.63,
+        "std": 0.22,
+        "count": 1733
+    },
+    {
+        "metal1": "Ag",
+        "metal2": "Mo",
+        "mean": 3.79,
+        "std": 0.32,
+        "count": 4346
+    },
+    {
+        "metal1": "Ca",
+        "metal2": "Sn",
+        "mean": 3.34,
+        "std": 0.12,
+        "count": 2716
+    },
+    {
+        "metal1": "Ca",
+        "metal2": "Ga",
+        "mean": 3.23,
+        "std": 0.17,
+        "count": 692
+    },
+    {
+        "metal1": "Ag",
+        "metal2": "V",
+        "mean": 3.52,
+        "std": 0.21,
+        "count": 2303
+    },
+    {
+        "metal1": "Ba",
+        "metal2": "Bi",
+        "mean": 3.68,
+        "std": 0.11,
+        "count": 1399
+    },
+    {
+        "metal1": "Bi",
+        "metal2": "Pb",
+        "mean": 3.93,
+        "std": 0.23,
+        "count": 549
+    },
+    {
+        "metal1": "Ba",
+        "metal2": "Pb",
+        "mean": 3.7,
+        "std": 0.05,
+        "count": 884
+    },
+    {
+        "metal1": "Bi",
+        "metal2": "Sr",
+        "mean": 3.51,
+        "std": 0.12,
+        "count": 2908
+    },
+    {
+        "metal1": "Mo",
+        "metal2": "Sr",
+        "mean": 3.72,
+        "std": 0.24,
+        "count": 1710
+    },
+    {
+        "metal1": "Li",
+        "metal2": "Mo",
+        "mean": 3.36,
+        "std": 0.24,
+        "count": 1755
+    },
+    {
+        "metal1": "Ca",
+        "metal2": "V",
+        "mean": 3.32,
+        "std": 0.13,
+        "count": 2379
+    },
+    {
+        "metal1": "Al",
+        "metal2": "Ge",
+        "mean": 2.22,
+        "std": 0.07,
+        "count": 1921
+    },
+    {
+        "metal1": "Ba",
+        "metal2": "W",
+        "mean": 4.08,
+        "std": 0.37,
+        "count": 511
+    },
+    {
+        "metal1": "K",
+        "metal2": "W",
+        "mean": 3.92,
+        "std": 0.19,
+        "count": 25463
+    },
+    {
+        "metal1": "Fe",
+        "metal2": "Sn",
+        "mean": 2.69,
+        "std": 0.16,
+        "count": 831
+    },
+    {
+        "metal1": "In",
+        "metal2": "K",
+        "mean": 3.6,
+        "std": 0.06,
+        "count": 1797
+    },
+    {
+        "metal1": "Al",
+        "metal2": "Li",
+        "mean": 2.89,
+        "std": 0.17,
+        "count": 2852
+    },
+    {
+        "metal1": "Ru",
+        "metal2": "Ru",
+        "mean": 2.84,
+        "std": 0.11,
+        "count": 24723
+    },
+    {
+        "metal1": "Bi",
+        "metal2": "Cu",
+        "mean": 2.79,
+        "std": 0.09,
+        "count": 1113
+    },
+    {
+        "metal1": "Bi",
+        "metal2": "Cs",
+        "mean": 4.01,
+        "std": 0.14,
+        "count": 1248
+    },
+    {
+        "metal1": "Bi",
+        "metal2": "K",
+        "mean": 3.97,
+        "std": 0.22,
+        "count": 1073
+    },
+    {
+        "metal1": "Pt",
+        "metal2": "Pt",
+        "mean": 2.77,
+        "std": 0.1,
+        "count": 14768
+    },
+    {
+        "metal1": "Ni",
+        "metal2": "Sr",
+        "mean": 3.4,
+        "std": 0.21,
+        "count": 864
+    },
+    {
+        "metal1": "Bi",
+        "metal2": "Ni",
+        "mean": 2.75,
+        "std": 0.2,
+        "count": 1568
+    },
+    {
+        "metal1": "Bi",
+        "metal2": "Mo",
+        "mean": 2.91,
+        "std": 0.09,
+        "count": 1595
+    },
+    {
+        "metal1": "Cs",
+        "metal2": "V",
+        "mean": 4.3,
+        "std": 0.47,
+        "count": 1677
+    },
+    {
+        "metal1": "U",
+        "metal2": "V",
+        "mean": 3.23,
+        "std": 0.05,
+        "count": 817
+    },
+    {
+        "metal1": "Bi",
+        "metal2": "V",
+        "mean": 3.62,
+        "std": 0.16,
+        "count": 588
+    },
+    {
+        "metal1": "Ca",
+        "metal2": "Ge",
+        "mean": 3.18,
+        "std": 0.17,
+        "count": 2719
+    },
+    {
+        "metal1": "Ge",
+        "metal2": "La",
+        "mean": 3.33,
+        "std": 0.31,
+        "count": 1851
+    },
+    {
+        "metal1": "Cr",
+        "metal2": "Ga",
+        "mean": 2.67,
+        "std": 0.2,
+        "count": 735
+    },
+    {
+        "metal1": "Ga",
+        "metal2": "Sr",
+        "mean": 3.45,
+        "std": 0.22,
+        "count": 1325
+    },
+    {
+        "metal1": "Cd",
+        "metal2": "Cs",
+        "mean": 4.11,
+        "std": 0.14,
+        "count": 627
+    },
+    {
+        "metal1": "Ag",
+        "metal2": "Cr",
+        "mean": 3.77,
+        "std": 0.24,
+        "count": 655
+    },
+    {
+        "metal1": "Zn",
+        "metal2": "Zn",
+        "mean": 2.74,
+        "std": 0.14,
+        "count": 53059
+    },
+    {
+        "metal1": "Co",
+        "metal2": "Co",
+        "mean": 2.61,
+        "std": 0.16,
+        "count": 29781
+    },
+    {
+        "metal1": "Cu",
+        "metal2": "K",
+        "mean": 3.8,
+        "std": 0.23,
+        "count": 2767
+    },
+    {
+        "metal1": "K",
+        "metal2": "Na",
+        "mean": 3.76,
+        "std": 0.22,
+        "count": 3386
+    },
+    {
+        "metal1": "Ca",
+        "metal2": "K",
+        "mean": 3.94,
+        "std": 0.33,
+        "count": 898
+    },
+    {
+        "metal1": "Ca",
+        "metal2": "Li",
+        "mean": 3.17,
+        "std": 0.18,
+        "count": 1655
+    },
+    {
+        "metal1": "Ag",
+        "metal2": "Li",
+        "mean": 2.79,
+        "std": 0.1,
+        "count": 696
+    },
+    {
+        "metal1": "Cd",
+        "metal2": "K",
+        "mean": 4.04,
+        "std": 0.37,
+        "count": 794
+    },
+    {
+        "metal1": "Cr",
+        "metal2": "K",
+        "mean": 3.63,
+        "std": 0.1,
+        "count": 2758
+    },
+    {
+        "metal1": "Cs",
+        "metal2": "Cu",
+        "mean": 4.27,
+        "std": 0.43,
+        "count": 1484
+    },
+    {
+        "metal1": "Cs",
+        "metal2": "Zn",
+        "mean": 4.05,
+        "std": 0.21,
+        "count": 1265
+    },
+    {
+        "metal1": "Eu",
+        "metal2": "Eu",
+        "mean": 4.09,
+        "std": 0.34,
+        "count": 13717
+    },
+    {
+        "metal1": "K",
+        "metal2": "Sb",
+        "mean": 3.68,
+        "std": 0.14,
+        "count": 1745
+    },
+    {
+        "metal1": "Be",
+        "metal2": "Na",
+        "mean": 3.19,
+        "std": 0.18,
+        "count": 1296
+    },
+    {
+        "metal1": "Ge",
+        "metal2": "Mn",
+        "mean": 2.6,
+        "std": 0.1,
+        "count": 3002
+    },
+    {
+        "metal1": "Na",
+        "metal2": "Sb",
+        "mean": 3.25,
+        "std": 0.13,
+        "count": 2182
+    },
+    {
+        "metal1": "Os",
+        "metal2": "Os",
+        "mean": 2.93,
+        "std": 0.28,
+        "count": 5338
+    },
+    {
+        "metal1": "Cs",
+        "metal2": "Mn",
+        "mean": 4.43,
+        "std": 0.31,
+        "count": 696
+    },
+    {
+        "metal1": "Mn",
+        "metal2": "V",
+        "mean": 3.16,
+        "std": 0.12,
+        "count": 3899
+    },
+    {
+        "metal1": "Lu",
+        "metal2": "Lu",
+        "mean": 3.47,
+        "std": 0.17,
+        "count": 3813
+    },
+    {
+        "metal1": "Ag",
+        "metal2": "Cu",
+        "mean": 2.87,
+        "std": 0.11,
+        "count": 1580
+    },
+    {
+        "metal1": "Rb",
+        "metal2": "Sb",
+        "mean": 3.87,
+        "std": 0.17,
+        "count": 2163
+    },
+    {
+        "metal1": "K",
+        "metal2": "Li",
+        "mean": 3.34,
+        "std": 0.25,
+        "count": 1408
+    },
+    {
+        "metal1": "Cs",
+        "metal2": "Ni",
+        "mean": 3.81,
+        "std": 0.14,
+        "count": 518
+    },
+    {
+        "metal1": "Cs",
+        "metal2": "Li",
+        "mean": 3.81,
+        "std": 0.26,
+        "count": 1193
+    },
+    {
+        "metal1": "Yb",
+        "metal2": "Yb",
+        "mean": 3.71,
+        "std": 0.2,
+        "count": 10168
+    },
+    {
+        "metal1": "Na",
+        "metal2": "Nd",
+        "mean": 3.63,
+        "std": 0.26,
+        "count": 577
+    },
+    {
+        "metal1": "Ga",
+        "metal2": "Nd",
+        "mean": 3.27,
+        "std": 0.09,
+        "count": 530
+    },
+    {
+        "metal1": "Ca",
+        "metal2": "Cr",
+        "mean": 3.27,
+        "std": 0.21,
+        "count": 640
+    },
+    {
+        "metal1": "Ca",
+        "metal2": "Fe",
+        "mean": 3.17,
+        "std": 0.11,
+        "count": 2325
+    },
+    {
+        "metal1": "Ge",
+        "metal2": "Na",
+        "mean": 3.27,
+        "std": 0.13,
+        "count": 1720
+    },
+    {
+        "metal1": "Sn",
+        "metal2": "Sr",
+        "mean": 3.57,
+        "std": 0.14,
+        "count": 1127
+    },
+    {
+        "metal1": "Ba",
+        "metal2": "Sr",
+        "mean": 4.16,
+        "std": 0.43,
+        "count": 820
+    },
+    {
+        "metal1": "Al",
+        "metal2": "Co",
+        "mean": 2.57,
+        "std": 0.22,
+        "count": 11477
+    },
+    {
+        "metal1": "Al",
+        "metal2": "Mn",
+        "mean": 2.64,
+        "std": 0.25,
+        "count": 6518
+    },
+    {
+        "metal1": "Co",
+        "metal2": "Mn",
+        "mean": 2.81,
+        "std": 0.3,
+        "count": 1507
+    },
+    {
+        "metal1": "Mn",
+        "metal2": "Rb",
+        "mean": 4.17,
+        "std": 0.36,
+        "count": 747
+    },
+    {
+        "metal1": "K",
+        "metal2": "Mn",
+        "mean": 3.9,
+        "std": 0.37,
+        "count": 2110
+    },
+    {
+        "metal1": "Mn",
+        "metal2": "Sr",
+        "mean": 3.33,
+        "std": 0.12,
+        "count": 1810
+    },
+    {
+        "metal1": "Na",
+        "metal2": "Sn",
+        "mean": 3.33,
+        "std": 0.12,
+        "count": 6095
+    },
+    {
+        "metal1": "Co",
+        "metal2": "Ge",
+        "mean": 2.41,
+        "std": 0.08,
+        "count": 1201
+    },
+    {
+        "metal1": "Ge",
+        "metal2": "Mg",
+        "mean": 2.8,
+        "std": 0.08,
+        "count": 1086
+    },
+    {
+        "metal1": "Co",
+        "metal2": "Na",
+        "mean": 3.27,
+        "std": 0.15,
+        "count": 2127
+    },
+    {
+        "metal1": "Ba",
+        "metal2": "Li",
+        "mean": 3.9,
+        "std": 0.31,
+        "count": 2119
+    },
+    {
+        "metal1": "Ge",
+        "metal2": "Y",
+        "mean": 3.04,
+        "std": 0.09,
+        "count": 878
+    },
+    {
+        "metal1": "Y",
+        "metal2": "Y",
+        "mean": 3.75,
+        "std": 0.21,
+        "count": 9832
+    },
+    {
+        "metal1": "Al",
+        "metal2": "Mg",
+        "mean": 2.97,
+        "std": 0.11,
+        "count": 976
+    },
+    {
+        "metal1": "Ba",
+        "metal2": "Ti",
+        "mean": 3.56,
+        "std": 0.1,
+        "count": 1369
+    },
+    {
+        "metal1": "Na",
+        "metal2": "Yb",
+        "mean": 3.68,
+        "std": 0.28,
+        "count": 541
+    },
+    {
+        "metal1": "In",
+        "metal2": "Rb",
+        "mean": 3.95,
+        "std": 0.15,
+        "count": 670
+    },
+    {
+        "metal1": "Au",
+        "metal2": "Pt",
+        "mean": 2.77,
+        "std": 0.05,
+        "count": 1257
+    },
+    {
+        "metal1": "Au",
+        "metal2": "Au",
+        "mean": 2.9,
+        "std": 0.15,
+        "count": 53181
+    },
+    {
+        "metal1": "Ag",
+        "metal2": "Pt",
+        "mean": 2.76,
+        "std": 0.05,
+        "count": 3095
+    },
+    {
+        "metal1": "Gd",
+        "metal2": "Gd",
+        "mean": 3.89,
+        "std": 0.29,
+        "count": 18735
+    },
+    {
+        "metal1": "Ir",
+        "metal2": "Ir",
+        "mean": 2.76,
+        "std": 0.07,
+        "count": 5251
+    },
+    {
+        "metal1": "K",
+        "metal2": "Pd",
+        "mean": 3.38,
+        "std": 0.09,
+        "count": 546
+    },
+    {
+        "metal1": "Nd",
+        "metal2": "W",
+        "mean": 3.99,
+        "std": 0.14,
+        "count": 769
+    },
+    {
+        "metal1": "La",
+        "metal2": "W",
+        "mean": 3.62,
+        "std": 0.05,
+        "count": 942
+    },
+    {
+        "metal1": "Eu",
+        "metal2": "W",
+        "mean": 3.91,
+        "std": 0.16,
+        "count": 1201
+    },
+    {
+        "metal1": "Eu",
+        "metal2": "K",
+        "mean": 4.14,
+        "std": 0.31,
+        "count": 934
+    },
+    {
+        "metal1": "Dy",
+        "metal2": "Dy",
+        "mean": 3.76,
+        "std": 0.19,
+        "count": 11928
+    },
+    {
+        "metal1": "Hf",
+        "metal2": "Hf",
+        "mean": 3.51,
+        "std": 0.23,
+        "count": 3730
+    },
+    {
+        "metal1": "Cu",
+        "metal2": "Na",
+        "mean": 3.38,
+        "std": 0.21,
+        "count": 2563
+    },
+    {
+        "metal1": "Ga",
+        "metal2": "Rb",
+        "mean": 4.07,
+        "std": 0.36,
+        "count": 520
+    },
+    {
+        "metal1": "Nd",
+        "metal2": "Nd",
+        "mean": 4.0,
+        "std": 0.31,
+        "count": 11989
+    },
+    {
+        "metal1": "Cu",
+        "metal2": "Mo",
+        "mean": 2.71,
+        "std": 0.07,
+        "count": 6401
+    },
+    {
+        "metal1": "Cd",
+        "metal2": "Ni",
+        "mean": 2.79,
+        "std": 0.08,
+        "count": 634
+    },
+    {
+        "metal1": "Ba",
+        "metal2": "Pd",
+        "mean": 3.33,
+        "std": 0.06,
+        "count": 1005
+    },
+    {
+        "metal1": "Co",
+        "metal2": "K",
+        "mean": 3.73,
+        "std": 0.24,
+        "count": 1164
+    },
+    {
+        "metal1": "Na",
+        "metal2": "U",
+        "mean": 4.01,
+        "std": 0.38,
+        "count": 2438
+    },
+    {
+        "metal1": "Li",
+        "metal2": "Nd",
+        "mean": 3.13,
+        "std": 0.05,
+        "count": 786
+    },
+    {
+        "metal1": "Ag",
+        "metal2": "Au",
+        "mean": 2.88,
+        "std": 0.08,
+        "count": 6371
+    },
+    {
+        "metal1": "K",
+        "metal2": "U",
+        "mean": 4.24,
+        "std": 0.46,
+        "count": 7120
+    },
+    {
+        "metal1": "Ni",
+        "metal2": "Zn",
+        "mean": 2.57,
+        "std": 0.24,
+        "count": 1464
+    },
+    {
+        "metal1": "Tb",
+        "metal2": "Tb",
+        "mean": 3.79,
+        "std": 0.19,
+        "count": 6711
+    },
+    {
+        "metal1": "Hg",
+        "metal2": "Sb",
+        "mean": 3.03,
+        "std": 0.35,
+        "count": 579
+    },
+    {
+        "metal1": "Na",
+        "metal2": "Sc",
+        "mean": 3.65,
+        "std": 0.24,
+        "count": 568
+    },
+    {
+        "metal1": "Sc",
+        "metal2": "Sc",
+        "mean": 3.26,
+        "std": 0.13,
+        "count": 6614
+    },
+    {
+        "metal1": "Na",
+        "metal2": "W",
+        "mean": 3.62,
+        "std": 0.16,
+        "count": 16866
+    },
+    {
+        "metal1": "K",
+        "metal2": "La",
+        "mean": 3.99,
+        "std": 0.22,
+        "count": 667
+    },
+    {
+        "metal1": "La",
+        "metal2": "Li",
+        "mean": 3.19,
+        "std": 0.1,
+        "count": 1107
+    },
+    {
+        "metal1": "Cu",
+        "metal2": "Sm",
+        "mean": 3.3,
+        "std": 0.15,
+        "count": 1046
+    },
+    {
+        "metal1": "Cu",
+        "metal2": "Zn",
+        "mean": 2.44,
+        "std": 0.05,
+        "count": 781
+    },
+    {
+        "metal1": "Pt",
+        "metal2": "Ru",
+        "mean": 2.88,
+        "std": 0.12,
+        "count": 1564
+    },
+    {
+        "metal1": "Ho",
+        "metal2": "Ho",
+        "mean": 3.88,
+        "std": 0.32,
+        "count": 5379
+    },
+    {
+        "metal1": "Cu",
+        "metal2": "Eu",
+        "mean": 3.29,
+        "std": 0.14,
+        "count": 1698
+    },
+    {
+        "metal1": "Er",
+        "metal2": "W",
+        "mean": 3.9,
+        "std": 0.21,
+        "count": 686
+    },
+    {
+        "metal1": "Cd",
+        "metal2": "Mo",
+        "mean": 3.86,
+        "std": 0.1,
+        "count": 1184
+    },
+    {
+        "metal1": "Li",
+        "metal2": "Nb",
+        "mean": 3.16,
+        "std": 0.2,
+        "count": 930
+    },
+    {
+        "metal1": "Na",
+        "metal2": "Ta",
+        "mean": 3.51,
+        "std": 0.26,
+        "count": 607
+    },
+    {
+        "metal1": "Cu",
+        "metal2": "Ni",
+        "mean": 2.73,
+        "std": 0.17,
+        "count": 765
+    },
+    {
+        "metal1": "Ca",
+        "metal2": "Mn",
+        "mean": 3.35,
+        "std": 0.24,
+        "count": 2495
+    },
+    {
+        "metal1": "Ba",
+        "metal2": "In",
+        "mean": 3.58,
+        "std": 0.11,
+        "count": 2562
+    },
+    {
+        "metal1": "In",
+        "metal2": "In",
+        "mean": 3.07,
+        "std": 0.15,
+        "count": 5092
+    },
+    {
+        "metal1": "K",
+        "metal2": "Ta",
+        "mean": 3.67,
+        "std": 0.15,
+        "count": 1168
+    },
+    {
+        "metal1": "Al",
+        "metal2": "Yb",
+        "mean": 3.29,
+        "std": 0.19,
+        "count": 6303
+    },
+    {
+        "metal1": "Ge",
+        "metal2": "Yb",
+        "mean": 3.2,
+        "std": 0.34,
+        "count": 682
+    },
+    {
+        "metal1": "Al",
+        "metal2": "Eu",
+        "mean": 3.45,
+        "std": 0.28,
+        "count": 833
+    },
+    {
+        "metal1": "Eu",
+        "metal2": "Ge",
+        "mean": 3.32,
+        "std": 0.11,
+        "count": 809
+    },
+    {
+        "metal1": "Fe",
+        "metal2": "Pd",
+        "mean": 2.78,
+        "std": 0.1,
+        "count": 699
+    },
+    {
+        "metal1": "Mo",
+        "metal2": "Th",
+        "mean": 3.99,
+        "std": 0.2,
+        "count": 1162
+    },
+    {
+        "metal1": "Th",
+        "metal2": "Th",
+        "mean": 4.23,
+        "std": 0.3,
+        "count": 2335
+    },
+    {
+        "metal1": "Pr",
+        "metal2": "W",
+        "mean": 4.02,
+        "std": 0.16,
+        "count": 538
+    },
+    {
+        "metal1": "Sm",
+        "metal2": "W",
+        "mean": 3.86,
+        "std": 0.16,
+        "count": 628
+    },
+    {
+        "metal1": "Gd",
+        "metal2": "W",
+        "mean": 3.47,
+        "std": 0.09,
+        "count": 801
+    },
+    {
+        "metal1": "Tb",
+        "metal2": "W",
+        "mean": 3.89,
+        "std": 0.2,
+        "count": 1688
+    },
+    {
+        "metal1": "Dy",
+        "metal2": "W",
+        "mean": 3.52,
+        "std": 0.06,
+        "count": 951
+    },
+    {
+        "metal1": "Cs",
+        "metal2": "W",
+        "mean": 4.18,
+        "std": 0.2,
+        "count": 5713
+    },
+    {
+        "metal1": "W",
+        "metal2": "Y",
+        "mean": 3.75,
+        "std": 0.37,
+        "count": 875
+    },
+    {
+        "metal1": "Ir",
+        "metal2": "Ru",
+        "mean": 2.89,
+        "std": 0.31,
+        "count": 503
+    },
+    {
+        "metal1": "Al",
+        "metal2": "Er",
+        "mean": 3.1,
+        "std": 0.17,
+        "count": 2450
+    },
+    {
+        "metal1": "Cs",
+        "metal2": "Dy",
+        "mean": 4.57,
+        "std": 0.38,
+        "count": 511
+    },
+    {
+        "metal1": "Dy",
+        "metal2": "Zn",
+        "mean": 3.45,
+        "std": 0.2,
+        "count": 792
+    },
+    {
+        "metal1": "Ce",
+        "metal2": "Li",
+        "mean": 3.19,
+        "std": 0.06,
+        "count": 971
+    },
+    {
+        "metal1": "Co",
+        "metal2": "Sb",
+        "mean": 2.55,
+        "std": 0.06,
+        "count": 997
+    },
+    {
+        "metal1": "Sb",
+        "metal2": "V",
+        "mean": 2.81,
+        "std": 0.07,
+        "count": 2602
+    },
+    {
+        "metal1": "Rh",
+        "metal2": "Rh",
+        "mean": 2.4,
+        "std": 0.05,
+        "count": 11909
+    },
+    {
+        "metal1": "Co",
+        "metal2": "W",
+        "mean": 3.43,
+        "std": 0.28,
+        "count": 3077
+    },
+    {
+        "metal1": "Sb",
+        "metal2": "W",
+        "mean": 3.57,
+        "std": 0.18,
+        "count": 5280
+    },
+    {
+        "metal1": "Eu",
+        "metal2": "Ni",
+        "mean": 3.19,
+        "std": 0.21,
+        "count": 676
+    },
+    {
+        "metal1": "Na",
+        "metal2": "Ru",
+        "mean": 3.49,
+        "std": 0.28,
+        "count": 547
+    },
+    {
+        "metal1": "Ru",
+        "metal2": "W",
+        "mean": 3.09,
+        "std": 0.24,
+        "count": 606
+    },
+    {
+        "metal1": "Er",
+        "metal2": "Er",
+        "mean": 3.72,
+        "std": 0.19,
+        "count": 7115
+    },
+    {
+        "metal1": "Pr",
+        "metal2": "Pr",
+        "mean": 4.06,
+        "std": 0.32,
+        "count": 9284
+    },
+    {
+        "metal1": "Cu",
+        "metal2": "Li",
+        "mean": 2.69,
+        "std": 0.15,
+        "count": 1499
+    },
+    {
+        "metal1": "Tl",
+        "metal2": "Tl",
+        "mean": 3.41,
+        "std": 0.29,
+        "count": 1282
+    },
+    {
+        "metal1": "K",
+        "metal2": "Pb",
+        "mean": 3.87,
+        "std": 0.17,
+        "count": 774
+    },
+    {
+        "metal1": "Al",
+        "metal2": "Pb",
+        "mean": 3.43,
+        "std": 0.1,
+        "count": 606
+    },
+    {
+        "metal1": "Al",
+        "metal2": "Ti",
+        "mean": 2.74,
+        "std": 0.12,
+        "count": 632
+    },
+    {
+        "metal1": "Ag",
+        "metal2": "Cs",
+        "mean": 4.13,
+        "std": 0.15,
+        "count": 928
+    },
+    {
+        "metal1": "Cs",
+        "metal2": "In",
+        "mean": 4.06,
+        "std": 0.18,
+        "count": 997
+    },
+    {
+        "metal1": "Mn",
+        "metal2": "Y",
+        "mean": 3.28,
+        "std": 0.28,
+        "count": 2509
+    },
+    {
+        "metal1": "Li",
+        "metal2": "U",
+        "mean": 3.57,
+        "std": 0.27,
+        "count": 995
+    },
+    {
+        "metal1": "Rb",
+        "metal2": "U",
+        "mean": 4.2,
+        "std": 0.2,
+        "count": 1895
+    },
+    {
+        "metal1": "Co",
+        "metal2": "Dy",
+        "mean": 3.24,
+        "std": 0.18,
+        "count": 798
+    },
+    {
+        "metal1": "Ge",
+        "metal2": "Sr",
+        "mean": 3.34,
+        "std": 0.1,
+        "count": 1332
+    },
+    {
+        "metal1": "Li",
+        "metal2": "Sr",
+        "mean": 3.51,
+        "std": 0.36,
+        "count": 972
+    },
+    {
+        "metal1": "Li",
+        "metal2": "Sn",
+        "mean": 2.9,
+        "std": 0.18,
+        "count": 4547
+    },
+    {
+        "metal1": "Co",
+        "metal2": "Mo",
+        "mean": 2.94,
+        "std": 0.17,
+        "count": 6269
+    },
+    {
+        "metal1": "Mo",
+        "metal2": "Zn",
+        "mean": 2.63,
+        "std": 0.05,
+        "count": 3450
+    },
+    {
+        "metal1": "Mo",
+        "metal2": "Ni",
+        "mean": 3.26,
+        "std": 0.3,
+        "count": 1531
+    },
+    {
+        "metal1": "Mn",
+        "metal2": "Sn",
+        "mean": 2.8,
+        "std": 0.06,
+        "count": 1500
+    },
+    {
+        "metal1": "K",
+        "metal2": "Ni",
+        "mean": 3.67,
+        "std": 0.23,
+        "count": 974
+    },
+    {
+        "metal1": "K",
+        "metal2": "Nd",
+        "mean": 4.22,
+        "std": 0.33,
+        "count": 556
+    },
+    {
+        "metal1": "Cr",
+        "metal2": "Mo",
+        "mean": 3.36,
+        "std": 0.12,
+        "count": 2623
+    },
+    {
+        "metal1": "Gd",
+        "metal2": "K",
+        "mean": 4.11,
+        "std": 0.27,
+        "count": 732
+    },
+    {
+        "metal1": "Cs",
+        "metal2": "Mg",
+        "mean": 4.31,
+        "std": 0.49,
+        "count": 688
+    },
+    {
+        "metal1": "Au",
+        "metal2": "Cu",
+        "mean": 2.84,
+        "std": 0.15,
+        "count": 2690
+    },
+    {
+        "metal1": "Be",
+        "metal2": "Be",
+        "mean": 2.23,
+        "std": 0.07,
+        "count": 3795
+    },
+    {
+        "metal1": "K",
+        "metal2": "Pr",
+        "mean": 4.06,
+        "std": 0.29,
+        "count": 635
+    },
+    {
+        "metal1": "Ag",
+        "metal2": "W",
+        "mean": 3.78,
+        "std": 0.34,
+        "count": 5679
+    },
+    {
+        "metal1": "Cu",
+        "metal2": "Ga",
+        "mean": 2.62,
+        "std": 0.25,
+        "count": 1873
+    },
+    {
+        "metal1": "Al",
+        "metal2": "Mo",
+        "mean": 2.72,
+        "std": 0.09,
+        "count": 1485
+    },
+    {
+        "metal1": "Ce",
+        "metal2": "Mo",
+        "mean": 3.96,
+        "std": 0.27,
+        "count": 1462
+    },
+    {
+        "metal1": "K",
+        "metal2": "Yb",
+        "mean": 4.04,
+        "std": 0.25,
+        "count": 1261
+    },
+    {
+        "metal1": "Ca",
+        "metal2": "Pb",
+        "mean": 3.44,
+        "std": 0.14,
+        "count": 527
+    },
+    {
+        "metal1": "Cu",
+        "metal2": "Sb",
+        "mean": 2.59,
+        "std": 0.09,
+        "count": 1407
+    },
+    {
+        "metal1": "Ca",
+        "metal2": "Sb",
+        "mean": 3.33,
+        "std": 0.23,
+        "count": 4878
+    },
+    {
+        "metal1": "Sb",
+        "metal2": "Zn",
+        "mean": 2.87,
+        "std": 0.33,
+        "count": 4585
+    },
+    {
+        "metal1": "Ga",
+        "metal2": "K",
+        "mean": 3.73,
+        "std": 0.25,
+        "count": 634
+    },
+    {
+        "metal1": "K",
+        "metal2": "Tb",
+        "mean": 4.19,
+        "std": 0.29,
+        "count": 657
+    },
+    {
+        "metal1": "Mn",
+        "metal2": "Mo",
+        "mean": 2.85,
+        "std": 0.11,
+        "count": 3618
+    },
+    {
+        "metal1": "Eu",
+        "metal2": "Zn",
+        "mean": 3.39,
+        "std": 0.14,
+        "count": 794
+    },
+    {
+        "metal1": "Ca",
+        "metal2": "Zn",
+        "mean": 3.28,
+        "std": 0.14,
+        "count": 1103
+    },
+    {
+        "metal1": "Eu",
+        "metal2": "Na",
+        "mean": 3.72,
+        "std": 0.23,
+        "count": 1030
+    },
+    {
+        "metal1": "Eu",
+        "metal2": "Ga",
+        "mean": 3.27,
+        "std": 0.15,
+        "count": 649
+    },
+    {
+        "metal1": "Co",
+        "metal2": "Li",
+        "mean": 2.38,
+        "std": 0.09,
+        "count": 1135
+    },
+    {
+        "metal1": "Cu",
+        "metal2": "W",
+        "mean": 2.69,
+        "std": 0.05,
+        "count": 7121
+    },
+    {
+        "metal1": "Ni",
+        "metal2": "W",
+        "mean": 3.43,
+        "std": 0.32,
+        "count": 3494
+    },
+    {
+        "metal1": "Li",
+        "metal2": "Rb",
+        "mean": 3.49,
+        "std": 0.21,
+        "count": 710
+    },
+    {
+        "metal1": "Li",
+        "metal2": "Zn",
+        "mean": 2.76,
+        "std": 0.14,
+        "count": 890
+    },
+    {
+        "metal1": "Ca",
+        "metal2": "Co",
+        "mean": 3.18,
+        "std": 0.11,
+        "count": 1925
+    },
+    {
+        "metal1": "Ba",
+        "metal2": "Eu",
+        "mean": 3.85,
+        "std": 0.14,
+        "count": 832
+    },
+    {
+        "metal1": "Cs",
+        "metal2": "Ta",
+        "mean": 4.5,
+        "std": 0.47,
+        "count": 860
+    },
+    {
+        "metal1": "Ni",
+        "metal2": "V",
+        "mean": 2.81,
+        "std": 0.05,
+        "count": 1474
+    },
+    {
+        "metal1": "Sn",
+        "metal2": "Zn",
+        "mean": 2.82,
+        "std": 0.19,
+        "count": 1825
+    },
+    {
+        "metal1": "Ge",
+        "metal2": "Zn",
+        "mean": 2.58,
+        "std": 0.08,
+        "count": 734
+    },
+    {
+        "metal1": "Ge",
+        "metal2": "In",
+        "mean": 3.11,
+        "std": 0.27,
+        "count": 581
+    },
+    {
+        "metal1": "Ce",
+        "metal2": "Sb",
+        "mean": 3.52,
+        "std": 0.44,
+        "count": 1335
+    },
+    {
+        "metal1": "Ce",
+        "metal2": "Ga",
+        "mean": 3.36,
+        "std": 0.32,
+        "count": 905
+    },
+    {
+        "metal1": "Li",
+        "metal2": "Pb",
+        "mean": 2.87,
+        "std": 0.06,
+        "count": 544
+    },
+    {
+        "metal1": "Ba",
+        "metal2": "Sb",
+        "mean": 3.56,
+        "std": 0.1,
+        "count": 3748
+    },
+    {
+        "metal1": "V",
+        "metal2": "W",
+        "mean": 3.25,
+        "std": 0.06,
+        "count": 1807
+    },
+    {
+        "metal1": "Nd",
+        "metal2": "Sn",
+        "mean": 3.29,
+        "std": 0.07,
+        "count": 613
+    },
+    {
+        "metal1": "K",
+        "metal2": "Sn",
+        "mean": 3.73,
+        "std": 0.13,
+        "count": 3610
+    },
+    {
+        "metal1": "Bi",
+        "metal2": "Mn",
+        "mean": 2.89,
+        "std": 0.07,
+        "count": 1536
+    },
+    {
+        "metal1": "Li",
+        "metal2": "Na",
+        "mean": 2.79,
+        "std": 0.05,
+        "count": 2148
+    },
+    {
+        "metal1": "Ag",
+        "metal2": "Ba",
+        "mean": 3.61,
+        "std": 0.14,
+        "count": 938
+    },
+    {
+        "metal1": "Ag",
+        "metal2": "U",
+        "mean": 3.81,
+        "std": 0.28,
+        "count": 741
+    },
+    {
+        "metal1": "Ba",
+        "metal2": "U",
+        "mean": 4.35,
+        "std": 0.43,
+        "count": 1467
+    },
+    {
+        "metal1": "Mn",
+        "metal2": "Sb",
+        "mean": 2.79,
+        "std": 0.09,
+        "count": 3793
+    },
+    {
+        "metal1": "In",
+        "metal2": "Sb",
+        "mean": 2.87,
+        "std": 0.05,
+        "count": 928
+    },
+    {
+        "metal1": "U",
+        "metal2": "W",
+        "mean": 3.45,
+        "std": 0.05,
+        "count": 718
+    },
+    {
+        "metal1": "Mo",
+        "metal2": "Y",
+        "mean": 3.34,
+        "std": 0.07,
+        "count": 833
+    },
+    {
+        "metal1": "Ce",
+        "metal2": "Sn",
+        "mean": 3.33,
+        "std": 0.07,
+        "count": 1066
+    },
+    {
+        "metal1": "Cu",
+        "metal2": "Mg",
+        "mean": 2.98,
+        "std": 0.18,
+        "count": 581
+    },
+    {
+        "metal1": "Cu",
+        "metal2": "Ge",
+        "mean": 2.44,
+        "std": 0.1,
+        "count": 1682
+    },
+    {
+        "metal1": "Co",
+        "metal2": "V",
+        "mean": 2.83,
+        "std": 0.13,
+        "count": 1925
+    },
+    {
+        "metal1": "Ga",
+        "metal2": "Sb",
+        "mean": 2.71,
+        "std": 0.1,
+        "count": 555
+    },
+    {
+        "metal1": "Mo",
+        "metal2": "Pr",
+        "mean": 3.57,
+        "std": 0.16,
+        "count": 2600
+    },
+    {
+        "metal1": "Mo",
+        "metal2": "Nd",
+        "mean": 4.01,
+        "std": 0.34,
+        "count": 1040
+    },
+    {
+        "metal1": "Cr",
+        "metal2": "U",
+        "mean": 3.76,
+        "std": 0.07,
+        "count": 1047
+    },
+    {
+        "metal1": "Sb",
+        "metal2": "Yb",
+        "mean": 3.21,
+        "std": 0.09,
+        "count": 8968
+    },
+    {
+        "metal1": "Tm",
+        "metal2": "Tm",
+        "mean": 3.88,
+        "std": 0.38,
+        "count": 3403
+    },
+    {
+        "metal1": "Sb",
+        "metal2": "Sm",
+        "mean": 3.44,
+        "std": 0.43,
+        "count": 891
+    },
+    {
+        "metal1": "Gd",
+        "metal2": "Sb",
+        "mean": 3.23,
+        "std": 0.06,
+        "count": 607
+    },
+    {
+        "metal1": "Dy",
+        "metal2": "Sb",
+        "mean": 3.4,
+        "std": 0.42,
+        "count": 532
+    },
+    {
+        "metal1": "Bi",
+        "metal2": "Sn",
+        "mean": 2.94,
+        "std": 0.05,
+        "count": 547
+    },
+    {
+        "metal1": "K",
+        "metal2": "Y",
+        "mean": 4.05,
+        "std": 0.21,
+        "count": 1289
+    },
+    {
+        "metal1": "Cs",
+        "metal2": "Fe",
+        "mean": 4.43,
+        "std": 0.4,
+        "count": 513
+    },
+    {
+        "metal1": "Fe",
+        "metal2": "Mo",
+        "mean": 2.73,
+        "std": 0.07,
+        "count": 3360
+    },
+    {
+        "metal1": "Ge",
+        "metal2": "V",
+        "mean": 2.64,
+        "std": 0.05,
+        "count": 802
+    },
+    {
+        "metal1": "Co",
+        "metal2": "Cs",
+        "mean": 4.0,
+        "std": 0.21,
+        "count": 505
+    },
+    {
+        "metal1": "Ga",
+        "metal2": "Li",
+        "mean": 2.89,
+        "std": 0.22,
+        "count": 750
+    },
+    {
+        "metal1": "Bi",
+        "metal2": "Fe",
+        "mean": 2.64,
+        "std": 0.05,
+        "count": 765
+    },
+    {
+        "metal1": "Cu",
+        "metal2": "U",
+        "mean": 3.22,
+        "std": 0.22,
+        "count": 1002
+    },
+    {
+        "metal1": "Bi",
+        "metal2": "Ti",
+        "mean": 2.98,
+        "std": 0.09,
+        "count": 626
+    },
+    {
+        "metal1": "Ag",
+        "metal2": "K",
+        "mean": 3.78,
+        "std": 0.16,
+        "count": 918
+    },
+    {
+        "metal1": "Nd",
+        "metal2": "Zn",
+        "mean": 3.4,
+        "std": 0.36,
+        "count": 2801
+    },
+    {
+        "metal1": "Mo",
+        "metal2": "U",
+        "mean": 4.0,
+        "std": 0.39,
+        "count": 532
+    },
+    {
+        "metal1": "Er",
+        "metal2": "K",
+        "mean": 4.19,
+        "std": 0.32,
+        "count": 862
+    },
+    {
+        "metal1": "Dy",
+        "metal2": "K",
+        "mean": 3.76,
+        "std": 0.07,
+        "count": 599
+    },
+    {
+        "metal1": "Ho",
+        "metal2": "K",
+        "mean": 4.11,
+        "std": 0.24,
+        "count": 746
+    },
+    {
+        "metal1": "K",
+        "metal2": "Tm",
+        "mean": 4.05,
+        "std": 0.19,
+        "count": 911
+    },
+    {
+        "metal1": "Li",
+        "metal2": "Ti",
+        "mean": 2.92,
+        "std": 0.09,
+        "count": 1056
+    },
+    {
+        "metal1": "Cd",
+        "metal2": "Sr",
+        "mean": 3.62,
+        "std": 0.22,
+        "count": 987
+    },
+    {
+        "metal1": "Au",
+        "metal2": "Ni",
+        "mean": 2.73,
+        "std": 0.1,
+        "count": 598
+    },
+    {
+        "metal1": "Cu",
+        "metal2": "Mn",
+        "mean": 2.88,
+        "std": 0.06,
+        "count": 2718
+    },
+    {
+        "metal1": "Ba",
+        "metal2": "Ta",
+        "mean": 3.73,
+        "std": 0.15,
+        "count": 1294
+    },
+    {
+        "metal1": "Ba",
+        "metal2": "Ir",
+        "mean": 3.54,
+        "std": 0.09,
+        "count": 1311
+    },
+    {
+        "metal1": "Al",
+        "metal2": "Ho",
+        "mean": 3.18,
+        "std": 0.27,
+        "count": 615
+    },
+    {
+        "metal1": "Al",
+        "metal2": "Lu",
+        "mean": 3.08,
+        "std": 0.09,
+        "count": 580
+    },
+    {
+        "metal1": "Cu",
+        "metal2": "Tb",
+        "mean": 3.41,
+        "std": 0.15,
+        "count": 1372
+    },
+    {
+        "metal1": "Mo",
+        "metal2": "Sb",
+        "mean": 2.82,
+        "std": 0.05,
+        "count": 1998
+    },
+    {
+        "metal1": "Mg",
+        "metal2": "Sb",
+        "mean": 2.86,
+        "std": 0.05,
+        "count": 885
+    },
+    {
+        "metal1": "Ba",
+        "metal2": "Pt",
+        "mean": 3.52,
+        "std": 0.14,
+        "count": 1220
+    },
+    {
+        "metal1": "Cd",
+        "metal2": "Rb",
+        "mean": 3.81,
+        "std": 0.12,
+        "count": 1368
+    },
+    {
+        "metal1": "Al",
+        "metal2": "Nd",
+        "mean": 3.16,
+        "std": 0.15,
+        "count": 575
+    },
+    {
+        "metal1": "V",
+        "metal2": "Zn",
+        "mean": 3.36,
+        "std": 0.14,
+        "count": 1120
+    },
+    {
+        "metal1": "Cs",
+        "metal2": "Hg",
+        "mean": 4.1,
+        "std": 0.17,
+        "count": 782
+    },
+    {
+        "metal1": "Ce",
+        "metal2": "Na",
+        "mean": 3.89,
+        "std": 0.28,
+        "count": 579
+    },
+    {
+        "metal1": "Mo",
+        "metal2": "Sm",
+        "mean": 4.03,
+        "std": 0.38,
+        "count": 817
+    },
+    {
+        "metal1": "Ba",
+        "metal2": "Er",
+        "mean": 3.69,
+        "std": 0.11,
+        "count": 1197
+    },
+    {
+        "metal1": "Au",
+        "metal2": "Na",
+        "mean": 3.25,
+        "std": 0.2,
+        "count": 1456
+    },
+    {
+        "metal1": "Ag",
+        "metal2": "Rb",
+        "mean": 3.82,
+        "std": 0.18,
+        "count": 515
+    },
+    {
+        "metal1": "Co",
+        "metal2": "Nd",
+        "mean": 3.13,
+        "std": 0.18,
+        "count": 1184
+    },
+    {
+        "metal1": "Bi",
+        "metal2": "Ca",
+        "mean": 3.3,
+        "std": 0.09,
+        "count": 5094
+    },
+    {
+        "metal1": "Pb",
+        "metal2": "Zn",
+        "mean": 2.76,
+        "std": 0.06,
+        "count": 549
+    },
+    {
+        "metal1": "Ge",
+        "metal2": "Li",
+        "mean": 2.83,
+        "std": 0.25,
+        "count": 4698
+    },
+    {
+        "metal1": "Li",
+        "metal2": "V",
+        "mean": 2.86,
+        "std": 0.17,
+        "count": 1686
+    },
+    {
+        "metal1": "Cu",
+        "metal2": "Er",
+        "mean": 3.35,
+        "std": 0.35,
+        "count": 1011
+    },
+    {
+        "metal1": "Cd",
+        "metal2": "Cu",
+        "mean": 2.73,
+        "std": 0.08,
+        "count": 1696
+    },
+    {
+        "metal1": "Ba",
+        "metal2": "Yb",
+        "mean": 3.81,
+        "std": 0.25,
+        "count": 1264
+    },
+    {
+        "metal1": "Mg",
+        "metal2": "Sr",
+        "mean": 3.44,
+        "std": 0.15,
+        "count": 1423
+    },
+    {
+        "metal1": "Cu",
+        "metal2": "Pr",
+        "mean": 3.31,
+        "std": 0.13,
+        "count": 1208
+    },
+    {
+        "metal1": "Cu",
+        "metal2": "Nd",
+        "mean": 3.28,
+        "std": 0.07,
+        "count": 2039
+    },
+    {
+        "metal1": "Cu",
+        "metal2": "Gd",
+        "mean": 3.52,
+        "std": 0.25,
+        "count": 2531
+    },
+    {
+        "metal1": "Cu",
+        "metal2": "Dy",
+        "mean": 3.33,
+        "std": 0.14,
+        "count": 1353
+    },
+    {
+        "metal1": "Cu",
+        "metal2": "Ho",
+        "mean": 3.25,
+        "std": 0.13,
+        "count": 786
+    },
+    {
+        "metal1": "Dy",
+        "metal2": "Mo",
+        "mean": 3.32,
+        "std": 0.08,
+        "count": 544
+    },
+    {
+        "metal1": "Li",
+        "metal2": "Sm",
+        "mean": 3.1,
+        "std": 0.05,
+        "count": 529
+    },
+    {
+        "metal1": "Ge",
+        "metal2": "Sm",
+        "mean": 3.08,
+        "std": 0.08,
+        "count": 1443
+    },
+    {
+        "metal1": "Ge",
+        "metal2": "Nd",
+        "mean": 3.14,
+        "std": 0.07,
+        "count": 1905
+    },
+    {
+        "metal1": "Gd",
+        "metal2": "Ge",
+        "mean": 3.05,
+        "std": 0.11,
+        "count": 3312
+    },
+    {
+        "metal1": "Cd",
+        "metal2": "Sb",
+        "mean": 2.88,
+        "std": 0.08,
+        "count": 3709
+    },
+    {
+        "metal1": "K",
+        "metal2": "Sc",
+        "mean": 3.84,
+        "std": 0.24,
+        "count": 1239
+    },
+    {
+        "metal1": "W",
+        "metal2": "Zn",
+        "mean": 3.5,
+        "std": 0.11,
+        "count": 2289
+    },
+    {
+        "metal1": "Mo",
+        "metal2": "Tb",
+        "mean": 3.32,
+        "std": 0.08,
+        "count": 564
+    },
+    {
+        "metal1": "Na",
+        "metal2": "Y",
+        "mean": 3.51,
+        "std": 0.17,
+        "count": 650
+    },
+    {
+        "metal1": "Fe",
+        "metal2": "Ge",
+        "mean": 2.48,
+        "std": 0.11,
+        "count": 2348
+    },
+    {
+        "metal1": "Al",
+        "metal2": "Cu",
+        "mean": 2.6,
+        "std": 0.09,
+        "count": 1012
+    },
+    {
+        "metal1": "Cs",
+        "metal2": "Gd",
+        "mean": 4.67,
+        "std": 0.33,
+        "count": 502
+    },
+    {
+        "metal1": "Fe",
+        "metal2": "Y",
+        "mean": 3.31,
+        "std": 0.28,
+        "count": 1617
+    },
+    {
+        "metal1": "Bi",
+        "metal2": "W",
+        "mean": 3.58,
+        "std": 0.11,
+        "count": 1401
+    },
+    {
+        "metal1": "Fe",
+        "metal2": "Ho",
+        "mean": 3.22,
+        "std": 0.25,
+        "count": 1076
+    },
+    {
+        "metal1": "Al",
+        "metal2": "Sm",
+        "mean": 3.31,
+        "std": 0.32,
+        "count": 1271
+    },
+    {
+        "metal1": "Sr",
+        "metal2": "Ti",
+        "mean": 3.54,
+        "std": 0.15,
+        "count": 920
+    },
+    {
+        "metal1": "Ca",
+        "metal2": "Sr",
+        "mean": 3.72,
+        "std": 0.23,
+        "count": 582
+    },
+    {
+        "metal1": "Pd",
+        "metal2": "Sn",
+        "mean": 2.76,
+        "std": 0.13,
+        "count": 859
+    },
+    {
+        "metal1": "Au",
+        "metal2": "K",
+        "mean": 3.54,
+        "std": 0.17,
+        "count": 1865
+    },
+    {
+        "metal1": "Ge",
+        "metal2": "W",
+        "mean": 3.55,
+        "std": 0.08,
+        "count": 5858
+    },
+    {
+        "metal1": "La",
+        "metal2": "Zn",
+        "mean": 3.47,
+        "std": 0.34,
+        "count": 2274
+    },
+    {
+        "metal1": "Pr",
+        "metal2": "Zn",
+        "mean": 3.39,
+        "std": 0.35,
+        "count": 2552
+    },
+    {
+        "metal1": "Eu",
+        "metal2": "Sb",
+        "mean": 3.46,
+        "std": 0.29,
+        "count": 8103
+    },
+    {
+        "metal1": "Ca",
+        "metal2": "Nb",
+        "mean": 3.57,
+        "std": 0.34,
+        "count": 683
+    },
+    {
+        "metal1": "K",
+        "metal2": "Zr",
+        "mean": 4.21,
+        "std": 0.32,
+        "count": 654
+    },
+    {
+        "metal1": "Fe",
+        "metal2": "W",
+        "mean": 2.75,
+        "std": 0.06,
+        "count": 2847
+    },
+    {
+        "metal1": "Li",
+        "metal2": "Ni",
+        "mean": 2.82,
+        "std": 0.16,
+        "count": 522
+    },
+    {
+        "metal1": "Fe",
+        "metal2": "Ga",
+        "mean": 2.61,
+        "std": 0.17,
+        "count": 1828
+    },
+    {
+        "metal1": "W",
+        "metal2": "Zr",
+        "mean": 3.45,
+        "std": 0.09,
+        "count": 1016
+    },
+    {
+        "metal1": "Ti",
+        "metal2": "W",
+        "mean": 3.25,
+        "std": 0.07,
+        "count": 768
+    },
+    {
+        "metal1": "Al",
+        "metal2": "La",
+        "mean": 3.36,
+        "std": 0.28,
+        "count": 1296
+    },
+    {
+        "metal1": "Ce",
+        "metal2": "Co",
+        "mean": 3.03,
+        "std": 0.08,
+        "count": 534
+    },
+    {
+        "metal1": "Au",
+        "metal2": "Ba",
+        "mean": 3.71,
+        "std": 0.32,
+        "count": 1215
+    },
+    {
+        "metal1": "Yb",
+        "metal2": "Zn",
+        "mean": 3.17,
+        "std": 0.05,
+        "count": 1313
+    },
+    {
+        "metal1": "Mo",
+        "metal2": "V",
+        "mean": 3.14,
+        "std": 0.12,
+        "count": 2546
+    },
+    {
+        "metal1": "Al",
+        "metal2": "W",
+        "mean": 2.71,
+        "std": 0.08,
+        "count": 1524
+    },
+    {
+        "metal1": "Pd",
+        "metal2": "Sb",
+        "mean": 2.75,
+        "std": 0.22,
+        "count": 2093
+    },
+    {
+        "metal1": "Cu",
+        "metal2": "Y",
+        "mean": 3.26,
+        "std": 0.24,
+        "count": 5336
+    },
+    {
+        "metal1": "Ce",
+        "metal2": "Ni",
+        "mean": 3.08,
+        "std": 0.19,
+        "count": 2185
+    },
+    {
+        "metal1": "Ge",
+        "metal2": "Mo",
+        "mean": 3.53,
+        "std": 0.13,
+        "count": 2114
+    },
+    {
+        "metal1": "Al",
+        "metal2": "Dy",
+        "mean": 3.23,
+        "std": 0.19,
+        "count": 889
+    },
+    {
+        "metal1": "Ba",
+        "metal2": "Mg",
+        "mean": 3.62,
+        "std": 0.08,
+        "count": 1675
+    },
+    {
+        "metal1": "Al",
+        "metal2": "Ni",
+        "mean": 2.51,
+        "std": 0.08,
+        "count": 2575
+    },
+    {
+        "metal1": "Co",
+        "metal2": "Zn",
+        "mean": 2.71,
+        "std": 0.25,
+        "count": 1688
+    },
+    {
+        "metal1": "Cu",
+        "metal2": "Sc",
+        "mean": 3.18,
+        "std": 0.37,
+        "count": 696
+    },
+    {
+        "metal1": "Mg",
+        "metal2": "Sn",
+        "mean": 2.95,
+        "std": 0.07,
+        "count": 578
+    },
+    {
+        "metal1": "Gd",
+        "metal2": "Na",
+        "mean": 3.77,
+        "std": 0.29,
+        "count": 612
+    },
+    {
+        "metal1": "Ba",
+        "metal2": "Dy",
+        "mean": 3.74,
+        "std": 0.12,
+        "count": 1342
+    },
+    {
+        "metal1": "Ba",
+        "metal2": "Gd",
+        "mean": 4.06,
+        "std": 0.52,
+        "count": 2916
+    },
+    {
+        "metal1": "Ba",
+        "metal2": "Ho",
+        "mean": 3.82,
+        "std": 0.23,
+        "count": 1129
+    },
+    {
+        "metal1": "Gd",
+        "metal2": "Mo",
+        "mean": 3.88,
+        "std": 0.3,
+        "count": 1100
+    },
+    {
+        "metal1": "Ni",
+        "metal2": "Sb",
+        "mean": 2.7,
+        "std": 0.29,
+        "count": 1759
+    },
+    {
+        "metal1": "Ge",
+        "metal2": "Pr",
+        "mean": 3.16,
+        "std": 0.07,
+        "count": 1621
+    },
+    {
+        "metal1": "Ce",
+        "metal2": "Ge",
+        "mean": 3.25,
+        "std": 0.28,
+        "count": 1620
+    },
+    {
+        "metal1": "Sb",
+        "metal2": "Sr",
+        "mean": 3.52,
+        "std": 0.28,
+        "count": 2730
+    },
+    {
+        "metal1": "Eu",
+        "metal2": "Sn",
+        "mean": 3.46,
+        "std": 0.11,
+        "count": 952
+    },
+    {
+        "metal1": "Cu",
+        "metal2": "Sn",
+        "mean": 2.74,
+        "std": 0.05,
+        "count": 9111
+    },
+    {
+        "metal1": "Cu",
+        "metal2": "Nb",
+        "mean": 3.11,
+        "std": 0.24,
+        "count": 607
+    },
+    {
+        "metal1": "Al",
+        "metal2": "Y",
+        "mean": 3.16,
+        "std": 0.15,
+        "count": 1596
+    },
+    {
+        "metal1": "Fe",
+        "metal2": "Ru",
+        "mean": 2.7,
+        "std": 0.12,
+        "count": 556
+    },
+    {
+        "metal1": "K",
+        "metal2": "Sm",
+        "mean": 4.14,
+        "std": 0.35,
+        "count": 636
+    },
+    {
+        "metal1": "Al",
+        "metal2": "Cr",
+        "mean": 2.66,
+        "std": 0.13,
+        "count": 4535
+    },
+    {
+        "metal1": "Mo",
+        "metal2": "W",
+        "mean": 3.46,
+        "std": 0.3,
+        "count": 650
+    },
+    {
+        "metal1": "Hf",
+        "metal2": "Pd",
+        "mean": 2.94,
+        "std": 0.1,
+        "count": 622
+    },
+    {
+        "metal1": "Li",
+        "metal2": "Zr",
+        "mean": 3.14,
+        "std": 0.22,
+        "count": 576
+    },
+    {
+        "metal1": "Ni",
+        "metal2": "Zr",
+        "mean": 2.73,
+        "std": 0.07,
+        "count": 1014
+    },
+    {
+        "metal1": "Fe",
+        "metal2": "Hf",
+        "mean": 3.06,
+        "std": 0.22,
+        "count": 585
+    },
+    {
+        "metal1": "Ge",
+        "metal2": "Ru",
+        "mean": 2.6,
+        "std": 0.35,
+        "count": 988
+    },
+    {
+        "metal1": "Cd",
+        "metal2": "Pt",
+        "mean": 2.79,
+        "std": 0.05,
+        "count": 802
+    },
+    {
+        "metal1": "Al",
+        "metal2": "Ta",
+        "mean": 2.86,
+        "std": 0.11,
+        "count": 2044
+    },
+    {
+        "metal1": "Al",
+        "metal2": "Ru",
+        "mean": 2.57,
+        "std": 0.05,
+        "count": 1210
+    },
+    {
+        "metal1": "Ga",
+        "metal2": "Sm",
+        "mean": 3.28,
+        "std": 0.38,
+        "count": 610
+    },
+    {
+        "metal1": "Cu",
+        "metal2": "Pd",
+        "mean": 2.75,
+        "std": 0.07,
+        "count": 1125
+    },
+    {
+        "metal1": "Co",
+        "metal2": "Pd",
+        "mean": 2.68,
+        "std": 0.07,
+        "count": 2956
+    },
+    {
+        "metal1": "Ni",
+        "metal2": "Sn",
+        "mean": 2.67,
+        "std": 0.21,
+        "count": 2724
+    },
+    {
+        "metal1": "Cr",
+        "metal2": "Zn",
+        "mean": 2.67,
+        "std": 0.22,
+        "count": 639
+    },
+    {
+        "metal1": "Fe",
+        "metal2": "Sb",
+        "mean": 2.61,
+        "std": 0.06,
+        "count": 2708
+    },
+    {
+        "metal1": "Na",
+        "metal2": "Pd",
+        "mean": 3.32,
+        "std": 0.08,
+        "count": 710
+    },
+    {
+        "metal1": "Ba",
+        "metal2": "Nb",
+        "mean": 3.69,
+        "std": 0.19,
+        "count": 2556
+    },
+    {
+        "metal1": "Ce",
+        "metal2": "W",
+        "mean": 4.07,
+        "std": 0.43,
+        "count": 1697
+    },
+    {
+        "metal1": "Sb",
+        "metal2": "Tb",
+        "mean": 3.4,
+        "std": 0.43,
+        "count": 656
+    },
+    {
+        "metal1": "Cu",
+        "metal2": "La",
+        "mean": 3.3,
+        "std": 0.09,
+        "count": 3689
+    },
+    {
+        "metal1": "Li",
+        "metal2": "W",
+        "mean": 3.52,
+        "std": 0.2,
+        "count": 773
+    },
+    {
+        "metal1": "Co",
+        "metal2": "U",
+        "mean": 2.9,
+        "std": 0.15,
+        "count": 738
+    },
+    {
+        "metal1": "Ho",
+        "metal2": "Zn",
+        "mean": 3.11,
+        "std": 0.09,
+        "count": 1047
+    },
+    {
+        "metal1": "Er",
+        "metal2": "Zn",
+        "mean": 3.29,
+        "std": 0.37,
+        "count": 1171
+    },
+    {
+        "metal1": "Tm",
+        "metal2": "Zn",
+        "mean": 3.09,
+        "std": 0.09,
+        "count": 957
+    },
+    {
+        "metal1": "Co",
+        "metal2": "Gd",
+        "mean": 3.34,
+        "std": 0.21,
+        "count": 3680
+    },
+    {
+        "metal1": "Ni",
+        "metal2": "Pr",
+        "mean": 3.36,
+        "std": 0.28,
+        "count": 893
+    },
+    {
+        "metal1": "Nd",
+        "metal2": "Ni",
+        "mean": 3.25,
+        "std": 0.14,
+        "count": 810
+    },
+    {
+        "metal1": "Mn",
+        "metal2": "W",
+        "mean": 3.2,
+        "std": 0.05,
+        "count": 2455
+    },
+    {
+        "metal1": "La",
+        "metal2": "Sb",
+        "mean": 3.59,
+        "std": 0.44,
+        "count": 1538
+    },
+    {
+        "metal1": "Pr",
+        "metal2": "Sb",
+        "mean": 3.28,
+        "std": 0.05,
+        "count": 1705
+    },
+    {
+        "metal1": "Be",
+        "metal2": "Li",
+        "mean": 2.52,
+        "std": 0.05,
+        "count": 1010
+    },
+    {
+        "metal1": "Pt",
+        "metal2": "Sn",
+        "mean": 2.72,
+        "std": 0.11,
+        "count": 1945
+    },
+    {
+        "metal1": "Au",
+        "metal2": "Bi",
+        "mean": 2.93,
+        "std": 0.05,
+        "count": 562
+    },
+    {
+        "metal1": "Au",
+        "metal2": "Cd",
+        "mean": 2.97,
+        "std": 0.26,
+        "count": 1277
+    },
+    {
+        "metal1": "Eu",
+        "metal2": "In",
+        "mean": 3.34,
+        "std": 0.05,
+        "count": 749
+    },
+    {
+        "metal1": "In",
+        "metal2": "Sr",
+        "mean": 3.57,
+        "std": 0.15,
+        "count": 754
+    },
+    {
+        "metal1": "Au",
+        "metal2": "Pd",
+        "mean": 2.78,
+        "std": 0.06,
+        "count": 1392
+    },
+    {
+        "metal1": "Ge",
+        "metal2": "Pd",
+        "mean": 2.6,
+        "std": 0.19,
+        "count": 869
+    },
+    {
+        "metal1": "Al",
+        "metal2": "Rh",
+        "mean": 2.58,
+        "std": 0.09,
+        "count": 542
+    },
+    {
+        "metal1": "Fe",
+        "metal2": "Gd",
+        "mean": 3.22,
+        "std": 0.24,
+        "count": 1412
+    },
+    {
+        "metal1": "Sb",
+        "metal2": "Sn",
+        "mean": 2.88,
+        "std": 0.05,
+        "count": 637
+    },
+    {
+        "metal1": "La",
+        "metal2": "V",
+        "mean": 3.7,
+        "std": 0.27,
+        "count": 1559
+    },
+    {
+        "metal1": "Cu",
+        "metal2": "Ti",
+        "mean": 3.24,
+        "std": 0.34,
+        "count": 802
+    },
+    {
+        "metal1": "Ce",
+        "metal2": "Fe",
+        "mean": 3.26,
+        "std": 0.21,
+        "count": 4215
+    },
+    {
+        "metal1": "Gd",
+        "metal2": "Ni",
+        "mean": 3.01,
+        "std": 0.12,
+        "count": 1302
+    },
+    {
+        "metal1": "Gd",
+        "metal2": "Mn",
+        "mean": 3.52,
+        "std": 0.21,
+        "count": 1064
+    },
+    {
+        "metal1": "Ga",
+        "metal2": "La",
+        "mean": 3.3,
+        "std": 0.08,
+        "count": 1147
+    },
+    {
+        "metal1": "La",
+        "metal2": "Ni",
+        "mean": 3.22,
+        "std": 0.26,
+        "count": 3659
+    },
+    {
+        "metal1": "Ni",
+        "metal2": "Tb",
+        "mean": 3.13,
+        "std": 0.25,
+        "count": 1446
+    },
+    {
+        "metal1": "Dy",
+        "metal2": "Ni",
+        "mean": 3.2,
+        "std": 0.3,
+        "count": 3073
+    },
+    {
+        "metal1": "Er",
+        "metal2": "Ni",
+        "mean": 3.09,
+        "std": 0.21,
+        "count": 828
+    },
+    {
+        "metal1": "Ni",
+        "metal2": "Yb",
+        "mean": 2.99,
+        "std": 0.19,
+        "count": 1040
+    },
+    {
+        "metal1": "Ag",
+        "metal2": "Sn",
+        "mean": 2.82,
+        "std": 0.11,
+        "count": 1232
+    },
+    {
+        "metal1": "Os",
+        "metal2": "Sb",
+        "mean": 2.67,
+        "std": 0.05,
+        "count": 560
+    },
+    {
+        "metal1": "Au",
+        "metal2": "Ca",
+        "mean": 3.2,
+        "std": 0.09,
+        "count": 2182
+    },
+    {
+        "metal1": "Au",
+        "metal2": "Ge",
+        "mean": 2.62,
+        "std": 0.11,
+        "count": 1043
+    },
+    {
+        "metal1": "Mn",
+        "metal2": "Nd",
+        "mean": 3.33,
+        "std": 0.12,
+        "count": 901
+    },
+    {
+        "metal1": "Ce",
+        "metal2": "Cu",
+        "mean": 3.34,
+        "std": 0.15,
+        "count": 953
+    },
+    {
+        "metal1": "Ir",
+        "metal2": "Mo",
+        "mean": 2.88,
+        "std": 0.2,
+        "count": 833
+    },
+    {
+        "metal1": "Ru",
+        "metal2": "Ti",
+        "mean": 2.74,
+        "std": 0.16,
+        "count": 2002
+    },
+    {
+        "metal1": "Eu",
+        "metal2": "Mo",
+        "mean": 3.91,
+        "std": 0.2,
+        "count": 1258
+    },
+    {
+        "metal1": "Be",
+        "metal2": "Sr",
+        "mean": 3.22,
+        "std": 0.2,
+        "count": 557
+    },
+    {
+        "metal1": "Cr",
+        "metal2": "Fe",
+        "mean": 2.65,
+        "std": 0.13,
+        "count": 633
+    },
+    {
+        "metal1": "Mn",
+        "metal2": "Tb",
+        "mean": 3.57,
+        "std": 0.18,
+        "count": 651
+    },
+    {
+        "metal1": "Ni",
+        "metal2": "Pd",
+        "mean": 2.67,
+        "std": 0.06,
+        "count": 1457
+    },
+    {
+        "metal1": "Ba",
+        "metal2": "Nd",
+        "mean": 3.85,
+        "std": 0.12,
+        "count": 1747
+    },
+    {
+        "metal1": "Pd",
+        "metal2": "Zn",
+        "mean": 2.69,
+        "std": 0.2,
+        "count": 1343
+    },
+    {
+        "metal1": "Ge",
+        "metal2": "Rh",
+        "mean": 2.54,
+        "std": 0.11,
+        "count": 768
+    },
+    {
+        "metal1": "Ru",
+        "metal2": "Sn",
+        "mean": 2.68,
+        "std": 0.07,
+        "count": 1175
+    },
+    {
+        "metal1": "Au",
+        "metal2": "Zn",
+        "mean": 2.64,
+        "std": 0.08,
+        "count": 1757
+    },
+    {
+        "metal1": "Au",
+        "metal2": "Sn",
+        "mean": 2.86,
+        "std": 0.25,
+        "count": 1869
+    },
+    {
+        "metal1": "Eu",
+        "metal2": "Mn",
+        "mean": 3.61,
+        "std": 0.19,
+        "count": 870
+    },
+    {
+        "metal1": "Al",
+        "metal2": "V",
+        "mean": 2.71,
+        "std": 0.12,
+        "count": 581
+    },
+    {
+        "metal1": "Ce",
+        "metal2": "Zn",
+        "mean": 3.3,
+        "std": 0.19,
+        "count": 3200
+    },
+    {
+        "metal1": "Dy",
+        "metal2": "Fe",
+        "mean": 3.37,
+        "std": 0.18,
+        "count": 863
+    },
+    {
+        "metal1": "Cd",
+        "metal2": "W",
+        "mean": 3.65,
+        "std": 0.08,
+        "count": 516
+    },
+    {
+        "metal1": "Ba",
+        "metal2": "Lu",
+        "mean": 3.73,
+        "std": 0.19,
+        "count": 770
+    },
+    {
+        "metal1": "Mg",
+        "metal2": "Ni",
+        "mean": 2.69,
+        "std": 0.05,
+        "count": 1412
+    },
+    {
+        "metal1": "Fe",
+        "metal2": "Ti",
+        "mean": 2.74,
+        "std": 0.24,
+        "count": 765
+    },
+    {
+        "metal1": "Sb",
+        "metal2": "Ti",
+        "mean": 2.99,
+        "std": 0.37,
+        "count": 1152
+    },
+    {
+        "metal1": "Sb",
+        "metal2": "U",
+        "mean": 3.3,
+        "std": 0.29,
+        "count": 574
+    },
+    {
+        "metal1": "Bi",
+        "metal2": "Eu",
+        "mean": 3.51,
+        "std": 0.27,
+        "count": 1851
+    },
+    {
+        "metal1": "Bi",
+        "metal2": "Sm",
+        "mean": 3.43,
+        "std": 0.37,
+        "count": 523
+    },
+    {
+        "metal1": "Fe",
+        "metal2": "Tb",
+        "mean": 3.36,
+        "std": 0.18,
+        "count": 602
+    },
+    {
+        "metal1": "Ru",
+        "metal2": "Zn",
+        "mean": 2.71,
+        "std": 0.28,
+        "count": 1343
+    },
+    {
+        "metal1": "Ca",
+        "metal2": "Cd",
+        "mean": 3.48,
+        "std": 0.28,
+        "count": 1649
+    },
+    {
+        "metal1": "Co",
+        "metal2": "Pr",
+        "mean": 3.06,
+        "std": 0.12,
+        "count": 514
+    },
+    {
+        "metal1": "La",
+        "metal2": "Mn",
+        "mean": 3.41,
+        "std": 0.18,
+        "count": 1354
+    },
+    {
+        "metal1": "Mn",
+        "metal2": "Yb",
+        "mean": 3.31,
+        "std": 0.22,
+        "count": 1308
+    },
+    {
+        "metal1": "Ce",
+        "metal2": "Mn",
+        "mean": 3.27,
+        "std": 0.1,
+        "count": 783
+    },
+    {
+        "metal1": "Dy",
+        "metal2": "Mn",
+        "mean": 3.45,
+        "std": 0.2,
+        "count": 1987
+    },
+    {
+        "metal1": "Nb",
+        "metal2": "Ni",
+        "mean": 3.05,
+        "std": 0.22,
+        "count": 656
+    },
+    {
+        "metal1": "Er",
+        "metal2": "Ge",
+        "mean": 3.08,
+        "std": 0.34,
+        "count": 908
+    },
+    {
+        "metal1": "Dy",
+        "metal2": "Ge",
+        "mean": 3.12,
+        "std": 0.31,
+        "count": 1460
+    },
+    {
+        "metal1": "Ge",
+        "metal2": "Tb",
+        "mean": 2.99,
+        "std": 0.07,
+        "count": 1120
+    },
+    {
+        "metal1": "Cu",
+        "metal2": "Yb",
+        "mean": 3.25,
+        "std": 0.2,
+        "count": 672
+    },
+    {
+        "metal1": "Cd",
+        "metal2": "Eu",
+        "mean": 3.45,
+        "std": 0.14,
+        "count": 1955
+    },
+    {
+        "metal1": "Al",
+        "metal2": "Pd",
+        "mean": 2.58,
+        "std": 0.06,
+        "count": 4190
+    },
+    {
+        "metal1": "Al",
+        "metal2": "Au",
+        "mean": 2.59,
+        "std": 0.05,
+        "count": 7231
+    },
+    {
+        "metal1": "Nb",
+        "metal2": "Sb",
+        "mean": 2.97,
+        "std": 0.13,
+        "count": 568
+    },
+    {
+        "metal1": "Ba",
+        "metal2": "Y",
+        "mean": 4.03,
+        "std": 0.54,
+        "count": 4343
+    },
+    {
+        "metal1": "Dy",
+        "metal2": "Sn",
+        "mean": 3.23,
+        "std": 0.1,
+        "count": 699
+    },
+    {
+        "metal1": "Ca",
+        "metal2": "In",
+        "mean": 3.5,
+        "std": 0.22,
+        "count": 538
+    },
+    {
+        "metal1": "Li",
+        "metal2": "Pr",
+        "mean": 3.14,
+        "std": 0.05,
+        "count": 577
+    },
+    {
+        "metal1": "Cu",
+        "metal2": "In",
+        "mean": 2.93,
+        "std": 0.17,
+        "count": 618
+    },
+    {
+        "metal1": "Ga",
+        "metal2": "Pd",
+        "mean": 2.68,
+        "std": 0.22,
+        "count": 1758
+    },
+    {
+        "metal1": "Fe",
+        "metal2": "Nd",
+        "mean": 3.26,
+        "std": 0.2,
+        "count": 4414
+    },
+    {
+        "metal1": "Ge",
+        "metal2": "Ni",
+        "mean": 2.41,
+        "std": 0.09,
+        "count": 1024
+    },
+    {
+        "metal1": "Gd",
+        "metal2": "Sn",
+        "mean": 3.42,
+        "std": 0.42,
+        "count": 682
+    },
+    {
+        "metal1": "Bi",
+        "metal2": "La",
+        "mean": 3.4,
+        "std": 0.07,
+        "count": 1024
+    },
+    {
+        "metal1": "Sn",
+        "metal2": "Yb",
+        "mean": 3.31,
+        "std": 0.11,
+        "count": 681
+    },
+    {
+        "metal1": "Fe",
+        "metal2": "La",
+        "mean": 3.45,
+        "std": 0.28,
+        "count": 1252
+    },
+    {
+        "metal1": "Ga",
+        "metal2": "Ni",
+        "mean": 2.53,
+        "std": 0.12,
+        "count": 1146
+    },
+    {
+        "metal1": "Lu",
+        "metal2": "Zn",
+        "mean": 3.08,
+        "std": 0.08,
+        "count": 997
+    },
+    {
+        "metal1": "Cd",
+        "metal2": "Ir",
+        "mean": 2.82,
+        "std": 0.07,
+        "count": 942
+    },
+    {
+        "metal1": "Pt",
+        "metal2": "Sr",
+        "mean": 3.27,
+        "std": 0.09,
+        "count": 631
+    },
+    {
+        "metal1": "Nb",
+        "metal2": "Sr",
+        "mean": 3.67,
+        "std": 0.41,
+        "count": 1073
+    },
+    {
+        "metal1": "Pr",
+        "metal2": "Sn",
+        "mean": 3.31,
+        "std": 0.07,
+        "count": 597
+    },
+    {
+        "metal1": "Sn",
+        "metal2": "Tb",
+        "mean": 3.38,
+        "std": 0.39,
+        "count": 971
+    },
+    {
+        "metal1": "Li",
+        "metal2": "Ta",
+        "mean": 3.07,
+        "std": 0.12,
+        "count": 711
+    },
+    {
+        "metal1": "Al",
+        "metal2": "Pt",
+        "mean": 2.61,
+        "std": 0.09,
+        "count": 2905
+    },
+    {
+        "metal1": "Pd",
+        "metal2": "Tl",
+        "mean": 2.93,
+        "std": 0.13,
+        "count": 658
+    },
+    {
+        "metal1": "Fe",
+        "metal2": "Pr",
+        "mean": 3.32,
+        "std": 0.22,
+        "count": 1248
+    },
+    {
+        "metal1": "Sn",
+        "metal2": "Tm",
+        "mean": 3.18,
+        "std": 0.11,
+        "count": 1126
+    },
+    {
+        "metal1": "Nb",
+        "metal2": "Sn",
+        "mean": 2.94,
+        "std": 0.08,
+        "count": 579
+    },
+    {
+        "metal1": "Al",
+        "metal2": "Ce",
+        "mean": 3.33,
+        "std": 0.22,
+        "count": 2094
+    },
+    {
+        "metal1": "Ce",
+        "metal2": "Pd",
+        "mean": 3.27,
+        "std": 0.21,
+        "count": 1255
+    },
+    {
+        "metal1": "Rh",
+        "metal2": "Sn",
+        "mean": 2.77,
+        "std": 0.11,
+        "count": 1128
+    },
+    {
+        "metal1": "Fe",
+        "metal2": "Th",
+        "mean": 3.24,
+        "std": 0.11,
+        "count": 6196
+    },
+    {
+        "metal1": "Lu",
+        "metal2": "Ru",
+        "mean": 3.06,
+        "std": 0.44,
+        "count": 583
+    },
+    {
+        "metal1": "Ca",
+        "metal2": "Pd",
+        "mean": 3.11,
+        "std": 0.09,
+        "count": 733
+    },
+    {
+        "metal1": "Pd",
+        "metal2": "Yb",
+        "mean": 3.14,
+        "std": 0.13,
+        "count": 854
+    },
+    {
+        "metal1": "Ga",
+        "metal2": "Ta",
+        "mean": 2.88,
+        "std": 0.18,
+        "count": 705
+    },
+    {
+        "metal1": "Al",
+        "metal2": "Gd",
+        "mean": 3.25,
+        "std": 0.17,
+        "count": 2436
+    },
+    {
+        "metal1": "Bi",
+        "metal2": "Ce",
+        "mean": 3.45,
+        "std": 0.26,
+        "count": 638
+    },
+    {
+        "metal1": "Au",
+        "metal2": "Ga",
+        "mean": 2.73,
+        "std": 0.23,
+        "count": 1258
+    },
+    {
+        "metal1": "Al",
+        "metal2": "Pr",
+        "mean": 3.18,
+        "std": 0.05,
+        "count": 800
+    },
+    {
+        "metal1": "Lu",
+        "metal2": "Sn",
+        "mean": 3.17,
+        "std": 0.12,
+        "count": 926
+    },
+    {
+        "metal1": "Sb",
+        "metal2": "Zr",
+        "mean": 3.11,
+        "std": 0.36,
+        "count": 2049
+    },
+    {
+        "metal1": "La",
+        "metal2": "Mg",
+        "mean": 3.62,
+        "std": 0.33,
+        "count": 847
+    },
+    {
+        "metal1": "Ga",
+        "metal2": "Mg",
+        "mean": 3.03,
+        "std": 0.07,
+        "count": 1035
+    },
+    {
+        "metal1": "Au",
+        "metal2": "Y",
+        "mean": 3.13,
+        "std": 0.27,
+        "count": 1115
+    },
+    {
+        "metal1": "Bi",
+        "metal2": "Gd",
+        "mean": 3.31,
+        "std": 0.12,
+        "count": 705
+    },
+    {
+        "metal1": "La",
+        "metal2": "Ti",
+        "mean": 3.44,
+        "std": 0.08,
+        "count": 1269
+    },
+    {
+        "metal1": "Ce",
+        "metal2": "In",
+        "mean": 3.38,
+        "std": 0.08,
+        "count": 546
+    },
+    {
+        "metal1": "Ce",
+        "metal2": "Pt",
+        "mean": 3.2,
+        "std": 0.09,
+        "count": 520
+    },
+    {
+        "metal1": "La",
+        "metal2": "Ru",
+        "mean": 3.35,
+        "std": 0.25,
+        "count": 692
+    },
+    {
+        "metal1": "Ca",
+        "metal2": "Pt",
+        "mean": 3.07,
+        "std": 0.1,
+        "count": 1159
+    },
+    {
+        "metal1": "Pt",
+        "metal2": "Sc",
+        "mean": 2.98,
+        "std": 0.31,
+        "count": 822
+    },
+    {
+        "metal1": "Nd",
+        "metal2": "Ti",
+        "mean": 3.68,
+        "std": 0.53,
+        "count": 1120
+    },
+    {
+        "metal1": "Bi",
+        "metal2": "Yb",
+        "mean": 3.39,
+        "std": 0.33,
+        "count": 935
+    },
+    {
+        "metal1": "Ga",
+        "metal2": "Yb",
+        "mean": 3.16,
+        "std": 0.19,
+        "count": 633
+    },
+    {
+        "metal1": "Au",
+        "metal2": "Gd",
+        "mean": 3.21,
+        "std": 0.26,
+        "count": 756
+    },
+    {
+        "metal1": "Au",
+        "metal2": "Eu",
+        "mean": 3.42,
+        "std": 0.28,
+        "count": 843
+    },
+    {
+        "metal1": "Au",
+        "metal2": "In",
+        "mean": 2.87,
+        "std": 0.15,
+        "count": 1798
+    },
+    {
+        "metal1": "Ru",
+        "metal2": "Sc",
+        "mean": 2.89,
+        "std": 0.18,
+        "count": 567
+    },
+    {
+        "metal1": "Au",
+        "metal2": "Sr",
+        "mean": 3.4,
+        "std": 0.11,
+        "count": 1220
+    },
+    {
+        "metal1": "Au",
+        "metal2": "Yb",
+        "mean": 3.26,
+        "std": 0.33,
+        "count": 847
+    },
+    {
+        "metal1": "Ge",
+        "metal2": "Lu",
+        "mean": 2.94,
+        "std": 0.08,
+        "count": 548
+    },
+    {
+        "metal1": "Eu",
+        "metal2": "Pt",
+        "mean": 3.3,
+        "std": 0.18,
+        "count": 889
+    },
+    {
+        "metal1": "Be",
+        "metal2": "Pt",
+        "mean": 2.32,
+        "std": 0.05,
+        "count": 600
+    },
+    {
+        "metal1": "Er",
+        "metal2": "Ru",
+        "mean": 3.0,
+        "std": 0.12,
+        "count": 1066
+    },
+    {
+        "metal1": "Ni",
+        "metal2": "Sc",
+        "mean": 2.95,
+        "std": 0.22,
+        "count": 500
+    },
+    {
+        "metal1": "Ru",
+        "metal2": "Sr",
+        "mean": 3.39,
+        "std": 0.11,
+        "count": 989
+    },
+    {
+        "metal1": "Ba",
+        "metal2": "Tm",
+        "mean": 3.81,
+        "std": 0.22,
+        "count": 985
+    },
+    {
+        "metal1": "Ge",
+        "metal2": "Ho",
+        "mean": 3.03,
+        "std": 0.22,
+        "count": 1182
+    },
+    {
+        "metal1": "V",
+        "metal2": "Yb",
+        "mean": 3.04,
+        "std": 0.05,
+        "count": 777
+    },
+    {
+        "metal1": "Ru",
+        "metal2": "Sm",
+        "mean": 3.42,
+        "std": 0.18,
+        "count": 542
+    },
+    {
+        "metal1": "Ir",
+        "metal2": "W",
+        "mean": 2.85,
+        "std": 0.12,
+        "count": 565
+    }
+]
