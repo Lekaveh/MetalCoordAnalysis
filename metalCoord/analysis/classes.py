@@ -207,6 +207,10 @@ class Classificator:
             ClassificationResult: The classification results.
         """
 
+        """Skipping structures with coordination number > 17 due to performance issues."""        
+        if structure.coordination() > 17:
+            return
+        
         if class_name:
             if class_name == MOST_COMMON_CLASS:
                 classes = DB.get_frequency_metal_coordination(

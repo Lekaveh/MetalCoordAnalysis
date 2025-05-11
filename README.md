@@ -53,7 +53,6 @@ pip install git+https://github.com/Lekaveh/MetalCoordAnalysis
         - --save: Save COD files used in statistics.
         - --use-pdb Use COD structures based on pdb coordinates.
         - -c, --coordination: Defines maximum coordination number.
-        - --cif: Read coordinates from mmCIF file
         - --cl Predefined class or  "most_common" for the most frequent coordination class
         - --no-progress: Do not show progress bars
 - **Ligand Update**: 
@@ -69,6 +68,7 @@ pip install git+https://github.com/Lekaveh/MetalCoordAnalysis
         - --save: Save COD files used in statistics.
         - --use-pdb Use COD structures based on pdb coordinates.
         - -c, --coordination: Defines maximum coordination number.
+        - --cif: Read coordinates from mmCIF file
         - --cl Predefined class or  "most_common" for the most frequent coordination class
         - --no-progress: Do not show progress bars
 - **Coordination List**: 
