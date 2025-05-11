@@ -1,14 +1,16 @@
+from collections import defaultdict
+from curses import meta
 import re
 import json
 import os
 from pathlib import Path
 import sys
-from turtle import up, update
 from typing import Dict, Any, Tuple, Optional
 
 import gemmi
 import networkx as nx
 import metalCoord
+from metalCoord.analysis import metal
 from metalCoord.analysis.classify import find_classes_pdb, find_classes_cif
 
 from metalCoord.analysis.metal import MetalMetalStats
@@ -46,6 +48,7 @@ from metalCoord.cif.utils import (
     ENERGY,
 )
 from metalCoord.cif.utils import get_element_name, get_bonds
+
 
 
 d = os.path.dirname(sys.modules["metalCoord"].__file__)
@@ -567,24 +570,25 @@ def choose_best_pdb(name: str) -> str:
     Logger().info(f"Best PDB file is {pdb}")
     return pdb
 
-def update_bonds(bonds: Dict[str, Any], atoms: Dict[str, Any], pdb_stats, block: gemmi.cif.Block) -> None:
+def update_bonds(bonds: Dict[str, Any], atoms: Dict[str, Any], pdb_stats: PdbStats, block: gemmi.cif.Block) -> None:
     """
-    Update the bond distance information in the provided bonds dictionary and update the given CIF block.
+    Update bond distance information in the bonds dictionary and in the provided CIF block.
 
-    This function examines each bond pair (defined by ATOM_ID_1 and ATOM_ID_2 in the bonds dictionary) and updates
-    their corresponding distance and its estimated standard deviation (ESD) in several keys (e.g. VALUE_DIST, VALUE_DIST_ESD,
-    VALUE_DIST_NUCLEUS, VALUE_DIST_NUCLEUS_ESD) based on the type of elements involved (metal or non-metal). For metal–metal
-    bonds, it utilizes the MetalMetalStats, and for metal–ligand bonds, it gets distance statistics from pdb_stats. The function
-    initializes the distance keys with None values if they are not already present.
+    This function iterates over each bond pair (as identified by the ATOM_ID_1 and ATOM_ID_2 entries in the bonds dictionary)
+    and sets up distance-related keys (VALUE_DIST, VALUE_DIST_ESD, VALUE_DIST_NUCLEUS, VALUE_DIST_NUCLEUS_ESD) with initial
+    None values if they are not already present. For each bond, the elemental type of both atoms is determined using the atoms
+    dictionary and gemmi.Element. If neither atom is a metal, the bond is skipped. If both atoms are metals, the function checks
+    for available distance data via MetalMetalStats and, if available, updates the bond data with the computed distance and its
+    estimated standard deviation. In the case of a metal–ligand bond, the function ensures that the metal atom is correctly
+    identified and retrieves the bond statistics using the pdb_stats object. Finally, the updated bonds information is set in the CIF
+    block under the designated bond category.
 
-    Args:
-        bonds (Dict[str, Any]): Dictionary containing bond information, including atom IDs and placeholders for distances.
-        atoms (Dict[str, Any]): Dictionary containing atom data, used to determine the element name for each atom.
-        pdb_stats: An object providing methods to retrieve ligand bond statistics (e.g., get_ligand_distance).
-        block (gemmi.cif.Block): A CIF block that will be updated with the computed bond distance data.
+        bonds (Dict[str, Any]): Dictionary containing bond information, including atom IDs and placeholders for distance values.
+        atoms (Dict[str, Any]): Dictionary containing atomic information used to determine element names.
+        pdb_stats (PdbStats): An object that provides methods to retrieve ligand bond statistics.
+        block (gemmi.cif.Block): The CIF block that will be updated with the computed bond distance data.
 
-    Returns:
-        None: Modifies the bonds dictionary and sets the updated category in the CIF block in-place.
+        None: The function directly modifies the bonds dictionary and updates the CIF block.
     """
     if VALUE_DIST not in bonds:
         bonds[VALUE_DIST] = [None for _ in range(len(bonds[ATOM_ID_1]))]
@@ -592,11 +596,19 @@ def update_bonds(bonds: Dict[str, Any], atoms: Dict[str, Any], pdb_stats, block:
         bonds[VALUE_DIST_NUCLEUS] = [None for _ in range(len(bonds[ATOM_ID_1]))]
         bonds[VALUE_DIST_NUCLEUS_ESD] = [None for _ in range(len(bonds[ATOM_ID_1]))]
 
+    metal_groups_by_locant = defaultdict(list)
+    for metal_stats in pdb_stats.metals:
+        metal_groups_by_locant[metal_stats.locant].append(metal_stats)
+    metal_groups_by_locant = dict(metal_groups_by_locant)
+    
+
+    metal_metal_json = []
     for i, _atoms in enumerate(zip(bonds[ATOM_ID_1], bonds[ATOM_ID_2])):
         metal_name, ligand_name = _atoms
 
         is_metal1 = gemmi.Element(get_element_name(atoms, metal_name)).is_metal
         is_metal2 = gemmi.Element(get_element_name(atoms, ligand_name)).is_metal
+        
 
         if not is_metal1 and not is_metal2:
             continue
@@ -610,21 +622,39 @@ def update_bonds(bonds: Dict[str, Any], atoms: Dict[str, Any], pdb_stats, block:
                     get_element_name(atoms, metal_name),
                     get_element_name(atoms, ligand_name),
                 )
-                bonds[VALUE_DIST][i] = bonds[VALUE_DIST_NUCLEUS][i] = str(round(distance, 3))
-                bonds[VALUE_DIST_ESD][i] = bonds[VALUE_DIST_NUCLEUS_ESD][i] = str(round(std, 3))
-            continue
+                distance = round(distance, 3)
+                std = round(std, 3)
+                bonds[VALUE_DIST][i] = bonds[VALUE_DIST_NUCLEUS][i] = str(distance)
+                bonds[VALUE_DIST_ESD][i] = bonds[VALUE_DIST_NUCLEUS_ESD][i] = str(std)
+                    
+                for metal_group in metal_groups_by_locant.values():
+                    metal_dict = {m.metal: m.to_metal_dict() for m in metal_group}
+                    if metal_name in metal_dict and ligand_name in metal_dict:
+                        metal_metal_json.append(
+                            {
+                                "metal1": metal_dict[metal_name],
+                                "metal2": metal_dict[ligand_name],
+                                "distance": distance,
+                                "std": std,
+                            }
+                        )
+                        
+                        
+                continue
 
         if is_metal2:
             metal_name, ligand_name = ligand_name, metal_name
 
-        bondStat = pdb_stats.get_ligand_distance(metal_name, ligand_name)
-        if bondStat:
-            bonds[VALUE_DIST][i] = bonds[VALUE_DIST_NUCLEUS][i] = str(round(bondStat.distance[0], 3))
-            bonds[VALUE_DIST_ESD][i] = bonds[VALUE_DIST_NUCLEUS_ESD][i] = str(round(bondStat.std[0], 3))
+        bond_stat = pdb_stats.get_ligand_distance(metal_name, ligand_name)
+        if bond_stat:
+            bonds[VALUE_DIST][i] = bonds[VALUE_DIST_NUCLEUS][i] = str(round(bond_stat.distance[0], 3))
+            bonds[VALUE_DIST_ESD][i] = bonds[VALUE_DIST_NUCLEUS_ESD][i] = str(round(bond_stat.std[0], 3))
 
     block.set_mmcif_category(BOND_CATEGORY, bonds)
 
-def init_angles(angles: Dict[str, Any], pdb_stats, bonds: Dict[str, Any], name: str) -> None:
+    return metal_metal_json
+
+def init_angles(angles: Dict[str, Any], pdb_stats: PdbStats, bonds: Dict[str, Any], name: str) -> None:
     """
     Initializes angle entries in the angles dictionary using ligand angles from pdb_stats.
 
@@ -633,7 +663,7 @@ def init_angles(angles: Dict[str, Any], pdb_stats, bonds: Dict[str, Any], name: 
 
     Parameters:
         angles (Dict[str, Any]): Expected keys are COMP_ID, ATOM_ID_1, ATOM_ID_2, ATOM_ID_3, VALUE_ANGLE, and VALUE_ANGLE_ESD.
-        pdb_stats: Provides metal_names() and get_ligand_angles(metal_name) methods.
+        pdb_stats (PdbStats): Provides metal_names() and get_ligand_angles(metal_name) methods.
         bonds (Dict[str, Any]): Bond information dictionary used to verify bonds.
         name (str): Component identifier for the angle entries.
     """
@@ -656,7 +686,33 @@ def init_angles(angles: Dict[str, Any], pdb_stats, bonds: Dict[str, Any], name: 
             angles[VALUE_ANGLE_ESD].append(str(round(angle.std, 3)))
 
 
-def update_angles_category(angles:Dict[str, Any], atoms: Dict[str, Any], bonds :Dict[str, Any], pdb_stats, name: str) -> None:
+def update_angles_category(angles:Dict[str, Any], atoms: Dict[str, Any], bonds :Dict[str, Any], pdb_stats: PdbStats, name: str) -> None:
+    """
+    Update the angles dictionary with ligand angle statistics based on atom and bond data.
+
+    This function processes triplets of atoms representing angles and updates their corresponding
+    angle values and standard deviations if valid statistics are available from the provided pdb_stats
+    object. It first checks each set of atoms to confirm that the central atom is a metal element,
+    then retrieves angle data for the associated ligand atoms. If valid angle statistics are found,
+    the function updates the angles dictionary accordingly. Additionally, it iterates over all metal
+    atoms in pdb_stats to add any missing ligand angle entries, ensuring that the corresponding bonds
+    exist as per the bonds dictionary.
+
+    Parameters:
+        angles (Dict[str, Any]): A dictionary containing lists of angle-related data. Expected keys
+            include ATOM_ID_1, ATOM_ID_2, ATOM_ID_3 for atom identifiers, and VALUE_ANGLE, VALUE_ANGLE_ESD
+            for angle values and their standard deviations, respectively.
+        atoms (Dict[str, Any]): A dictionary mapping atom identifiers to their corresponding properties.
+        bonds (Dict[str, Any]): A dictionary representing bond connectivity information between atoms.
+        pdb_stats(PdbStats): An object that provides statistical data about ligand angles, including methods such as 
+            get_ligand_angle(), get_ligand_angles(), and metal_names(), which supply angle measurements 
+            and standard deviations.
+        name (str): A string identifier used to annotate new angle entries in the angles dictionary (e.g., 
+            as a component identifier).
+
+    Returns:
+        None: This function modifies the angles dictionary in place.
+    """
     update_angles = []
     for i, _atoms in enumerate(
         zip(angles[ATOM_ID_1], angles[ATOM_ID_2], angles[ATOM_ID_3])
@@ -833,8 +889,9 @@ def update_cif(output_path, path, pdb, use_cif=False, clazz=None):
         )
 
     Logger().info("Ligand updating started")
+    metal_metal_json = []
     if bonds:
-        update_bonds(bonds, atoms, pdb_stats, block)
+        metal_metal_json = update_bonds(bonds, atoms, pdb_stats, block)
         Logger().info("Distances updated")
 
     if not angles:
@@ -878,11 +935,15 @@ def update_cif(output_path, path, pdb, use_cif=False, clazz=None):
     Path(os.path.split(output_path)[0]).mkdir(exist_ok=True, parents=True)
     doc.write_file(output_path)
     report_path = output_path + ".json"
+    metal_metal_path = output_path + ".metal_metal.json"
     Logger().info(f"Update written to {output_path}")
     directory = os.path.dirname(output_path)
     Path(directory).mkdir(exist_ok=True, parents=True)
     with open(report_path, "w", encoding="utf-8") as json_file:
         json.dump(pdb_stats.json(), json_file, indent=4, separators=(",", ": "))
+    if metal_metal_json:
+        with open(metal_metal_path, "w", encoding="utf-8") as json_file:
+            json.dump(metal_metal_json, json_file, indent=4, separators=(",", ": "))
 
     if Config().save:
         save_cods(pdb_stats, os.path.dirname(output_path))

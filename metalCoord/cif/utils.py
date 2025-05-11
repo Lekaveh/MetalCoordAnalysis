@@ -50,6 +50,20 @@ def get_element_name(mmcif_atom_category, name):
         if _ == name:
             return gemmi.Element(mmcif_atom_category[TYPE_SYMBOL][i]).name
         
+def get_name(mmcif_atom_category, name):
+    """
+    Get the name for a given atom name.
+
+    Parameters:
+    - mmcif_atom_category (dict): The mmcif atom category.
+    - name (str): The name of the atom.
+
+    Returns:
+    - element_name (str): The element name of the atom.
+    """
+    for i, _ in enumerate(mmcif_atom_category[ATOM_ID]):
+        if _ == name:
+            return mmcif_atom_category[NAME][i]        
 
 def get_bonds(atoms: gemmi.cif.Table, bonds: gemmi.cif.Table) -> dict:
     """

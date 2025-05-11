@@ -537,6 +537,16 @@ class MetalStats:
         self._ligands: list = []
 
     @property
+    def locant(self) -> str:
+        """
+        Get the locant of the metal.
+
+        Returns:
+            str: The locant of the metal.
+        """
+        return (self._chain, self._residue, str(self._sequence), self.insertion_code, self.altloc)
+    
+    @property
     def code(self) -> tuple:
         """
         Get the code of the metal.
@@ -805,6 +815,23 @@ class MetalStats:
         """
         return len(self._ligands) == 0
 
+    def to_metal_dict(self) -> dict:
+        """
+        Convert the MetalStats object to a dictionary.
+
+        Returns:
+            dict: A dictionary representation of the MetalStats object.
+        """
+        return {
+            "metal": self.metal,
+            "element": self.metal_element,
+            "chain": self.chain,
+            "residue": self.residue,
+            "sequence": self.sequence,
+            "icode": self.insertion_code,
+            "altloc": self.altloc
+        }
+    
     def to_dict(self) -> dict:
         """
         Convert the MetalStats object to a dictionary.
@@ -812,16 +839,9 @@ class MetalStats:
         Returns:
             dict: A dictionary representation of the MetalStats object.
         """
-        metal = {
-            "chain": self.chain,
-            "residue": self.residue,
-            "sequence": self.sequence,
-            "metal": self.metal,
-            "metalElement": self.metal_element,
-            "icode": self.insertion_code,
-            "altloc": self.altloc,
-            "ligands": []
-        }
+        metal = self.to_metal_dict()
+        metal["ligands"] =  []
+            
 
         for l in sorted(self.ligands, key=lambda x: (-x.coordination, x.weighted_procrustes(self.metal_element))):
             metal["ligands"].append(l.to_dict())
