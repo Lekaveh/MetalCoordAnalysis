@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "metalcoordanalysis"
-version = "0.1.85"
+version = "0.1.87"
 description = "Metal Coordination Analysis Tool"
 authors = [
     "Kaveh Babai <lekaveh@gmail.com>",

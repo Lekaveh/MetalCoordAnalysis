@@ -16,7 +16,7 @@ from metalCoord.correspondense.procrustes import fit
 from metalCoord.logging import Logger
 
 
-MAX_FILES = 2000
+MAX_FILES = Config().max_sample_size if Config().max_sample_size else 2000
 
 
 def get_coordinate(file_data: pd.DataFrame) -> np.ndarray:

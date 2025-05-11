@@ -99,6 +99,8 @@ def create_parser():
                                metavar='<PROCRUSTES DISTANCE THRESHOLD>', default=0.3, choices=[Range(0, 1)])
     update_parser.add_argument('-m', '--min_size', required=False, help='Minimum sample size for statistics.',
                                metavar='<MINIMUM SAMPLE SIZE>', default=30, type=check_positive)
+    update_parser.add_argument('-x', '--max_size', required=False, help='Maximum sample size for statistics.',
+                               metavar='<MAXIMUM SAMPLE SIZE>', default=2000, type=check_positive)
     update_parser.add_argument('--ideal-angles', required=False,
                                help='Provide only ideal angles', default=argparse.SUPPRESS,  action='store_true')
     update_parser.add_argument('-s', '--simple', required=False,
@@ -129,6 +131,8 @@ def create_parser():
                               metavar='<PROCRUSTES DISTANCE THRESHOLD>', default=0.3, choices=[Range(0, 1)])
     stats_parser.add_argument('-m', '--min_size', required=False, help='Minimum sample size for statistics.',
                               metavar='<MINIMUM SAMPLE SIZE>', default=30, type=check_positive)
+    stats_parser.add_argument('-x', '--max_size', required=False, help='Maximum sample size for statistics.',
+                               metavar='<MAXIMUM SAMPLE SIZE>', default=2000, type=check_positive)
     stats_parser.add_argument('--ideal-angles', required=False,
                               help='Provide only ideal angles', default=argparse.SUPPRESS,  action='store_true')
     stats_parser.add_argument('-s', '--simple', required=False,
@@ -180,6 +184,9 @@ def main_func():
         Logger().add_handler(True, not args.no_progress)
         Logger().info(
             f"Logging started. Logging level: {Logger().logger.level}")
+        
+        if args.command in ['update', 'stats'] and args.min_size > args.max_size:
+            raise ValueError("Minimum sample size must be less or equal than maximum sample size.")
 
         if args.command == 'update' or args.command == 'stats':
             Config().ideal_angles = args.ideal_angles if "ideal_angles" in args else False
@@ -192,6 +199,9 @@ def main_func():
             Config().output_folder = os.path.abspath(os.path.dirname(args.output))
             Config().output_file = os.path.basename(args.output)
             Config().max_coordination_number = args.coordination
+            Config().max_sample_size = args.max_size
+
+
 
         if args.command == 'update':
             from metalCoord.service.analysis import update_cif
