@@ -824,7 +824,7 @@ class MetalStats:
         """
         return {
             "metal": self.metal,
-            "element": self.metal_element,
+            "metalElement": self.metal_element,
             "chain": self.chain,
             "residue": self.residue,
             "sequence": self.sequence,
