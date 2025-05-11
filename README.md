@@ -48,6 +48,7 @@ pip install git+https://github.com/Lekaveh/MetalCoordAnalysis
         - -d, --dist: Distance threshold (default: 0.5, range: 0-1).<br> *A threshold to* $d$ *to select atom is* $(r_1 + r_2)*(1 + d)$
         - -t, --threshold: Procrustes distance threshold (default: 0.3, range: 0-1).
         - -m, --min_size: Minimum sample size for statistics (default: 30).
+        - -x, --max_size: Maximum sample size for statistics (default: 2000).
         - --ideal-angles: Provide only ideal angles.
         - -s, --simple: Simple distance-based filtering.
         - --save: Save COD files used in statistics.
@@ -63,6 +64,7 @@ pip install git+https://github.com/Lekaveh/MetalCoordAnalysis
         - -d, --dist: Distance threshold (default: 0.5, range: 0-1).<br> *A threshold to* $d$ *to select atom is* $(r_1 + r_2)*(1 + d)$
         - -t, --threshold: Procrustes distance threshold (default: 0.3, range: 0-1).
         - -m, --min_size: Minimum sample size for statistics (default: 30).
+        - -x, --max_size: Maximum sample size for statistics (default: 2000).
         - --ideal-angles: Provide only ideal angles.
         - -s, --simple: Simple distance-based filtering.
         - --save: Save COD files used in statistics.
