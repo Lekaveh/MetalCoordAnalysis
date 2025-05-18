@@ -13,7 +13,7 @@ import metalCoord
 from metalCoord.analysis.classify import find_classes_pdb, find_classes_cif
 
 from metalCoord.analysis.metal import MetalPairStatsService
-from metalCoord.analysis.models import MetalPairStats, PdbStats
+from metalCoord.analysis.models import PdbStats
 from metalCoord.config import Config
 from metalCoord.logging import Logger
 from metalCoord.cif.utils import (
@@ -927,9 +927,9 @@ def update_cif(output_path, path, pdb, use_cif=False, clazz=None):
     Path(directory).mkdir(exist_ok=True, parents=True)
     with open(report_path, "w", encoding="utf-8") as json_file:
         json.dump(pdb_stats.json(), json_file, indent=4, separators=(",", ": "))
-    if metal_metal_json:
-        with open(metal_metal_path, "w", encoding="utf-8") as json_file:
-            json.dump(metal_metal_json, json_file, indent=4, separators=(",", ": "))
+    
+    with open(metal_metal_path, "w", encoding="utf-8") as json_file:
+        json.dump(metal_metal_json, json_file, indent=4, separators=(",", ": "))
 
     if Config().save:
         save_cods(pdb_stats, os.path.dirname(output_path))
@@ -950,13 +950,18 @@ def get_stats(ligand, pdb, output, clazz=None):
     Returns:
         None
     """
-    pdb_stats = find_classes_pdb(ligand, pdb, clazz=clazz)
+    pdb_stats, metal_pair_stats = find_classes_pdb(ligand, pdb, clazz=clazz)
     results = pdb_stats.json()
+    metal_metal_json = [stat.to_dict() for stat in metal_pair_stats]
 
     directory = os.path.dirname(output)
     Path(directory).mkdir(exist_ok=True, parents=True)
+    metal_metal_path = output + ".metal_metal.json"
     with open(output, "w", encoding="utf-8") as json_file:
         json.dump(results, json_file, indent=4, separators=(",", ": "))
+   
+    with open(metal_metal_path, "w", encoding="utf-8") as json_file:
+        json.dump(metal_metal_json, json_file, indent=4, separators=(",", ": "))
     if Config().save:
         save_cods(pdb_stats, os.path.dirname(output))
 

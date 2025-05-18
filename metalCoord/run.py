@@ -145,6 +145,8 @@ def create_parser():
                               help='Maximum coordination number.', metavar='<MAXIMUM COORDINATION NUMBER>', default=1000)
     stats_parser.add_argument('--cl', required=False,
                                help='Predefined class/coordination', metavar='<CLASS>', type=str)
+    stats_parser.add_argument('--metal_distance', type=float, required=False, help='Metal Metal distance threshold.',
+                              metavar='<METAL DISTANCE THRESHOLD>', default=0.3, choices=[Range(0, 1)])
 
     # App3
     coordination_parser = subparsers.add_parser(
@@ -200,6 +202,9 @@ def main_func():
             Config().output_file = os.path.basename(args.output)
             Config().max_coordination_number = args.coordination
             Config().max_sample_size = args.max_size
+            
+        if args.command == 'stats':
+            Config().metal_distance_threshold= args.metal_distance
 
 
 

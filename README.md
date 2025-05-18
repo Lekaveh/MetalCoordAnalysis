@@ -67,7 +67,7 @@ pip install git+https://github.com/Lekaveh/MetalCoordAnalysis
         - -x, --max_size: Maximum sample size for statistics (default: 2000).
         - --ideal-angles: Provide only ideal angles.
         - -s, --simple: Simple distance-based filtering.
-        - --save: Save COD files used in statistics.
+        - --metal_distance: Metal–metal distance threshold (default: 0.3, range: 0–1). This parameter specifies a threshold value for the metal–metal distance. <br> *A threshold to* $d$ *to select an atom is* $(r_1 + r_2) \times (1 + d)$, where $d$ is "metal_distance".
         - --use-pdb Use COD structures based on pdb coordinates.
         - -c, --coordination: Defines maximum coordination number.
         - --cif: Read coordinates from mmCIF file

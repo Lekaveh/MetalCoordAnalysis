@@ -24,6 +24,7 @@ class Config:
             return
         self.distance_threshold = 0.2
         self.procrustes_threshold = 0.3
+        self.metal_distance_threshold = 0.3
         self.min_sample_size = 30
         self.max_sample_size = None
         self.simple = False
@@ -54,3 +55,14 @@ class Config:
             float: The Procrustes threshold value.
         """
         return self.procrustes_threshold
+    
+    def metal_scale(self) -> float:
+        """
+        Returns the scaled value of the metal distance threshold.
+
+        The scaled value is obtained by adding 1 to the metal distance threshold.
+
+        Returns:
+            float: The scaled value of the metal distance threshold.
+        """
+        return self.metal_distance_threshold + 1

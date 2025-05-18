@@ -57,18 +57,14 @@ class IAtom(ABC):
         Returns:
             bool: True if the atoms are the same locant, False otherwise.
         """
-        print(
-                f"self: {self.residue.name} {self.residue.seqid.num} {self.chain.name} {self.symmetry} - "
-                f"atom: {atom.residue.name} {atom.residue.seqid.num} {atom.chain.name} {atom.symmetry}"
-            )
         return (
             self.residue.name == atom.residue.name
             and self.residue.seqid.num == atom.residue.seqid.num
             and self.chain.name == atom.chain.name
             and self.symmetry == atom.symmetry
-            
         )
-    
+
+
 class Atom(IAtom):
     """
     Represents an atom in a molecular structure.
@@ -161,9 +157,6 @@ class Atom(IAtom):
             bool: The symmetry copy of the atom.
         """
         return self._symmetry
-    
-
- 
 
     @property
     def pos(self):
@@ -696,49 +689,59 @@ class MetalBond:
             float: The Euclidean distance between the two metal atoms.
         """
         return distance(self._metal1, self._metal2)
-    
-    def is_same_locant(self) -> bool: 
+
+    def is_same_locant(self) -> bool:
         """
         Determines whether the locants of the two metal atoms are identical.
         The function compares the residue names, sequence identifier numbers, chain names, and symmetry attributes
         of the two metal atoms. If all of these properties match, the function returns True; otherwise, it returns False.
         Returns:
-            bool: True if both metal atoms share the same residue name, sequence identifier number, chain name, 
-                    and symmetry attribute, indicating they are located at the same locant; 
+            bool: True if both metal atoms share the same residue name, sequence identifier number, chain name,
+                    and symmetry attribute, indicating they are located at the same locant;
                     False otherwise.
         """
-            
+
         if self._metal1.is_same_locant(self._metal2):
             return True
         return False
 
+
 class MetalBondRegistry:
     """
     Registry of metal-metal bonds.
-    
+
     When adding a new bond, it checks if a similar bond already exists.
     Two bonds are considered the same if they connect the same metal atoms,
     regardless of their order.
     """
+
     def __init__(self):
         self._bonds: list[MetalBond] = []
 
     def add_bond(self, bond: MetalBond) -> None:
         """
         Adds a metal bond to the registry if it does not already exist.
-        
+
         Args:
             bond (MetalBond): The new metal bond to add.
         """
         for existing in self._bonds:
-            if (existing.metal1.name == bond.metal1.name and existing.metal2.name == bond.metal2.name
-                and existing.metal1.is_same_locant(bond.metal1) and existing.metal2.is_same_locant(bond.metal2)):
+            if (
+                existing.metal1.name == bond.metal1.name
+                and existing.metal2.name == bond.metal2.name
+                and existing.metal1.is_same_locant(bond.metal1)
+                and existing.metal2.is_same_locant(bond.metal2)
+            ):
                 return
-            
-            if (existing.metal1.name == bond.metal2.name and existing.metal2.name == bond.metal1.name
-                and existing.metal1.is_same_locant(bond.metal2) and existing.metal2.is_same_locant(bond.metal1)):
+
+            if (
+                existing.metal1.name == bond.metal2.name
+                and existing.metal2.name == bond.metal1.name
+                and existing.metal1.is_same_locant(bond.metal2)
+                and existing.metal2.is_same_locant(bond.metal1)
+            ):
                 return
-            
+
         self._bonds.append(bond)
 
     def get_bonds(self) -> list[MetalBond]:
@@ -753,6 +756,7 @@ class MetalBondRegistry:
 
     def __len__(self):
         return len(self._bonds)
+
 
 def angle(atom1: IAtom, atom2: IAtom, atom3: IAtom):
     """
@@ -788,7 +792,10 @@ def distance(atom1: IAtom, atom2: IAtom) -> float:
     """
     return np.sqrt((atom1.pos - atom2.pos).dot(atom1.pos - atom2.pos))
 
-def get_ligands(st, ligand, bonds=None, metal_metal_bonds = None, max_dist=10, only_best=False) -> Tuple[list[Ligand], MetalBondRegistry]:
+
+def get_ligands(
+    st, ligand, bonds=None, metal_metal_bonds=None, max_dist=10, only_best=False
+) -> Tuple[list[Ligand], MetalBondRegistry]:
     """
     Retrieves ligands associated with a metal in a structure.
 
@@ -805,10 +812,10 @@ def get_ligands(st, ligand, bonds=None, metal_metal_bonds = None, max_dist=10, o
     scale = Config().scale()
     alpha = Config().distance_threshold + 1
     beta1 = [0.8, 0.9, 1.0, 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 1.8, 1.9, 2.0]
-    alpha1 = 1.1    
+    alpha1 = 1.1
     angle1 = 60
-    
-    alpha = np.floor(alpha*10)/10
+
+    alpha = np.floor(alpha * 10) / 10
     if alpha1 > alpha - 0.1:
         alpha1 = np.round(alpha - 0.2, 1)
     beta1 = [b for b in beta1 if b < alpha and b > alpha1]
@@ -863,7 +870,7 @@ def get_ligands(st, ligand, bonds=None, metal_metal_bonds = None, max_dist=10, o
 
     if not bonds:
         bonds = {}
-    
+
     for chain in st[0]:
         for residue in chain:
             if residue.name != ligand:
@@ -885,18 +892,26 @@ def get_ligands(st, ligand, bonds=None, metal_metal_bonds = None, max_dist=10, o
                     ]
                     for mark in metal_marks:
                         cra = mark.to_cra(st[0])
-                        print(f"Metal {metal_name} - {cra.atom.name}")
                         if cra.atom.name == metal_name:
                             continue
-                            
+
                         metal2 = Atom(cra.atom, cra.residue, cra.chain, None, st)
-                        print(metal_metal_bonds)
-                        if metal_metal_bonds is  not None:
-                            
-                            if metal.is_same_locant(metal2) and metal2.atom.name in (metal_metal_bonds.get(metal_name, [])):
-                                print("SUCCESS")
+                        if metal_metal_bonds is not None:
+
+                            if metal.is_same_locant(metal2) and metal2.atom.name in (
+                                metal_metal_bonds.get(metal_name, [])
+                            ):
                                 metal_metals.add_bond(MetalBond(metal, metal2))
-                  
+                        else:
+                            if (
+                                distance(metal, metal2)
+                                <= (
+                                    covalent_radii(metal.atom.element.name)
+                                    + covalent_radii(metal2.atom.element.name)
+                                )
+                                * Config().metal_scale()
+                            ):
+                                metal_metals.add_bond(MetalBond(metal, metal2))
 
                     marks1 = [
                         k
@@ -1228,7 +1243,7 @@ def get_ligands_from_cif(
         ligand_obj = Ligand(CifAtom(metal, residue, new_chain))
         for ligand_name in ligands:
             ligand = create_atom(atoms, ligand_name)
-            ligand_obj.add_ligand(CifAtom(ligand, residue, new_chain))  
+            ligand_obj.add_ligand(CifAtom(ligand, residue, new_chain))
 
         ligands.append(ligand_obj)
 
@@ -1239,5 +1254,10 @@ def get_ligands_from_cif(
                 continue
             metal1 = create_atom(atoms, metal_name)
             metal2 = create_atom(atoms, metal2_name)
-            metal_pairs.add_bond(MetalBond(CifAtom(metal1, residue, new_chain), CifAtom(metal2, residue, new_chain)))
+            metal_pairs.add_bond(
+                MetalBond(
+                    CifAtom(metal1, residue, new_chain),
+                    CifAtom(metal2, residue, new_chain),
+                )
+            )
     return ligands, metal_pairs
