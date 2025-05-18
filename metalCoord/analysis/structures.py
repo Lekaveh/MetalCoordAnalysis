@@ -1206,7 +1206,7 @@ def create_atom(atoms, atom_name):
 
 
 def get_ligands_from_cif(
-    name: str, atoms: gemmi.cif.Table, bonds: dict
+    name: str, atoms: gemmi.cif.Table, bonds: dict, metal_metal_bonds: dict
 ) -> Tuple[list[Ligand], MetalBondRegistry]:
     """
     Extracts ligands from a CIF (Crystallographic Information File) and returns them as a list of Ligand objects.
@@ -1217,7 +1217,7 @@ def get_ligands_from_cif(
     Returns:
         list[Ligand]: A list of Ligand objects representing the ligands bonded to the metals.
     """
-    result = []
+    ligands = []
     new_chain = gemmi.Chain("A")
     seq_id = gemmi.SeqId("1")
     residue = gemmi.Residue()
@@ -1228,8 +1228,16 @@ def get_ligands_from_cif(
         ligand_obj = Ligand(CifAtom(metal, residue, new_chain))
         for ligand_name in ligands:
             ligand = create_atom(atoms, ligand_name)
-            ligand_obj.add_ligand(CifAtom(ligand, residue, new_chain))
+            ligand_obj.add_ligand(CifAtom(ligand, residue, new_chain))  
 
-        result.append(ligand_obj)
+        ligands.append(ligand_obj)
 
-    return result
+    metal_pairs = MetalBondRegistry()
+    for metal_name, metals in metal_metal_bonds.items():
+        for metal2_name in metals:
+            if metal_name == metal2_name:
+                continue
+            metal1 = create_atom(atoms, metal_name)
+            metal2 = create_atom(atoms, metal2_name)
+            metal_pairs.add_bond(MetalBond(CifAtom(metal1, residue, new_chain), CifAtom(metal2, residue, new_chain)))
+    return ligands, metal_pairs

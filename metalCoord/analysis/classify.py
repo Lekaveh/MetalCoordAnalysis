@@ -3,6 +3,7 @@ import os
 from typing import Tuple
 import gemmi
 from tqdm import tqdm
+from metalCoord.analysis import metal
 from metalCoord.analysis.classes import Classificator
 from metalCoord.analysis.data import DB
 from metalCoord.analysis.cod import (
@@ -22,7 +23,7 @@ from metalCoord.analysis.stats import (
 from metalCoord.analysis.metal import MetalPairStatsService
 from metalCoord.analysis.models import MetalPairStats, MetalStats, PdbStats
 from metalCoord.analysis.structures import get_ligands, get_ligands_from_cif, Ligand, MetalBondRegistry
-from metalCoord.cif.utils import get_bonds
+from metalCoord.cif.utils import get_bonds, get_metal_metal_bonds
 from metalCoord.load.rcsb import load_pdb
 from metalCoord.logging import Logger
 
@@ -176,7 +177,7 @@ def find_classes_pdb(
     metal_metal_bonds: dict = None,
     only_best: bool = False,
     clazz: str = None,
-) -> Tuple[PdbStats, MetalPairStats]:
+) -> Tuple[PdbStats, list[MetalPairStats]]:
     """
     Analyzes structures in a given PDB file for patterns and returns the statistics for ligands (metals) found.
 
@@ -201,7 +202,7 @@ def find_classes_pdb(
 
 def find_classes_cif(
     name: str, atoms: gemmi.cif.Table, bonds: gemmi.cif.Table, clazz: str = None
-) -> PdbStats:
+) -> Tuple[PdbStats, MetalPairStats]:
     """Classify ligands and bonds from CIF data.
 
     This function takes CIF tables of atoms and bonds, processes them to extract
@@ -217,6 +218,9 @@ def find_classes_cif(
         PdbStats: An object containing statistics and classifications of the ligands and bonds.
     """
     b = get_bonds(atoms, bonds)
+    m_b = get_metal_metal_bonds(atoms, bonds)
+    ligands, metal_metal_bonds = get_ligands_from_cif(name, atoms, b, m_b)
+    metal_pair_stats = MetalPairStatsService().get_metal_pair_stats(metal_metal_bonds)
     return find_classes_from_structures(
-        get_ligands_from_cif(name, atoms, b), b, clazz=clazz
-    )
+        ligands, b, clazz=clazz
+    ), metal_pair_stats

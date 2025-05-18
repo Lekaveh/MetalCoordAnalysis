@@ -859,7 +859,7 @@ def update_cif(output_path, path, pdb, use_cif=False, clazz=None):
         return
     
     if use_cif:
-        pdb_stats = find_classes_cif(name, atoms, bonds, clazz=clazz)
+        pdb_stats, metal_pair_stats = find_classes_cif(name, atoms, bonds, clazz=clazz)
     else:
         if pdb is None:
             pdb = choose_best_pdb(name)
@@ -868,7 +868,7 @@ def update_cif(output_path, path, pdb, use_cif=False, clazz=None):
             name, pdb, get_bonds(atoms, bonds), get_metal_metal_bonds(atoms, bonds), only_best=True, clazz=clazz
         )
 
-    if pdb_stats.is_empty():
+    if not use_cif and pdb_stats.is_empty():
         raise ValueError(
             f"No coordination found for {name}  in {pdb}. Please check the PDB file"
         )
@@ -887,33 +887,34 @@ def update_cif(output_path, path, pdb, use_cif=False, clazz=None):
         # Modified $SELECTION_PLACEHOLDER$ code in the update_cif function:
         update_angles_category(angles, atoms, bonds, pdb_stats, name)
 
-    v = []
-    monomer = list(pdb_stats.monomers())[-1]
-    for metal_stat in monomer.metals:
-        for bond in metal_stat.get_all_distances():
-            v.append((metal_stat.code, bond.ligand.code))
+    if not pdb_stats.is_empty():
+        v = []
+        monomer = list(pdb_stats.monomers())[-1]
+        for metal_stat in monomer.metals:
+            for bond in metal_stat.get_all_distances():
+                v.append((metal_stat.code, bond.ligand.code))
 
-    Logger().info("update cycles")
-    update_tetragons(name, angles, monomer, v)
+        Logger().info("update cycles")
+        update_tetragons(name, angles, monomer, v)
 
-    block.set_mmcif_category(ANGLE_CATEGORY, angles)
-    Logger().info("Angles updated")
+        block.set_mmcif_category(ANGLE_CATEGORY, angles)
+        Logger().info("Angles updated")
 
-    if not doc.find_block("comp_list"):
-        list_block = doc.add_new_block("comp_list", 0)
-        x = "."
-        list_block.set_mmcif_category(
-            COMP_CATEGORY,
-            {
-                ID: [name],
-                THREE_LETTER_CODE: [name],
-                NAME: [name.lower()],
-                GROUP: ["."],
-                NUMBER_ATOMS_ALL: [str(n_atoms)],
-                NUMBER_ATOMS_NH: [str(n_nhatoms)],
-                DESC_LEVEL: ["."],
-            },
-        )
+        if not doc.find_block("comp_list"):
+            list_block = doc.add_new_block("comp_list", 0)
+            x = "."
+            list_block.set_mmcif_category(
+                COMP_CATEGORY,
+                {
+                    ID: [name],
+                    THREE_LETTER_CODE: [name],
+                    NAME: [name.lower()],
+                    GROUP: ["."],
+                    NUMBER_ATOMS_ALL: [str(n_atoms)],
+                    NUMBER_ATOMS_NH: [str(n_nhatoms)],
+                    DESC_LEVEL: ["."],
+                },
+            )
 
     Logger().info("Ligand update completed")
 
