@@ -10,11 +10,10 @@ from typing import Dict, Any, Tuple, Optional
 import gemmi
 import networkx as nx
 import metalCoord
-from metalCoord.analysis import metal
 from metalCoord.analysis.classify import find_classes_pdb, find_classes_cif
 
-from metalCoord.analysis.metal import MetalMetalStats
-from metalCoord.analysis.models import PdbStats
+from metalCoord.analysis.metal import MetalPairStatsService
+from metalCoord.analysis.models import MetalPairStats, PdbStats
 from metalCoord.config import Config
 from metalCoord.logging import Logger
 from metalCoord.cif.utils import (
@@ -47,7 +46,7 @@ from metalCoord.cif.utils import (
     DESC_LEVEL,
     ENERGY,
 )
-from metalCoord.cif.utils import get_element_name, get_bonds
+from metalCoord.cif.utils import get_element_name, get_bonds, get_metal_metal_bonds
 
 
 
@@ -602,7 +601,6 @@ def update_bonds(bonds: Dict[str, Any], atoms: Dict[str, Any], pdb_stats: PdbSta
     metal_groups_by_locant = dict(metal_groups_by_locant)
     
 
-    metal_metal_json = []
     for i, _atoms in enumerate(zip(bonds[ATOM_ID_1], bonds[ATOM_ID_2])):
         metal_name, ligand_name = _atoms
 
@@ -614,11 +612,11 @@ def update_bonds(bonds: Dict[str, Any], atoms: Dict[str, Any], pdb_stats: PdbSta
             continue
 
         if is_metal1 and is_metal2:
-            if MetalMetalStats().has_distance_data(
+            if MetalPairStatsService().has_distance_data(
                 get_element_name(atoms, metal_name),
                 get_element_name(atoms, ligand_name),
             ):
-                distance, std = MetalMetalStats().get_distance_between_metals(
+                distance, std = MetalPairStatsService().get_distance_between_metals(
                     get_element_name(atoms, metal_name),
                     get_element_name(atoms, ligand_name),
                 )
@@ -627,17 +625,6 @@ def update_bonds(bonds: Dict[str, Any], atoms: Dict[str, Any], pdb_stats: PdbSta
                 bonds[VALUE_DIST][i] = bonds[VALUE_DIST_NUCLEUS][i] = str(distance)
                 bonds[VALUE_DIST_ESD][i] = bonds[VALUE_DIST_NUCLEUS_ESD][i] = str(std)
                     
-                for metal_group in metal_groups_by_locant.values():
-                    metal_dict = {m.metal: m.to_metal_dict() for m in metal_group}
-                    if metal_name in metal_dict and ligand_name in metal_dict:
-                        metal_metal_json.append(
-                            {
-                                "metal1": metal_dict[metal_name],
-                                "metal2": metal_dict[ligand_name],
-                                "distance": distance,
-                                "std": std,
-                            }
-                        )
                         
                         
                 continue
@@ -651,8 +638,6 @@ def update_bonds(bonds: Dict[str, Any], atoms: Dict[str, Any], pdb_stats: PdbSta
             bonds[VALUE_DIST_ESD][i] = bonds[VALUE_DIST_NUCLEUS_ESD][i] = str(round(bond_stat.std[0], 3))
 
     block.set_mmcif_category(BOND_CATEGORY, bonds)
-
-    return metal_metal_json
 
 def init_angles(angles: Dict[str, Any], pdb_stats: PdbStats, bonds: Dict[str, Any], name: str) -> None:
     """
@@ -879,8 +864,8 @@ def update_cif(output_path, path, pdb, use_cif=False, clazz=None):
         if pdb is None:
             pdb = choose_best_pdb(name)
 
-        pdb_stats = find_classes_pdb(
-            name, pdb, get_bonds(atoms, bonds), only_best=True, clazz=clazz
+        pdb_stats, metal_pair_stats = find_classes_pdb(
+            name, pdb, get_bonds(atoms, bonds), get_metal_metal_bonds(atoms, bonds), only_best=True, clazz=clazz
         )
 
     if pdb_stats.is_empty():
@@ -889,9 +874,9 @@ def update_cif(output_path, path, pdb, use_cif=False, clazz=None):
         )
 
     Logger().info("Ligand updating started")
-    metal_metal_json = []
+    metal_metal_json = [stat.to_dict() for stat in metal_pair_stats]
     if bonds:
-        metal_metal_json = update_bonds(bonds, atoms, pdb_stats, block)
+        update_bonds(bonds, atoms, pdb_stats, block)
         Logger().info("Distances updated")
 
     if not angles:

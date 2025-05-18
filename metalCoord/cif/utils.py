@@ -96,3 +96,28 @@ def get_bonds(atoms: gemmi.cif.Table, bonds: gemmi.cif.Table) -> dict:
         result.setdefault(atom1, []).append(atom2)
 
     return result
+
+def get_metal_metal_bonds(atoms: gemmi.cif.Table, bonds: gemmi.cif.Table) -> dict:
+    """
+    Identify and return metal-metal bonds from the given atoms and bonds data.
+
+    Args:
+        atoms (list): A list of atom data.
+        bonds (dict): A dictionary containing bond information with keys ATOM_ID_1 and ATOM_ID_2.
+
+    Returns:
+        dict: A dictionary where keys are tuples of bonded metal atom IDs and values are lists of atom IDs bonded to the metal atom.
+
+    Notes:
+        - Bonds between two non-metal atoms are ignored.
+        - Bonds between two metal atoms are ignored.
+        - If a bond involves a metal atom and a non-metal atom, the metal atom is used as the key in the result dictionary.
+    """
+    if not bonds:
+        return {}
+    result = {}
+    for atom1, atom2 in zip(bonds[ATOM_ID_1], bonds[ATOM_ID_2]):
+        if gemmi.Element(get_element_name(atoms, atom1)).is_metal and gemmi.Element(get_element_name(atoms, atom2)).is_metal:
+            result.setdefault(atom1, []).append(atom2)
+            result.setdefault(atom2, []).append(atom1)
+    return result

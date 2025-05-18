@@ -1,9 +1,13 @@
 from abc import ABC, abstractmethod
-import numpy as np
+from ast import List
+from typing import Tuple
+
 import gemmi
+import numpy as np
+
+from metalCoord.cif.utils import ATOM_ID, TYPE_SYMBOL, COORDS
 from metalCoord.config import Config
 from metalCoord.logging import Logger
-from metalCoord.cif.utils import ATOM_ID, TYPE_SYMBOL, COORDS, ATOM_ID_1
 
 
 class IAtom(ABC):
@@ -43,7 +47,28 @@ class IAtom(ABC):
     def pos(self):
         """Get the position of the atom."""
 
+    def is_same_locant(self, atom):
+        """
+        Check if the atom is the same locant as another atom.
 
+        Args:
+            IAtom (IAtom): The other atom to compare with.
+
+        Returns:
+            bool: True if the atoms are the same locant, False otherwise.
+        """
+        print(
+                f"self: {self.residue.name} {self.residue.seqid.num} {self.chain.name} {self.symmetry} - "
+                f"atom: {atom.residue.name} {atom.residue.seqid.num} {atom.chain.name} {atom.symmetry}"
+            )
+        return (
+            self.residue.name == atom.residue.name
+            and self.residue.seqid.num == atom.residue.seqid.num
+            and self.chain.name == atom.chain.name
+            and self.symmetry == atom.symmetry
+            
+        )
+    
 class Atom(IAtom):
     """
     Represents an atom in a molecular structure.
@@ -136,6 +161,9 @@ class Atom(IAtom):
             bool: The symmetry copy of the atom.
         """
         return self._symmetry
+    
+
+ 
 
     @property
     def pos(self):
@@ -621,6 +649,111 @@ class Ligand:
         return f"{self._metal.atom.name} - {self.chain.name} - {self.chain.name} - {self.residue.seqid.num} - {ligands} - {extra_ligands}"
 
 
+class MetalBond:
+    """
+    Represents a bond between two metal atoms, providing functionalities
+    to compute bond length and other related properties.
+
+    Attributes:
+        _metal1 (IAtom): The first metal atom.
+        _metal2 (IAtom): The second metal atom.
+    """
+
+    def __init__(self, metal1: IAtom, metal2: IAtom):
+        if not metal1.atom.element.is_metal or not metal2.atom.element.is_metal:
+            raise ValueError("Both atoms must be metals.")
+        self._metal1 = metal1
+        self._metal2 = metal2
+
+    @property
+    def metal1(self) -> IAtom:
+        """
+        Returns the first metal atom associated with the structure.
+
+        Returns:
+            IAtom: The metal atom stored as _metal1.
+        """
+        return self._metal1
+
+    @property
+    def metal2(self) -> IAtom:
+        """
+        Returns the second metal atom of the structure.
+
+        This method retrieves the metal atom represented by the internal attribute
+        associated with the second metal coordination site, which is expected to be of type IAtom.
+
+        :return: An instance of IAtom representing the second metal atom.
+        :rtype: IAtom
+        """
+        return self._metal2
+
+    def bond_length(self) -> float:
+        """
+        Calculates the bond length between the two metal atoms.
+
+        Returns:
+            float: The Euclidean distance between the two metal atoms.
+        """
+        return distance(self._metal1, self._metal2)
+    
+    def is_same_locant(self) -> bool: 
+        """
+        Determines whether the locants of the two metal atoms are identical.
+        The function compares the residue names, sequence identifier numbers, chain names, and symmetry attributes
+        of the two metal atoms. If all of these properties match, the function returns True; otherwise, it returns False.
+        Returns:
+            bool: True if both metal atoms share the same residue name, sequence identifier number, chain name, 
+                    and symmetry attribute, indicating they are located at the same locant; 
+                    False otherwise.
+        """
+            
+        if self._metal1.is_same_locant(self._metal2):
+            return True
+        return False
+
+class MetalBondRegistry:
+    """
+    Registry of metal-metal bonds.
+    
+    When adding a new bond, it checks if a similar bond already exists.
+    Two bonds are considered the same if they connect the same metal atoms,
+    regardless of their order.
+    """
+    def __init__(self):
+        self._bonds: list[MetalBond] = []
+
+    def add_bond(self, bond: MetalBond) -> None:
+        """
+        Adds a metal bond to the registry if it does not already exist.
+        
+        Args:
+            bond (MetalBond): The new metal bond to add.
+        """
+        for existing in self._bonds:
+            if (existing.metal1.name == bond.metal1.name and existing.metal2.name == bond.metal2.name
+                and existing.metal1.is_same_locant(bond.metal1) and existing.metal2.is_same_locant(bond.metal2)):
+                return
+            
+            if (existing.metal1.name == bond.metal2.name and existing.metal2.name == bond.metal1.name
+                and existing.metal1.is_same_locant(bond.metal2) and existing.metal2.is_same_locant(bond.metal1)):
+                return
+            
+        self._bonds.append(bond)
+
+    def get_bonds(self) -> list[MetalBond]:
+        """
+        Returns:
+            list: The list of metal-metal bonds.
+        """
+        return self._bonds
+
+    def __iter__(self):
+        return iter(self._bonds)
+
+    def __len__(self):
+        return len(self._bonds)
+
 def angle(atom1: IAtom, atom2: IAtom, atom3: IAtom):
     """
     Calculates the angle between three atoms.
@@ -655,8 +788,7 @@ def distance(atom1: IAtom, atom2: IAtom) -> float:
     """
     return np.sqrt((atom1.pos - atom2.pos).dot(atom1.pos - atom2.pos))
 
-
-def get_ligands(st, ligand, bonds=None, max_dist=10, only_best=False) -> list[Ligand]:
+def get_ligands(st, ligand, bonds=None, metal_metal_bonds = None, max_dist=10, only_best=False) -> Tuple[list[Ligand], MetalBondRegistry]:
     """
     Retrieves ligands associated with a metal in a structure.
 
@@ -680,7 +812,7 @@ def get_ligands(st, ligand, bonds=None, max_dist=10, only_best=False) -> list[Li
     if alpha1 > alpha - 0.1:
         alpha1 = np.round(alpha - 0.2, 1)
     beta1 = [b for b in beta1 if b < alpha and b > alpha1]
-    
+
     def covalent_radii(element):
         return gemmi.Element(element).covalent_r
 
@@ -727,10 +859,11 @@ def get_ligands(st, ligand, bonds=None, max_dist=10, only_best=False) -> list[Li
 
     ns = gemmi.NeighborSearch(st[0], st.cell, 5).populate(include_h=False)
     structures = []
+    metal_metals = MetalBondRegistry()
 
     if not bonds:
         bonds = {}
-
+    
     for chain in st[0]:
         for residue in chain:
             if residue.name != ligand:
@@ -744,6 +877,26 @@ def get_ligands(st, ligand, bonds=None, max_dist=10, only_best=False) -> list[Li
                     ligand_obj = Ligand(metal)
 
                     marks = ns.find_neighbors(atom, min_dist=0.1, max_dist=max_dist)
+
+                    metal_marks = [
+                        k
+                        for k in marks
+                        if k.image_idx == 0 and k.to_cra(st[0]).atom.element.is_metal
+                    ]
+                    for mark in metal_marks:
+                        cra = mark.to_cra(st[0])
+                        print(f"Metal {metal_name} - {cra.atom.name}")
+                        if cra.atom.name == metal_name:
+                            continue
+                            
+                        metal2 = Atom(cra.atom, cra.residue, cra.chain, None, st)
+                        print(metal_metal_bonds)
+                        if metal_metal_bonds is  not None:
+                            
+                            if metal.is_same_locant(metal2) and metal2.atom.name in (metal_metal_bonds.get(metal_name, [])):
+                                print("SUCCESS")
+                                metal_metals.add_bond(MetalBond(metal, metal2))
+                  
 
                     marks1 = [
                         k
@@ -958,7 +1111,7 @@ def get_ligands(st, ligand, bonds=None, max_dist=10, only_best=False) -> list[Li
             )
         structures = best_structures
 
-    return structures
+    return structures, metal_metals
 
 
 def is_float(value: str) -> bool:
@@ -1054,7 +1207,7 @@ def create_atom(atoms, atom_name):
 
 def get_ligands_from_cif(
     name: str, atoms: gemmi.cif.Table, bonds: dict
-) -> list[Ligand]:
+) -> Tuple[list[Ligand], MetalBondRegistry]:
     """
     Extracts ligands from a CIF (Crystallographic Information File) and returns them as a list of Ligand objects.
     Args:

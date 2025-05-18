@@ -1,8 +1,14 @@
+import dis
 import json
 import sys
 from pathlib import Path
 
-class MetalMetalStats:
+from numpy import mean
+
+from metalCoord.analysis.models import MetalPairStats, Atom
+from metalCoord.analysis.structures import MetalBondRegistry
+
+class MetalPairStatsService:
         """
         A singleton class to handle statistics related to metal-metal distances.
 
@@ -16,7 +22,7 @@ class MetalMetalStats:
             Ensure only one instance of the class is created.
             """
             if cls._instance is None:
-                cls._instance = super(MetalMetalStats, cls).__new__(cls, *args, **kwargs)
+                cls._instance = super(MetalPairStatsService, cls).__new__(cls, *args, **kwargs)
             return cls._instance
 
         def __init__(self):
@@ -106,3 +112,32 @@ class MetalMetalStats:
             bool: True if distance data exists, False otherwise.
             """
             return metal in self.data
+        
+        def get_metal_pair_stats(self, metal_pairs: MetalBondRegistry):
+            """
+            Get statistics for a given set of metal pairs.
+
+            Args:
+                metal_pairs (MetalBondRegistry): A MetalBondRegistry object containing metal pairs.
+
+            Returns:
+                dict: A dictionary with metal pairs as keys and their statistics as values.
+            """
+            stats = []
+            for bond in metal_pairs.get_bonds():
+                if self.has_distance_data(bond.metal1.element, bond.metal2.element):
+                    stats.append(
+                        MetalPairStats(
+                            Atom(bond.metal1),
+                            Atom(bond.metal2),
+                            *self.get_distance_between_metals(bond.metal1.element, bond.metal2.element)
+                        )
+                    )
+            return stats
+ 
+        
+
+        
+
+    
+    

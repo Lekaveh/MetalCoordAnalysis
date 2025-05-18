@@ -8,7 +8,7 @@ from metalCoord.analysis.data import DB
 MIN_ANGLE_STD = 3.0
 MIN_DISTANCE_STD = 0.02
 
-class Ligand:
+class Atom:
     """
     Represents a ligand atom in a molecular structure.
 
@@ -22,45 +22,45 @@ class Ligand:
         altloc (str): The alternate location identifier of the ligand atom.
     """
 
-    def __init__(self, ligand: object) -> None:
-        self._name: str = ligand.atom.name
-        self._element: str = ligand.atom.element.name
-        self._chain: str = ligand.chain.name
-        self._residue: str = ligand.residue.name
-        self._sequence: int = ligand.residue.seqid.num
-        self._icode: str = ligand.residue.seqid.icode.strip().replace('\x00', '')
-        self._altloc: str = ligand.atom.altloc.strip().replace('\x00', '')
-        self._symmetry: int = ligand.symmetry
-        self._pos: np.ndarray = ligand.pos
+    def __init__(self, atom: object) -> None:
+        self._name: str = atom.atom.name
+        self._element: str = atom.atom.element.name
+        self._chain: str = atom.chain.name
+        self._residue: str = atom.residue.name
+        self._sequence: int = atom.residue.seqid.num
+        self._icode: str = atom.residue.seqid.icode.strip().replace('\x00', '')
+        self._altloc: str = atom.atom.altloc.strip().replace('\x00', '')
+        self._symmetry: int = atom.symmetry
+        self._pos: np.ndarray = atom.pos
 
     @property
     def name(self) -> str:
-        """Returns the name of the ligand atom."""
+        """Returns the name of the atom."""
         return self._name
 
     @property
     def element(self) -> str:
-        """Returns the element of the ligand atom."""
+        """Returns the element of the atom."""
         return self._element
 
     @property
     def chain(self) -> str:
-        """Returns the chain of the ligand atom."""
+        """Returns the chain of the atom."""
         return self._chain
 
     @property
     def residue(self) -> str:
-        """Returns the residue of the ligand atom."""
+        """Returns the residue of the atom."""
         return self._residue
 
     @property
     def sequence(self) -> int:
-        """Returns the sequence number of the ligand atom."""
+        """Returns the sequence number of the atom."""
         return self._sequence
 
     @property
     def insertion_code(self) -> str:
-        """Returns the insertion code of the ligand atom."""
+        """Returns the insertion code of the atom."""
         if self._icode == "\u0000":
             return "."
         return self._icode if self._icode else "."
@@ -82,7 +82,7 @@ class Ligand:
         """
         return (self.name, self.element, self.chain, self.residue, self.sequence, self.altloc, self.symmetry)
 
-    def equals(self, other: 'Ligand') -> bool:
+    def equals(self, other: 'Atom') -> bool:
         """
         Compares the current object with another Ligand object.
 
@@ -126,9 +126,9 @@ class DistanceStats:
         description (str): Optional description.
     """
 
-    def __init__(self, ligand: Ligand, distance: float, std: float, distances: np.ndarray = None,
+    def __init__(self, ligand: Atom, distance: float, std: float, distances: np.ndarray = None,
                  procrustes_dists: np.ndarray = None, description: str = "") -> None:
-        self._ligand: Ligand = ligand
+        self._ligand: Atom = ligand
         self._distance: float = np.round(distance, 2).tolist()
         self._std: float = np.round(np.where(std > MIN_DISTANCE_STD, std, MIN_DISTANCE_STD), 2).tolist()
         self._distances: np.ndarray = distances
@@ -136,7 +136,7 @@ class DistanceStats:
         self._description: str = description
 
     @property
-    def ligand(self) -> Ligand:
+    def ligand(self) -> Atom:
         """Returns the ligand."""
         return self._ligand
 
@@ -196,10 +196,10 @@ class AngleStats:
         procrustes_dists (np.ndarray): List of procrustes distances.
     """
 
-    def __init__(self, ligand1: Ligand, ligand2: Ligand, angle_value: float, std: float, is_ligand: bool = True,
+    def __init__(self, ligand1: Atom, ligand2: Atom, angle_value: float, std: float, is_ligand: bool = True,
                  angles: np.ndarray = None, procrustes_dists: np.ndarray = None) -> None:
-        self._ligand1: Ligand = ligand1
-        self._ligand2: Ligand = ligand2
+        self._ligand1: Atom = ligand1
+        self._ligand2: Atom = ligand2
         self._angle: float = np.round(angle_value, 2).tolist()
         self._std: float = np.round(np.where(std > MIN_ANGLE_STD, std, MIN_ANGLE_STD), 2).tolist()
         self._is_ligand: bool = is_ligand
@@ -207,12 +207,12 @@ class AngleStats:
         self._procrustes_dists: np.ndarray = procrustes_dists
 
     @property
-    def ligand1(self) -> Ligand:
+    def ligand1(self) -> Atom:
         """Returns the first ligand."""
         return self._ligand1
 
     @property
-    def ligand2(self) -> Ligand:
+    def ligand2(self) -> Atom:
         """Returns the second ligand."""
         return self._ligand2
 
@@ -265,6 +265,88 @@ class AngleStats:
             "ligand1": self.ligand1.to_dict(),
             "ligand2": self.ligand2.to_dict(),
             "angle": self.angle,
+            "std": self.std
+        }
+
+class MetalPairStats:
+    """
+    Represents statistics for a pair of metal atoms (both represented as Ligand objects).
+
+    Attributes:
+        metal1 (Ligand): The first metal atom.
+        metal2 (Ligand): The second metal atom.
+        distance (float): The average distance between the two metal atoms.
+        std (float): The standard deviation of the distance.
+        distances (np.ndarray): Optional array of observed distances across structures.
+    """
+
+    def __init__(self,
+                 metal1: Atom,
+                 metal2: Atom,
+                 distance: float,
+                 std: float) -> None:
+        self._metal1 = metal1
+        self._metal2 = metal2
+        self._distance = np.round(distance, 2)
+        self._std = np.round(max(std, MIN_DISTANCE_STD), 2)
+
+    @property
+    def metal1(self) -> Atom:
+        """
+        Return the first metal atom of the model.
+
+        Returns:
+            Atom: An instance representing the first metal atom.
+        """
+        return self._metal1
+
+    @property
+    def metal2(self) -> Atom:
+        """
+        Return the second metal atom.
+
+        Returns:
+            Atom: The metal atom associated with the second metal.
+        """
+        return self._metal2
+
+    @property
+    def distance(self) -> float:
+        """
+        Calculates and returns the computed distance.
+
+        Returns:
+            float: The stored distance value.
+        """
+        return self._distance
+
+    @property
+    def std(self) -> float:
+        """
+        Compute and return the standard deviation value.
+
+        Returns:
+            float: The standard deviation value.
+        """
+        return self._std
+
+
+    def code(self) -> tuple:
+        """Returns a canonical tuple representing the metal pair (sorted to be order-independent)."""
+        return tuple(sorted([self.metal1.code, self.metal2.code]))
+
+    def equals(self, other: 'MetalPairStats') -> bool:
+        """Checks if the two metal pairs are equivalent (order-independent)."""
+        return set([self.metal1.code, self.metal2.code]) == set([other.metal1.code, other.metal2.code])
+
+    def to_dict(self) -> dict:
+        """
+        Returns a dictionary representation of the metal-metal bond.
+        """
+        return {
+            "metal1": self.metal1.to_dict(),
+            "metal2": self.metal2.to_dict(),
+            "distance": self.distance,
             "std": self.std
         }
 
@@ -516,7 +598,50 @@ class LigandStats:
         return clazz
 
 
+
 class MetalStats:
+    '''
+    This class encapsulates statistics and coordination analysis for a metal atom in a given structural context.
+    It extracts and stores various attributes from a provided structure (of type metalCoord.analysis.structures.Ligand),
+    such as the metal identifier, metal element, chain, residue name, sequence number, occupancy, B-factor, insertion code,
+    alternative location, and spatial position. Additionally, it manages a collection of ligand atoms associated with the metal,
+    providing methods to add ligands, verify ligand membership, and retrieve coordination details.
+    Attributes:
+        _metal (str): Identifier of the metal atom.
+        _metal_element (str): Element symbol of the metal.
+        _chain (str): Chain identifier from the structure.
+        _residue (str): Residue identifier from the structure.
+        _sequence (int): Sequence number of the residue.
+        _mean_occ (float): Mean occupancy calculated from the structure.
+        _mean_b (float): Mean B-factor from the structure.
+        _icode (str): Insertion code for the residue, processed to handle null characters.
+        _altloc (str): Alternative location indicator for the metal atom.
+        _pos (np.ndarray): Position (coordinates) of the metal atom.
+        _ligands (list): List of ligand objects associated with the metal, which are processed further for coordination analysis.
+    Properties:
+        locant: Returns a tuple information comprising chain, residue, sequence number (as str), insertion code, and alternative location.
+        code: Returns a tuple containing the metal, metal element, chain, residue, and sequence number.
+        metal, metal_element, chain, residue, sequence, altloc, insertion_code: Getter properties to access the corresponding internal attributes.
+        mean_occ, mean_b: Returns the mean occupancy and B-factor respectively.
+        ligands: Provides an iterator over the stored ligand objects.
+    Methods:
+        same_metal(other): Checks if two MetalStats objects represent the same metal based on metal and element.
+        same_monomer(other): Verifies if two MetalStats objects belong to the same monomer.
+        add_ligand(ligand): Adds a ligand object to the metal's ligand list.
+        is_ligand_atom(atom): Determines if a given atom belongs to the set of ligands for this metal.
+        get_coordination(): Retrieves the maximum coordination number among the ligands.
+        get_best_class(): Determines the best class of ligands based on coordination numbers and a weighted procrustes score.
+        get_all_distances(), get_ligand_distances(): Return lists of bond distances from the best class of ligands.
+        get_all_angles(), get_ligand_angles(): Return lists of angles from the best class of ligands, with filtering for ligand-specific angles in the latter.
+        get_ligand_bond(ligand_name): Retrieves bond statistics for the specified ligand.
+        get_ligand_angle(ligand1_name, ligand2_name): Retrieves angle statistics between two specified ligands.
+        get_angle(ligand1_code, ligand2_code): Retrieves angle statistics based on ligand codes.
+        is_empty(): Checks if there are no ligands associated with the metal.
+        to_metal_dict(): Converts key metal identification attributes into a dictionary.
+        to_dict(): Converts the entire MetalStats object including ligand details into a dictionary
+    Usage of this class typically involves initializing it with a structural representation and then performing various
+    coordinative analyses by inspecting distances, angles, and ligand interactions.
+    '''
     def __init__(self, structure: metalCoord.analysis.structures.Ligand) -> None:
         """
         Initialize a MetalStats object.
@@ -683,7 +808,7 @@ class MetalStats:
         """
         return (self.chain == other.chain) and (self.residue == other.residue) and (self.sequence == other.sequence)
 
-    def add_ligand(self, ligand: 'Ligand') -> None:
+    def add_ligand(self, ligand: 'Atom') -> None:
         """
         Add a ligand to the MetalStats object.
 
@@ -713,7 +838,7 @@ class MetalStats:
         """
         return np.max([l.coordination for l in self.ligands])
 
-    def get_best_class(self) -> 'Ligand':
+    def get_best_class(self) -> 'Atom':
         """
         Get the best class of ligands based on the coordination number and procrustes score.
 

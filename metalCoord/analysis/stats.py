@@ -10,7 +10,7 @@ from metalCoord.analysis.classes import idealClasses
 from metalCoord.analysis.cluster import modes
 from metalCoord.analysis.data import DB
 from metalCoord.analysis.directional import calculate_stats
-from metalCoord.analysis.models import AngleStats, DistanceStats, LigandStats, Ligand
+from metalCoord.analysis.models import AngleStats, DistanceStats, LigandStats, Atom
 from metalCoord.config import Config
 from metalCoord.correspondense.procrustes import fit
 from metalCoord.logging import Logger
@@ -139,7 +139,7 @@ class StatsFinder(ABC):
                 a = angle(
                     ideal_ligand_coord[0], ideal_ligand_coord[i], ideal_ligand_coord[j])
                 std = 5.000
-                yield AngleStats(Ligand(ligands[i - 1]), Ligand(ligands[j - 1]), a, std, is_ligand=i <= n1 and j <= n1)
+                yield AngleStats(Atom(ligands[i - 1]), Atom(ligands[j - 1]), a, std, is_ligand=i <= n1 and j <= n1)
 
     def add_ideal_angels(self, structure, class_result, clazz_stats):
         """
@@ -172,7 +172,7 @@ class StatsFinder(ABC):
             DistanceStats: The covalent distance statistics.
 
         """
-        return DistanceStats(Ligand(l), np.array([gemmi.Element(l.atom.element.name).covalent_r + gemmi.Element(structure.metal.atom.element.name).covalent_r]), np.array([0.2]), description=description)
+        return DistanceStats(Atom(l), np.array([gemmi.Element(l.atom.element.name).covalent_r + gemmi.Element(structure.metal.atom.element.name).covalent_r]), np.array([0.2]), description=description)
 
 
 class FileStatsFinder(StatsFinder):
@@ -305,11 +305,11 @@ class StrictCorrespondenceStatsFinder(FileStatsFinder):
                 for i, l in enumerate(list(structure.ligands)):
                     dist, std = modes(distances[i])
                     clazz_stats.add_bond(DistanceStats(
-                        Ligand(l), dist, std, distances[i], procrustes_dists))
+                        Atom(l), dist, std, distances[i], procrustes_dists))
 
                 for i, l in enumerate(list(structure.extra_ligands)):
                     dist, std = modes(distances[i + structure.ligands_len])
-                    clazz_stats.add_pdb_bond(DistanceStats(Ligand(l), dist, std, euclidean(
+                    clazz_stats.add_pdb_bond(DistanceStats(Atom(l), dist, std, euclidean(
                         sum_coords[i + 1 + structure.ligands_len], sum_coords[0]), procrustes_dists))
 
                 if Config().ideal_angles:
@@ -321,7 +321,7 @@ class StrictCorrespondenceStatsFinder(FileStatsFinder):
                     for i in range(structure.coordination() - 1):
                         for j in range(i + 1, structure.coordination()):
                             a, std = calculate_stats(angles[k])
-                            clazz_stats.add_angle(AngleStats(Ligand(ligands[i]), Ligand(
+                            clazz_stats.add_angle(AngleStats(Atom(ligands[i]), Atom(
                                 ligands[j]), a, std, is_ligand=i < n1 and j < n1, angles=angles[k], procrustes_dists=procrustes_dists))
                             k += 1
 
@@ -385,7 +385,7 @@ class WeekCorrespondenceStatsFinder(FileStatsFinder):
                 for l in ligands:
                     if l.atom.element.name in results:
                         dist, std = results[l.atom.element.name]
-                        clazz_stats.add_bond(DistanceStats(Ligand(l), dist, std))
+                        clazz_stats.add_bond(DistanceStats(Atom(l), dist, std))
                     else:
                         clazz_stats.add_bond(
                             self._create_covalent_distance_stats(structure, l, "Covalent distance"))
@@ -394,7 +394,7 @@ class WeekCorrespondenceStatsFinder(FileStatsFinder):
                     if l.atom.element.name in results:
                         dist, std = results[l.atom.element.name]
                         clazz_stats.add_pdb_bond(
-                            DistanceStats(Ligand(l), dist, std))
+                            DistanceStats(Atom(l), dist, std))
                     else:
                         clazz_stats.add_pdb_bond(
                             self._create_covalent_distance_stats(structure, l, "Covalent distance"))
@@ -421,7 +421,7 @@ class OnlyDistanceStatsFinder(StatsFinder):
                 structure.metal.atom.element.name, l.atom.element.name)
             if count > 0:
                 clazz_stats.add_bond(DistanceStats(
-                    Ligand(l), np.array([dist]), np.array([std])))
+                    Atom(l), np.array([dist]), np.array([std])))
             else:
                 clazz_stats.add_bond(
                     self._create_covalent_distance_stats(structure, l, "Covalent distance"))
@@ -431,7 +431,7 @@ class OnlyDistanceStatsFinder(StatsFinder):
                 structure.metal.atom.element.name, l.atom.element.name)
             if count > 0:
                 clazz_stats.add_pdb_bond(DistanceStats(
-                    Ligand(l), np.array([dist]), np.array([std])))
+                    Atom(l), np.array([dist]), np.array([std])))
             else:
                 clazz_stats.add_pdb_bond(
                     self._create_covalent_distance_stats(structure, l, "Covalent distance"))

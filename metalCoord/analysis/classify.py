@@ -1,4 +1,6 @@
+from curses import meta
 import os
+from typing import Tuple
 import gemmi
 from tqdm import tqdm
 from metalCoord.analysis.classes import Classificator
@@ -17,14 +19,15 @@ from metalCoord.analysis.stats import (
     StrictCorrespondenceStatsFinder,
     CovalentStatsFinder,
 )
-from metalCoord.analysis.models import MetalStats, PdbStats
-from metalCoord.analysis.structures import get_ligands, get_ligands_from_cif, Ligand
+from metalCoord.analysis.metal import MetalPairStatsService
+from metalCoord.analysis.models import MetalPairStats, MetalStats, PdbStats
+from metalCoord.analysis.structures import get_ligands, get_ligands_from_cif, Ligand, MetalBondRegistry
 from metalCoord.cif.utils import get_bonds
 from metalCoord.load.rcsb import load_pdb
 from metalCoord.logging import Logger
 
 
-def get_structures(ligand, path, bonds=None, only_best=False) -> list[Ligand]:
+def get_structures(ligand, path, bonds=None, metal_metal_bonds=None, only_best=False) -> Tuple[list[Ligand], MetalBondRegistry]:
     """
     Retrieves structures contained in a specific ligand from a given file or 4-letter PDB code.
 
@@ -46,7 +49,7 @@ def get_structures(ligand, path, bonds=None, only_best=False) -> list[Ligand]:
 
     if os.path.isfile(path):
         st = gemmi.read_structure(path)
-        return get_ligands(st, ligand, bonds, only_best=only_best)
+        return get_ligands(st, ligand, bonds, metal_metal_bonds = metal_metal_bonds, only_best=only_best)
 
     elif len(path) == 4:
         pdb, file_type = load_pdb(path)
@@ -55,7 +58,7 @@ def get_structures(ligand, path, bonds=None, only_best=False) -> list[Ligand]:
             st = gemmi.make_structure_from_block(cif_block)
         else:
             st = gemmi.read_pdb_string(pdb)
-        return get_ligands(st, ligand, bonds, only_best=only_best)
+        return get_ligands(st, ligand, bonds, metal_metal_bonds = metal_metal_bonds, only_best=only_best)
 
     else:
         raise FileNotFoundError(
@@ -170,9 +173,10 @@ def find_classes_pdb(
     ligand: str,
     pdb_name: str,
     bonds: dict = None,
+    metal_metal_bonds: dict = None,
     only_best: bool = False,
     clazz: str = None,
-) -> PdbStats:
+) -> Tuple[PdbStats, MetalPairStats]:
     """
     Analyzes structures in a given PDB file for patterns and returns the statistics for ligands (metals) found.
 
@@ -189,8 +193,10 @@ def find_classes_pdb(
     if bonds is None:
         bonds = {}
     Logger().info(f"Analyzing structures in {pdb_name} for patterns")
-    structures = get_structures(ligand, pdb_name, bonds, only_best)
-    return find_classes_from_structures(structures, bonds, clazz=clazz)
+    structures, metal_metal = get_structures(ligand, pdb_name, bonds, metal_metal_bonds, only_best)
+    metal_pair_stats = MetalPairStatsService().get_metal_pair_stats(metal_metal)
+
+    return find_classes_from_structures(structures, bonds, clazz=clazz), metal_pair_stats
 
 
 def find_classes_cif(
