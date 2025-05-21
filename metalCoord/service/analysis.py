@@ -1,5 +1,4 @@
 from collections import defaultdict
-from curses import meta
 import re
 import json
 import os

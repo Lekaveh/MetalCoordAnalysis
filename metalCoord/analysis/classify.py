@@ -1,9 +1,7 @@
-from curses import meta
 import os
 from typing import Tuple
 import gemmi
 from tqdm import tqdm
-from metalCoord.analysis import metal
 from metalCoord.analysis.classes import Classificator
 from metalCoord.analysis.data import DB
 from metalCoord.analysis.cod import (
