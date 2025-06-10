@@ -1232,7 +1232,7 @@ def get_ligands_from_cif(
     Returns:
         list[Ligand]: A list of Ligand objects representing the ligands bonded to the metals.
     """
-    ligands = []
+    structures = []
     new_chain = gemmi.Chain("A")
     seq_id = gemmi.SeqId("1")
     residue = gemmi.Residue()
@@ -1245,8 +1245,8 @@ def get_ligands_from_cif(
             ligand = create_atom(atoms, ligand_name)
             ligand_obj.add_ligand(CifAtom(ligand, residue, new_chain))
 
-        ligands.append(ligand_obj)
-
+        structures.append(ligand_obj)
+  
     metal_pairs = MetalBondRegistry()
     for metal_name, metals in metal_metal_bonds.items():
         for metal2_name in metals:
@@ -1260,4 +1260,4 @@ def get_ligands_from_cif(
                     CifAtom(metal2, residue, new_chain),
                 )
             )
-    return ligands, metal_pairs
+    return structures, metal_pairs
