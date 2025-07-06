@@ -744,8 +744,8 @@ def fit(coords: np.ndarray, ideal_coords: np.ndarray, groups: tuple = None, all:
                 distances, approxs, c, r, indices, rotated = np.ones(1), np.expand_dims(np.zeros_like(approxs[0]), axis=0),  np.expand_dims(np.zeros_like(
                     c[0]), axis=0),  np.expand_dims(np.zeros_like(r[0]), axis=0),  np.expand_dims(np.zeros_like(indices[0]), axis=0),  np.expand_dims(np.zeros_like(rotated[0]), axis=0)
     
-    elif len(coords) >= 10:
-        return  fitter.fit(coords, ideal_coords, groups, all, center)
+    # elif len(coords) >= 10:
+    #     return  fitter.fit(coords, ideal_coords, groups, all, center)
     else:
         distances, approxs, c, r, indices, rotated = fit_group(
             coords, ideal_coords, groups)
