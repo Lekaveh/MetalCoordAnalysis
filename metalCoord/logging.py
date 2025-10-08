@@ -36,12 +36,23 @@ class Logger:
         return self.__progress_bars
     
 
-    def add_handler(self, enable = True, progress_bars=True):
-        """Add a stream handler to the logger with a standard format."""
-        formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-        handler = logging.StreamHandler(sys.stdout)
-        handler.setFormatter(formatter)
-        self.logger.addHandler(handler)
+    def add_handler(self, enable=True, progress_bars=True):
+        """Add or refresh a stdout stream handler for the logger."""
+
+        formatter = logging.Formatter(
+            "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+        )
+        stdout_handlers = [
+            handler
+            for handler in self.logger.handlers
+            if isinstance(handler, logging.StreamHandler) and handler.stream is sys.stdout
+        ]
+        if stdout_handlers:
+            stdout_handlers[0].setFormatter(formatter)
+        else:
+            handler = logging.StreamHandler(sys.stdout)
+            handler.setFormatter(formatter)
+            self.logger.addHandler(handler)
         self.__enabled = enable
         self.__progress_bars = progress_bars
 

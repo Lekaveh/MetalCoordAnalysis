@@ -34,6 +34,7 @@ class Config:
         self.max_coordination_number = None
         self.output_folder = ""
         self.output_file = ""
+        self.clazz = None
         self.__initialized = True
 
     def scale(self) -> float:
