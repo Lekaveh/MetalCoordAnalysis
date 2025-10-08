@@ -1,6 +1,9 @@
 import os
 import sys
+from typing import Optional
+
 import pandas as pd
+
 from metalCoord.analysis.utlis import elementCode
 
 
@@ -18,21 +21,31 @@ class StatsData:
         data(): Returns the loaded data for analysis.
     """
 
-    def __init__(self):
-        """
-        Initializes the StatsData object.
-        """
+    def __init__(self, data_path: Optional[str] = None):
+        """Initializes the StatsData object."""
+
+        self.__data = None
+        self.__distances = None
+        self.__data_path = data_path
+
+    def _data_path(self) -> str:
+        if self.__data_path:
+            return self.__data_path
+        module_path = os.path.dirname(sys.modules["metalCoord"].__file__)
+        return os.path.join(module_path, "data/classes.zip")
+
+    def clear_cache(self) -> None:
+        """Clear cached datasets to force a reload on next access."""
+
         self.__data = None
         self.__distances = None
 
-    def load(self):
-        """
-        Loads the data for analysis.
-        """
-        d = os.path.dirname(sys.modules["metalCoord"].__file__)
-        self.__data = pd.read_csv(
-            os.path.join(d, "data/classes.zip"), keep_default_na=False
-        )
+    def load(self) -> None:
+        """Loads the data for analysis if it has not been loaded yet."""
+
+        if self.__data is not None and self.__distances is not None:
+            return
+        self.__data = pd.read_csv(self._data_path(), keep_default_na=False)
         self.__data.loc[self.__data.index, "Code"] = self.__data.File.map(
             self.__data.groupby("File").Ligand.agg(lambda x: "".join(sorted(x)))
         )
@@ -48,6 +61,11 @@ class StatsData:
             .reset_index()
         )
 
+    def ensure_loaded(self) -> None:
+        """Ensure that the cached dataset has been initialised."""
+
+        self.load()
+
     def get_distance_stats(self, metal, ligand):
         """
         Retrieves the distance statistics for a specific metal and ligand.
@@ -59,6 +77,7 @@ class StatsData:
         Returns:
             tuple: A tuple containing the mean, standard deviation, and count of distances.
         """
+        self.ensure_loaded()
         result = self.__distances[
             (self.__distances.Metal == metal) & (self.__distances.Ligand == ligand)
         ][["mean", "std", "count"]].values
@@ -86,6 +105,7 @@ class StatsData:
         Returns:
             dict: The frequency of each class for the coordination.
         """
+        self.ensure_loaded()
         selection = self.__data.loc[self.__data.Coordination == coordination]
         data = self._get_stats(selection, cod=cod)
         sorted_data = sorted(
@@ -105,6 +125,7 @@ class StatsData:
             int: The frequency of each class for the coordination for the given metal.
         """
 
+        self.ensure_loaded()
         selection = self.__data.loc[
             (self.__data.Metal == metal) & (self.__data.Coordination == coordination)
         ]
@@ -125,6 +146,7 @@ class StatsData:
             dict: The frequency of each class for all coordinations for the given metal.
         """
 
+        self.ensure_loaded()
         selection = self.__data.loc[self.__data.Metal == metal]
         return self._get_stats(selection, cod=cod)
 
@@ -141,6 +163,7 @@ class StatsData:
               containing 'frequency' (proportion of each class), 'coordination' (first value of 'Coordination' column),
               and optionally 'cod' (sorted list of unique 'COD' values if cod is True).
         """
+        self.ensure_loaded()
         group = data.groupby("Class")
         agg = {"File": "count", "Coordination": "first"}
         if cod:
@@ -156,7 +179,7 @@ class StatsData:
             }
             if cod:
                 result[index]["cod"] = sorted(row["COD"].tolist())
-        return dict(sorted(result.items(), key=lambda item,: item[1]["coordination"]))
+        return dict(sorted(result.items(), key=lambda item: item[1]["coordination"]))
 
     def data(self):
         """
@@ -165,8 +188,8 @@ class StatsData:
         Returns:
             pandas.DataFrame: The loaded data for analysis.
         """
+        self.ensure_loaded()
         return self.__data
 
 
 DB = StatsData()
-DB.load()

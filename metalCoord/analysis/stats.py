@@ -16,7 +16,9 @@ from metalCoord.correspondense.procrustes import fit
 from metalCoord.logging import Logger
 
 
-MAX_FILES = Config().max_sample_size if Config().max_sample_size else 2000
+def _max_files() -> int:
+    max_size = Config().max_sample_size
+    return max_size if max_size else 2000
 
 
 def get_coordinate(file_data: pd.DataFrame) -> np.ndarray:
@@ -258,8 +260,9 @@ class StrictCorrespondenceStatsFinder(FileStatsFinder):
             sum_coords = np.zeros(pattern_ligand_coord.shape)
             n = 0
             angles = []
-            if len(files) > MAX_FILES:
-                files = np.random.choice(files, MAX_FILES, replace=False)
+            max_files = _max_files()
+            if len(files) > max_files:
+                files = np.random.choice(files, max_files, replace=False)
 
             cods = {}
             
@@ -342,8 +345,9 @@ class WeekCorrespondenceStatsFinder(FileStatsFinder):
 
             distances = []
             lig_names = []
-            if len(files) > MAX_FILES:
-                files = np.random.choice(files, MAX_FILES, replace=False)
+            max_files = _max_files()
+            if len(files) > max_files:
+                files = np.random.choice(files, max_files, replace=False)
 
             cods = {}
             for file in tqdm(files, desc=f"{class_result.clazz} ligands", leave=False, disable=not Logger().progress_bars):
