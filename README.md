@@ -40,8 +40,8 @@ pip install git+https://github.com/Lekaveh/MetalCoordAnalysis
 
 ### Usage
 - **Metal Coordination Analysis**: 
-    - metalCoord [--no-progress] stats -l <LIGAND_CODE> -p <PDB_CODE|PDB_FILE> -o OUTPUT_JSON_FILE [-d <DISTANCE_THRESHOLD>] [-t <PROCRUSTES_DISTANCE_THRESHOLD>] [-m <MINIMUM_SAMPLE_SIZE>] [--ideal_angles] [-s] [--save] [--use-pdb] [-c <MAXIMUM_COORDINATION_NUMBER>] [--cl <PREDEFINED_CLASS>]
-        - -l, --ligand: Ligand code.
+    - metalCoord [--no-progress] stats -p <PDB_CODE|PDB_FILE> -o OUTPUT_JSON_FILE [-l <LIGAND_CODE> ] [-d <DISTANCE_THRESHOLD>] [-t <PROCRUSTES_DISTANCE_THRESHOLD>] [-m <MINIMUM_SAMPLE_SIZE>] [--ideal_angles] [-s] [--save] [--use-pdb] [-c <MAXIMUM_COORDINATION_NUMBER>] [--cl <PREDEFINED_CLASS>]
+        - -l, --ligand: Ligand code. If not specified, all metal-containing ligands will be analyzed.
         - -o, --output: Output JSON file.
         - -p, --pdb: PDB code or PDB file.
         - -d, --dist: Distance threshold (default: 0.5, range: 0-1).<br> *A threshold to* $d$ *to select atom is* $(r_1 + r_2)*(1 + d)$

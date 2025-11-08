@@ -44,6 +44,11 @@ class IAtom(ABC):
         """Get if the atom comes from the symmetry."""
 
     @property
+    @abstractmethod
+    def symmetry_operator(self):
+        """Get the symmetry operator of the atom."""
+
+    @property
     def pos(self):
         """Get the position of the atom."""
 
@@ -97,6 +102,7 @@ class Atom(IAtom):
         self._symmetry = mark.image_idx if mark else 0
         self._st = st
         self._metal = metal
+        self._symmetry_operator = list(st.find_spacegroup().operations())[self._symmetry].triplet()
 
     @property
     def atom(self):
@@ -157,6 +163,16 @@ class Atom(IAtom):
             bool: The symmetry copy of the atom.
         """
         return self._symmetry
+    
+    @property
+    def symmetry_operator(self):
+        """
+        Get the symmetry operator of the atom.
+
+        Returns:
+            str: The symmetry operator of the atom.
+        """
+        return self._symmetry_operator
 
     @property
     def pos(self):

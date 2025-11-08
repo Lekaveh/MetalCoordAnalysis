@@ -1,8 +1,9 @@
+from operator import le
+from matplotlib.pyplot import cla
 import numpy as np
 
-import metalCoord
-import metalCoord.analysis
 import metalCoord.analysis.structures
+from metalCoord.analysis.classes import idealClasses
 from metalCoord.analysis.data import DB
 
 MIN_ANGLE_STD = 3.0
@@ -32,6 +33,7 @@ class Atom:
         self._altloc: str = atom.atom.altloc.strip().replace('\x00', '')
         self._symmetry: int = atom.symmetry
         self._pos: np.ndarray = atom.pos
+        self._symmetry_operator: str = atom.symmetry_operator
 
     @property
     def name(self) -> str:
@@ -69,6 +71,11 @@ class Atom:
     def symmetry(self) -> int:
         """Returns the symmetry of the ligand atom."""
         return self._symmetry
+
+    @property
+    def symmetry_operator(self) -> str:
+        """Returns the symmetry operator of the ligand atom."""
+        return self._symmetry_operator
 
     @property
     def altloc(self) -> str:
@@ -109,7 +116,8 @@ class Atom:
             "sequence": self.sequence,
             "icode": self.insertion_code,
             "altloc": self.altloc,
-            "symmetry": self.symmetry
+            "symmetry": self.symmetry,
+            "operator": self.symmetry_operator
         }
 
 
@@ -366,18 +374,23 @@ class LigandStats:
         _description (str): The description of the ligand.
     """
 
-    def __init__(self, clazz: str, procrustes: float, coordination: int, count: int, description: str) -> None:
+    def __init__(self, clazz: str, descriptor: str, index: np.ndarray, procrustes: float, coordination: int, count: int, description: str) -> None:
         """
         Initializes a LigandStats object.
 
         Args:
             clazz (str): The class of the ligand.
+            descriptor (str): The descriptor of the ligand.
+            index (np.ndarray): The correspondence with ideal coordinates.
             procrustes (float): The procrustes value of the ligand.
             coordination (int): The coordination number of the ligand.
             count (int): The count of the ligand.
             description (str): The description of the ligand.
         """
         self._clazz: str = clazz
+        self._class_abr: str = idealClasses.get_class_code(clazz) if clazz  else ""
+        self._descriptor: str = descriptor
+        self._index: np.ndarray = index if clazz else np.array([])
         self._procrustes: float = procrustes
         self._coordination: int = coordination
         self._count: int = count
@@ -393,6 +406,20 @@ class LigandStats:
         str: The class of the ligand.
         """
         return self._clazz
+    
+    @property
+    def class_abr(self) -> str:
+        """
+        str: The abbreviated class of the ligand.
+        """
+        return self._class_abr
+
+    @property
+    def descriptor(self) -> str:
+        """
+        str: The descriptor of the ligand.
+        """
+        return self._descriptor
 
     @property
     def procrustes(self) -> float:
@@ -472,6 +499,7 @@ class LigandStats:
         for ligand_angle in self._angles:
             yield ligand_angle
 
+
     @property
     def ligand_angles(self) -> iter:
         """
@@ -480,6 +508,21 @@ class LigandStats:
         for ligand_angle in self._angles:
             if ligand_angle.is_ligand:
                 yield ligand_angle
+
+    def _atoms(self)-> list:
+        """
+        Returns a list of unique ligand atoms involved in the bonds.
+
+        Returns:
+            list: A list of ligand atoms.
+        """
+        atoms = []
+        for bond in self.bonds:
+            atoms.append(bond.ligand)
+        
+        for bond in self.pdb:
+            atoms.append(bond.ligand)
+        return atoms
 
     def weighted_procrustes(self, metal: str) -> float:
         """
@@ -587,14 +630,18 @@ class LigandStats:
         Returns:
             dict: The LigandStats object represented as a dictionary.
         """
-        clazz = {"class": self.clazz, "procrustes": np.round(float(self.procrustes), 3), "coordination": self.coordination,  "count": self.count, "description": self.description,
-                 "base": [], "angles": [], "pdb": []}
-        for b in self.bonds:
-            clazz["base"].append(b.to_dict())
-        for a in self.angles:
-            clazz["angles"].append(a.to_dict())
-        for p in self.pdb:
-            clazz["pdb"].append(p.to_dict())
+        clazz = {"class": self.clazz, "class_abr": self.class_abr, "descriptor": self.descriptor, "procrustes": np.round(float(self.procrustes), 3), "coordination": self.coordination,  "count": self.count, "description": self.description,
+                 "base": [], "angles": [], "pdb": [], "order": []}
+        clazz["base"] = [b.to_dict() for b in self.bonds]
+        clazz["angles"] = [a.to_dict() for a in self.angles]
+        clazz["pdb"] = [p.to_dict() for p in self.pdb]
+
+        atoms = self._atoms()
+        if self.clazz and len(self._index) > 1:
+            clazz["order"] = [atoms[idx - 1].to_dict() for idx in self._index[1:]]
+        else:
+            clazz["order"] = [atom.to_dict() for atom in atoms]
+
         return clazz
 
 

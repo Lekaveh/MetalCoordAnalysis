@@ -1,16 +1,19 @@
 from abc import ABC, abstractmethod
+from typing import List
+
 import gemmi
 import numpy as np
 import pandas as pd
 from tqdm import tqdm
+
 import metalCoord
 import metalCoord.analysis
 import metalCoord.analysis.structures
-from metalCoord.analysis.classes import idealClasses
+from metalCoord.analysis.classes import ClassificationResult, idealClasses
 from metalCoord.analysis.cluster import modes
 from metalCoord.analysis.data import DB
 from metalCoord.analysis.directional import calculate_stats
-from metalCoord.analysis.models import AngleStats, DistanceStats, LigandStats, Atom
+from metalCoord.analysis.models import AngleStats, Atom, DistanceStats, LigandStats
 from metalCoord.config import Config
 from metalCoord.correspondense.procrustes import fit
 from metalCoord.logging import Logger
@@ -241,6 +244,67 @@ def create_gemmi_structure(df, coords):
     return structure
 
 
+def create_descriptor(class_result: ClassificationResult, structure: metalCoord.analysis.structures.Ligand) -> str:
+    """
+    Create a compact descriptor string for a classified ligand structure.
+
+    The descriptor has the form:
+        "@<class_code>{atom1,atom2,...}"
+
+    Where:
+    - <class_code> is obtained from idealClasses.get_class_code(class_result.clazz).
+    - The atom list is constructed from the ligand structure with the metal element placed first,
+      then the ligand atoms as returned by structure.atoms().
+    - The final ordering of atoms in the descriptor is determined by sorting class_result.index
+      in ascending order and applying that permutation to the atom list.
+
+    Parameters
+    ----------
+    class_result : ClassificationResult
+        An object that must provide at least two attributes:
+        - index: an iterable (e.g. list or numpy array) of integers used to determine the ordering.
+        - clazz: a classification identifier passed to idealClasses.get_class_code().
+    structure : metalCoord.analysis.structures.Ligand
+        A ligand structure object that must provide:
+        - metal.element: a string for the metal element symbol/name.
+        - atoms(): a callable that returns an iterable of atom labels (strings) for the ligand.
+
+    Returns
+    -------
+    str
+        The formatted descriptor string, e.g. "@A{Fe,N,C,O}" (actual class code depends on idealClasses).
+
+    Raises
+    ------
+    TypeError
+        If the provided arguments do not have the expected attributes or types.
+    ValueError
+        If the length/indices in class_result.index are incompatible with the number of atoms
+        produced from the structure (for example, mismatched lengths when reindexing).
+
+    Notes
+    -----
+    - This function relies on numpy.argsort being available to compute the sort permutation.
+    - Atoms in the returned descriptor are comma-separated with no extra spaces.
+    - The function expects idealClasses to be available in the module scope and to implement
+      get_class_code(clazz) -> str.
+
+    Example
+    -------
+    Assuming:
+        class_result.index = [2, 0, 1]
+        class_result.clazz = 5
+        structure.metal.element == "Fe"
+        structure.atoms() -> ["C", "N", "O"]
+
+    Then the produced descriptor will be:
+        "@<code>{Fe,O,C,N}"
+    where "<code>" is the result of idealClasses.get_class_code(5).
+    """
+    inv_index = class_result.order
+    atoms = np.array([structure.metal.element] + structure.atoms())
+    return  f"@{idealClasses.get_class_code(class_result.clazz)}" + "{"  + f"{','.join(atoms[inv_index])}" + "}"
+
 class StrictCorrespondenceStatsFinder(FileStatsFinder):
     def _calculate(self, structure, class_result):
         o_ligand_atoms = np.array([structure.metal.atom.name] + structure.atoms())
@@ -295,8 +359,9 @@ class StrictCorrespondenceStatsFinder(FileStatsFinder):
             angles = np.array(angles).T
 
             if (len(distances) > 0 and distances.shape[1] >= Config().min_sample_size):
+                
                 clazz_stats = LigandStats(
-                    class_result.clazz, class_result.proc, structure.coordination(), distances.shape[1], self._finder.description())
+                    class_result.clazz, create_descriptor(class_result, structure), class_result.order, class_result.proc, structure.coordination(), distances.shape[1], self._finder.description())
                 for file, st in cods.items():
                     clazz_stats.add_cod_file(file, st)
 
@@ -364,9 +429,8 @@ class WeekCorrespondenceStatsFinder(FileStatsFinder):
             lig_names = np.array(lig_names).T
 
             if (len(distances) > 0 and distances.shape[1] >= Config().min_sample_size):
-
                 clazz_stats = LigandStats(
-                    class_result.clazz, class_result.proc, structure.coordination(), distances.shape[1], self._finder.description())
+                    class_result.clazz, create_descriptor(class_result, structure), class_result.order, class_result.proc, structure.coordination(), distances.shape[1], self._finder.description())
                 for file, st in cods.items():
                     clazz_stats.add_cod_file(file, st)
 
@@ -413,7 +477,7 @@ class OnlyDistanceStatsFinder(StatsFinder):
     def get_stats(self, structure, data, class_result):
         self._finder.load(structure, data)
         data = self._finder.data("")
-        clazz_stats = LigandStats(class_result.clazz, class_result.proc,
+        clazz_stats = LigandStats(class_result.clazz, create_descriptor(class_result, structure), class_result.order, class_result.proc,
                                  structure.coordination(), -1, self._finder.description())
 
         for l in structure.ligands:
@@ -450,7 +514,7 @@ class CovalentStatsFinder(StatsFinder):
 
     def get_stats(self, structure, data, class_result):
         clazz_stats = LigandStats(class_result.clazz if class_result else "",
-                                 class_result.proc if class_result else -1, structure.coordination(), -1, self._finder.description())
+                                 create_descriptor(class_result, structure) if class_result else "", class_result.order if class_result else [], class_result.proc if class_result else -1, structure.coordination(), -1, self._finder.description())
 
         for l in structure.ligands:
             clazz_stats.add_bond(

@@ -9,7 +9,7 @@ from typing import Dict, Any, Tuple, Optional
 import gemmi
 import networkx as nx
 import metalCoord
-from metalCoord.analysis.classify import find_classes_pdb, find_classes_cif
+from metalCoord.analysis.classify import find_classes_pdb, find_classes_cif, read_structure
 
 from metalCoord.analysis.metal import MetalPairStatsService
 from metalCoord.analysis.models import PdbStats
@@ -945,6 +945,25 @@ def get_stats(ligand, pdb, output, clazz=None):
         pdb (str): The path to the PDB file.
         output (str): The path to the output JSON file.
         clazz (str): Predefined class.
+    Returns:
+        None
+    """
+
+    if ligand:
+        return get_ligand_stats(ligand, pdb, output, clazz=clazz)
+
+    return get_stats_for_all_ligands(pdb, output, clazz=clazz)
+
+
+def get_ligand_stats(ligand, pdb, output, clazz=None):
+    """
+    Retrieves statistics for a given ligand and PDB file and writes the results to a JSON file.
+
+    Args:
+        ligand (str): The name of the ligand.
+        pdb (str): The path to the PDB file.
+        output (str): The path to the output JSON file.
+        clazz (str): Predefined class.
 
     Returns:
         None
@@ -965,3 +984,34 @@ def get_stats(ligand, pdb, output, clazz=None):
         save_cods(pdb_stats, os.path.dirname(output))
 
     Logger().info(f"Report written to {output}")
+
+def get_stats_for_all_ligands(pdb, output, clazz=None):
+    """
+    Retrieves statistics for all ligands in a given PDB file and writes the results to a JSON file.
+
+    Args:
+        pdb (str): The path to the PDB file.
+        output (str): The path to the output JSON file.
+        clazz (str): Predefined class.
+
+    Returns:
+        None
+    """
+    monomers_with_metals = set()
+    st = read_structure(pdb)
+    for model in st:
+        lookup = {x.atom: x for x in model.all()}
+        for cra in lookup.values():
+            if cra.atom.element.is_metal:
+                if cra.residue.name not in monomers_with_metals:
+                    monomers_with_metals.add(cra.residue.name)
+    if not monomers_with_metals:
+        raise RuntimeError("No metal-containing ligands found in the input model.")
+    Logger().info(f"Found {len(monomers_with_metals)} metal-containing ligands.")
+
+    if os.path.isfile(output):
+        pdb_name = os.path.splitext(os.path.basename(pdb))[0]
+    else:
+        pdb_name = pdb
+    for ligand in monomers_with_metals:
+        get_stats(ligand, pdb, os.path.join(output, f"{pdb_name}_{ligand}.json"), clazz=clazz)

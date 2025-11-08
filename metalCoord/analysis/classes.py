@@ -1,6 +1,7 @@
 import operator
 import os
 import sys
+import numpy as np
 import pandas as pd
 from metalCoord.analysis.data import DB
 from metalCoord.analysis.structures import Ligand
@@ -8,6 +9,99 @@ from metalCoord.correspondense.procrustes import fit
 
 MOST_COMMON_CLASS = "most_common"
 
+
+# Inverse mapping: coordination number (or "<cn>_sandwich") -> {code: readable_name}
+IDEAL_CLASS_MAP = {
+    "linear": "LIN",
+    "bent": "BEN",
+    "trigonal-planar": "TPL",
+    "t-shape": "TSH",
+    "pyramid": "PYR",
+    "capped-linear": "CLN",
+    "tetrahedral": "TET",
+    "square-planar": "SPL",
+    "trigonal-pyramid": "TPY",
+    "square-non-planar": "SNP",
+    "bicapped-linear": "BLN",
+    "capped-trigonal-planar": "CTP",
+    "trigonal-bipyramid": "TBP",
+    "square-pyramid": "SQP",
+    "bicapped-trigonal-planar": "BTP",
+    "tricapped-trigonal-planar": "TTP",
+    "capped-square-planar": "CSP",
+    "octahedral": "OCT",
+    "trigonal-prism": "TRP",
+    "bicapped-square-planar": "BSP",
+    "hexagonal-planar": "HPL",
+    "sandwich_4h_2": "SAA",
+    "sandwich_4_2": "SAB",
+    "sandwich_5_1": "SAC",
+    "pentagonal-bipyramid": "PBP",
+    "capped-trigonal-prism": "CTR",
+    "capped-octahedral": "COP",
+    "sandwich_6_1": "SAD",
+    "sandwich_4_3": "SAE",
+    "sandwich_4h_3": "SAF",
+    "sandwich_5_2": "SAG",
+    "square-antiprismatic": "SAP",
+    "hexagonal-bipyramid": "HBP",
+    "cubic": "CUB",
+    "dodecahedral": "DOD",
+    "bicapped-octahedral": "BOC",
+    "elongated-triangular-bipyramid": "ETB",
+    "sandwich_4h_4h": "SAH",
+    "sandwich_7_1": "SAI",
+    "sandwich_4h_4": "SAJ",
+    "sandwich_5_capped_1": "SAK",
+    "sandwich_5h_3": "SAL",
+    "sandwich_6_2": "SAM",
+    "sandwich_5_3": "SAN",
+    "tricapped-trigonal-prismatic": "TCP",
+    "sandwich_7_2": "SAO",
+    "sandwich_5_tricapped_i": "SAP",
+    "sandwich_5_4h": "SAQ",
+    "sandwich_5_4": "SAR",
+    "sandwich_6_3": "SAS",
+    "pentagonal-antiprismatic": "PAP",
+    "bicapped-square-antiprismatic": "BSA",
+    "sandwich_5_5o": "SAT",
+    "sandwich_6_trigonal_pyramid": "SAU",
+    "sandwich_6_4": "SAV",
+    "sandwich_5_4_i": "SAW",
+    "sandwich_7_3": "SAX",
+    "sandwich_5_tricapped_v": "SAY",
+    "sandwich_5_square_pyramid": "SAZ",
+    "sandwich_5_5": "SBA",
+    "sandwich_5_pentagon_pyramid": "SBB",
+    "sandwich_5_capped_square_pyramid": "SBC",
+    "sandwich_8_3": "SBD",
+    "sandwich_5_4h_v": "SBE",
+    "sandwich_5_5_i": "SBF",
+    "sandwich_6_5": "SBG",
+    "sea_mine": "SEA",
+    "cuboctahedron": "COB",
+    "paired_octahedral": "POD",
+    "sandwich_5_hexagon_pyramid": "SBH",
+    "sandwich_8_4": "SBI",
+    "sandwich_7_5": "SBJ",
+    "sandwich_6_6": "SBK",
+    "sandwich_5_5_v": "SBL",
+    "sandwich_6_5_v": "SBM",
+    "sandwich_8_5": "SBN",
+    "sandwich_5_5_vi": "SBO",
+    "sandwich_5_5_v_v_3d": "SBP",
+    "sandwich_6_6_v": "SBQ",
+    "sandwich_c5_5_i": "SBR",
+    "sandwich_5_5_v_v": "SBS",
+    "sandwich_8_5_i": "SBT",
+    "sandwich_5_5_4": "SBU",
+    "sandwich_6_6_triangle": "SBV",
+    "sandwich_5_5_star": "SBW",
+    "sandwich_8_8": "SBX",
+    "sandwich_8_8_i": "SBY",
+    "sandwich_8_8_v": "SBZ",
+    "ball": "BAL",
+}
 
 class Class:
     """
@@ -90,6 +184,18 @@ class Class:
             int: The coordination number of the class.
         """
         return self.__classes.get(class_name, 1) - 1
+    
+    def get_class_code(self, class_name: str):
+        """
+        Retrieves the code of a class.
+
+        Args:
+            class_name (str): The name of the class.
+
+        Returns:
+            str: The code of the class.
+        """
+        return IDEAL_CLASS_MAP.get(class_name, "UNK")
 
 
 class ClassificationResult:
@@ -147,6 +253,16 @@ class ClassificationResult:
             int: The index of the class.
         """
         return self._index
+
+    @property
+    def order(self):
+        """
+        Gets the order of the class in the data.
+
+        Returns:
+            int: The order of the class.
+        """
+        return np.argsort(self._index)
 
     @property
     def proc(self):

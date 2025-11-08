@@ -120,7 +120,7 @@ def create_parser():
     stats_parser = subparsers.add_parser(
         'stats', help='Distance and angle statistics.')
     stats_parser.add_argument('-l', '--ligand', type=str,
-                              required=True, help='Ligand code.', metavar='<LIGAND CODE>')
+                              required=False, help='Ligand code.', metavar='<LIGAND CODE>', default="")
     stats_parser.add_argument('-p', '--pdb', type=str, required=True,
                               help='PDB code or pdb file.', metavar='<PDB CODE|PDB FILE>')
     stats_parser.add_argument('-o', '--output', type=str, required=True,

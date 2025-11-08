@@ -26,6 +26,72 @@ from metalCoord.load.rcsb import load_pdb
 from metalCoord.logging import Logger
 
 
+
+def read_structure(p: str) -> gemmi.Structure:
+    """
+    Read a macromolecular structure from disk or by 4-letter PDB accession code.
+
+    This convenience function accepts either:
+    1. A filesystem path pointing to an existing PDB (.pdb) or mmCIF (.cif/.mmcif) file.
+    2. A 4-character PDB identifier (e.g. '1ABC'), in which case the structure is
+        downloaded (via load_pdb) and parsed according to its format.
+
+    Logic:
+    - If p is an existing file path, it is parsed directly with gemmi.read_structure,
+      which auto-detects PDB vs mmCIF.
+    - If p has length 4, it is treated as a PDB code. The helper load_pdb returns
+      the raw text plus a file_type indicator ("cif" or otherwise).
+      mmCIF content is converted to a Structure via gemmi.make_structure_from_block;
+      PDB content via gemmi.read_pdb_string.
+    - Otherwise a FileNotFoundError is raised.
+
+    Parameters
+    ----------
+    p : str
+         Either a path to a local PDB/mmCIF file or a 4-letter PDB code.
+
+    Returns
+    -------
+    gemmi.Structure
+         Parsed structure object representing the molecular model.
+
+    Raises
+    ------
+    FileNotFoundError
+         If p is neither an existing file path nor a 4-character PDB code.
+
+    Dependencies
+    ------------
+    gemmi : Used for reading and constructing Structure objects.
+    load_pdb : External helper that retrieves PDB/mmCIF content and its format.
+
+    Examples
+    --------
+    # From local file
+    structure = read_structure("/data/structures/1abc.cif")
+
+    # From PDB code
+    structure = read_structure("1ABC")
+
+    # Handling errors
+    try:
+         structure = read_structure("not_found.xyz")
+    except FileNotFoundError as e:
+         print(e)
+    """
+    if os.path.isfile(p):
+        return gemmi.read_structure(p)
+    if len(p) == 4:
+        pdb, file_type = load_pdb(p)
+        if file_type == "cif":
+            cif_block = gemmi.cif.read_string(pdb)[0]
+            return gemmi.make_structure_from_block(cif_block)
+        return gemmi.read_pdb_string(pdb)
+    raise FileNotFoundError(
+        "Existing pdb or mmcif file path should be provided or 4 letter pdb code"
+    )
+
+
 def get_structures(ligand, path, bonds=None, metal_metal_bonds=None, only_best=False) -> Tuple[list[Ligand], MetalBondRegistry]:
     """
     Retrieves structures contained in a specific ligand from a given file or 4-letter PDB code.
@@ -44,26 +110,9 @@ def get_structures(ligand, path, bonds=None, metal_metal_bonds=None, only_best=F
     """
     if bonds is None:
         bonds = {}
-    # Rest of the function code...
 
-    if os.path.isfile(path):
-        st = gemmi.read_structure(path)
-        return get_ligands(st, ligand, bonds, metal_metal_bonds = metal_metal_bonds, only_best=only_best)
-
-    elif len(path) == 4:
-        pdb, file_type = load_pdb(path)
-        if file_type == "cif":
-            cif_block = gemmi.cif.read_string(pdb)[0]
-            st = gemmi.make_structure_from_block(cif_block)
-        else:
-            st = gemmi.read_pdb_string(pdb)
-        return get_ligands(st, ligand, bonds, metal_metal_bonds = metal_metal_bonds, only_best=only_best)
-
-    else:
-        raise FileNotFoundError(
-            "Existing pdb or mmcif file path should be provided or 4 letter pdb code"
-        )
-
+    st = read_structure(path)
+    return get_ligands(st, ligand, bonds, metal_metal_bonds = metal_metal_bonds, only_best=only_best)
 
 convalent_strategy = CovalentStatsFinder(CovalentCandidateFinder())
 strategies = [
