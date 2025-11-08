@@ -1,5 +1,3 @@
-from operator import le
-from matplotlib.pyplot import cla
 import numpy as np
 
 import metalCoord.analysis.structures
