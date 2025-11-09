@@ -1,5 +1,4 @@
 from abc import ABC, abstractmethod
-from ast import List
 from typing import Tuple
 
 import gemmi
@@ -42,6 +41,11 @@ class IAtom(ABC):
     @abstractmethod
     def symmetry(self):
         """Get if the atom comes from the symmetry."""
+
+    @property
+    @abstractmethod
+    def translation(self):
+        """Get the translation vector of the atom."""
 
     @property
     @abstractmethod
@@ -102,7 +106,7 @@ class Atom(IAtom):
         self._symmetry = mark.image_idx if mark else 0
         self._st = st
         self._metal = metal
-        self._symmetry_operator = list(st.find_spacegroup().operations())[self._symmetry].triplet()
+        self._symmetry_operator = st.find_spacegroup().operations().sym_ops[self._symmetry].triplet()
 
     @property
     def atom(self):
@@ -163,7 +167,20 @@ class Atom(IAtom):
             bool: The symmetry copy of the atom.
         """
         return self._symmetry
-    
+
+    @property
+    def translation(self):
+        """
+        Get the translation vector of the atom.
+
+        Returns:
+            tuple: The translation vector of the atom.
+        """
+        if self.symmetry:
+            return self._st.cell.find_nearest_pbc_image(self._metal.pos, self._mark_pos, 0).pbc_shift
+        return (0, 0, 0)
+
+
     @property
     def symmetry_operator(self):
         """
@@ -172,6 +189,26 @@ class Atom(IAtom):
         Returns:
             str: The symmetry operator of the atom.
         """
+
+        def vector_to_symop(vec):
+            """
+            Convert numeric translation vector (tx, ty, tz)
+            into symmetry string like 'x+1/2, y-1, z+3/4'.
+            Keeps signs as-is (no mod 1 wrapping).
+            """
+            axes = ['x', 'y', 'z']
+            parts = []
+            for axis, val in zip(axes, vec):
+                if val == 0:
+                    parts.append(axis)
+                elif val > 0:
+                    parts.append(f"{axis}+{val:g}")
+                else:
+                    parts.append(f"{axis}{val:g}")  # val already includes '-'
+            return ", ".join(parts)
+
+        if self.symmetry:
+            return gemmi.Op(self._symmetry_operator).combine(gemmi.Op(vector_to_symop(self.translation))).triplet()
         return self._symmetry_operator
 
     @property
@@ -246,6 +283,27 @@ class CifAtom(IAtom):
         """
         return 0
 
+    @property
+    def translation(self):
+        """
+        Get the translation vector of the atom.
+
+        Returns:
+            tuple: The translation vector of the atom.
+        """
+        return (0, 0, 0)
+    
+    @property
+    def symmetry_operator(self):
+        """
+        Get the symmetry operator of the atom.
+
+        Returns:
+            str: The symmetry operator of the atom.
+        """
+        return "x,y,z"
+        
+    
     @property
     def pos(self):
         """

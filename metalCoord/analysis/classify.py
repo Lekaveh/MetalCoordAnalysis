@@ -80,16 +80,21 @@ def read_structure(p: str) -> gemmi.Structure:
          print(e)
     """
     if os.path.isfile(p):
-        return gemmi.read_structure(p)
-    if len(p) == 4:
-        pdb, file_type = load_pdb(p)
+        st = gemmi.read_structure(p)
+    elif len(p) == 4:
+        pdb_data, file_type = load_pdb(p)
         if file_type == "cif":
-            cif_block = gemmi.cif.read_string(pdb)[0]
-            return gemmi.make_structure_from_block(cif_block)
-        return gemmi.read_pdb_string(pdb)
-    raise FileNotFoundError(
-        "Existing pdb or mmcif file path should be provided or 4 letter pdb code"
-    )
+            cif_block = gemmi.cif.read_string(pdb_data)[0]
+            st = gemmi.make_structure_from_block(cif_block)
+        else:
+            st = gemmi.read_pdb_string(pdb_data)
+    else:
+        raise FileNotFoundError(
+            "Existing pdb or mmcif file path should be provided or 4 letter pdb code"
+        )
+    st.ncs = []
+    st.setup_cell_images()
+    return st
 
 
 def get_structures(ligand, path, bonds=None, metal_metal_bonds=None, only_best=False) -> Tuple[list[Ligand], MetalBondRegistry]:

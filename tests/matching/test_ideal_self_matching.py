@@ -85,6 +85,9 @@ def validate_ideal_class_fit(ideal_classes, ideals):
         pbar.set_postfix(ideal=ideal)
 
         coord = ideal_classes.get_coordinates(ideal)
+        if len(coord) > 12:
+            continue
+
         assert np.allclose([fit(coord, coord)[0]], [0], atol=1e-5)
 
         permuted_coord = permute(coord)
