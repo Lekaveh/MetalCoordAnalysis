@@ -92,8 +92,8 @@ def read_structure(p: str) -> gemmi.Structure:
         raise FileNotFoundError(
             "Existing pdb or mmcif file path should be provided or 4 letter pdb code"
         )
-    st.ncs = []
-    st.setup_cell_images()
+    # st.ncs = []
+    # st.setup_cell_images()
     return st
 
 

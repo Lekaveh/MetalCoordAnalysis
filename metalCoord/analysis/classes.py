@@ -103,6 +103,7 @@ IDEAL_CLASS_MAP = {
     "ball": "BAL",
 }
 
+
 class Class:
     """
     Represents a class of data points.
@@ -184,7 +185,7 @@ class Class:
             int: The coordination number of the class.
         """
         return self.__classes.get(class_name, 1) - 1
-    
+
     def get_class_code(self, class_name: str):
         """
         Retrieves the code of a class.
@@ -323,10 +324,10 @@ class Classificator:
             ClassificationResult: The classification results.
         """
 
-        """Skipping structures with coordination number > 17 due to performance issues."""        
+        """Skipping structures with coordination number > 17 due to performance issues."""
         if structure.coordination() > 17:
             return
-        
+
         if class_name:
             if class_name == MOST_COMMON_CLASS:
                 classes = DB.get_frequency_metal_coordination(
@@ -361,9 +362,7 @@ class Classificator:
 
             m_ligand_coord = idealClasses.get_coordinates(clazz)
             main_proc_dist, _, _, _, index = fit(structure.get_coord(), m_ligand_coord)
-            yield ClassificationResult(
-                clazz, m_ligand_coord, index, main_proc_dist
-            )
+            yield ClassificationResult(clazz, m_ligand_coord, index, main_proc_dist)
         else:
             for clazz in idealClasses.get_ideal_classes():
                 if idealClasses.get_coordination(clazz) != structure.coordination():

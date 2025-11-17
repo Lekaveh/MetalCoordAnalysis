@@ -279,12 +279,14 @@ def create_descriptor(class_result: ClassificationResult, structure: metalCoord.
     TypeError
         If the provided arguments do not have the expected attributes or types.
     ValueError
-        If the length/indices in class_result.index are incompatible with the number of atoms
-        produced from the structure (for example, mismatched lengths when reindexing).
+        If the length/indices in class_result.index are incompatible with the number of
+        atoms produced from the structure (for example, mismatched lengths when
+        reindexing).
 
     Notes
     -----
-    - This function relies on numpy.argsort being available to compute the sort permutation.
+    - This function relies on numpy.argsort being available to compute the sort
+      permutation.
     - Atoms in the returned descriptor are comma-separated with no extra spaces.
     - The function expects idealClasses to be available in the module scope and to implement
       get_class_code(clazz) -> str.

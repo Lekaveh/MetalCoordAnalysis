@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+from turtle import st
 from typing import Tuple
 
 import gemmi
@@ -177,7 +178,9 @@ class Atom(IAtom):
             tuple: The translation vector of the atom.
         """
         if self.symmetry:
-            return self._st.cell.find_nearest_pbc_image(self._metal.pos, self._mark_pos, 0).pbc_shift
+            atom = self._st[0].find_cra(gemmi.AtomAddress(self.chain.name, gemmi.SeqId(str(self.residue.seqid.num)), self.residue.name, self.name))
+            return self._st.cell.find_nearest_image(self._metal.pos, atom.atom.pos).pbc_shift
+
         return (0, 0, 0)
 
 
@@ -208,7 +211,8 @@ class Atom(IAtom):
             return ", ".join(parts)
 
         if self.symmetry:
-            return gemmi.Op(self._symmetry_operator).combine(gemmi.Op(vector_to_symop(self.translation))).triplet()
+            # return gemmi.Op(self._symmetry_operator).combine(gemmi.Op(vector_to_symop(self.translation))).triplet()
+            return gemmi.Op(vector_to_symop(self.translation)).combine(gemmi.Op(self._symmetry_operator)).triplet()
         return self._symmetry_operator
 
     @property
