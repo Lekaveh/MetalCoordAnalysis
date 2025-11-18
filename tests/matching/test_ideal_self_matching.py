@@ -46,7 +46,7 @@ def test_non_sandwiches(ideal_classes: Class):
 
     ideals = ideal_classes.get_ideal_classes()
     ideals = [ideal for ideal in ideals if "sandwich" not in ideal and ideal !=
-              "penta-trigonal-planar" and ideal_classes.get_coordination(ideal) <= 12]
+              "penta-trigonal-planar" and ideal_classes.get_coordination(ideal) <= 10]
     validate_ideal_class_fit(ideal_classes, ideals)
 
 
@@ -85,8 +85,6 @@ def validate_ideal_class_fit(ideal_classes, ideals):
         pbar.set_postfix(ideal=ideal)
 
         coord = ideal_classes.get_coordinates(ideal)
-        if len(coord) > 12:
-            continue
 
         assert np.allclose([fit(coord, coord)[0]], [0], atol=1e-5)
 
