@@ -178,8 +178,7 @@ class Atom(IAtom):
             tuple: The translation vector of the atom.
         """
         if self.symmetry:
-            atom = self._st[0].find_cra(gemmi.AtomAddress(self.chain.name, gemmi.SeqId(str(self.residue.seqid.num)), self.residue.name, self.name))
-            return self._st.cell.find_nearest_image(self._metal.pos, atom.atom.pos).pbc_shift
+            return self._st.cell.find_nearest_pbc_image(self._metal.pos, self._atom.pos, self.symmetry).pbc_shift
 
         return (0, 0, 0)
 
