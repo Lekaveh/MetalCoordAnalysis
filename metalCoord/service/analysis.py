@@ -12,7 +12,7 @@ import metalCoord
 from metalCoord.analysis.classify import find_classes_pdb, find_classes_cif, read_structure
 
 from metalCoord.analysis.metal import MetalPairStatsService
-from metalCoord.analysis.models import PdbStats
+from metalCoord.analysis.models import Atom, DistanceStats, LigandStats, PdbStats
 from metalCoord.config import Config
 from metalCoord.logging import Logger
 from metalCoord.cif.utils import (
@@ -448,6 +448,170 @@ def update_energy_in_atoms(block: gemmi.cif.Block, atoms: Dict[str, Any]) -> Dic
         block.set_mmcif_category(ATOM_CATEGORY, new_atoms)
         return new_atoms
     return atoms
+
+def get_stats(metal_atom1: Atom, ligand_stats1: LigandStats, metal_atom2: Atom, ligand_stats2: LigandStats) -> dict:
+    """
+    Estimate approximate bond angles and their variance for a 4-membered metal-ligand ring.
+
+    This function uses a decision-tree-like classifier to predict angles based on the
+    coordination numbers, coordination geometry classes, and types of two metal atoms
+    connected by shared ligands in a ring. The function is specifically designed for
+    4-membered rings consisting of two metal atoms and two shared ligand atoms.
+
+    The function dynamically computes the angles using a nested `AngleStatClassifier`,
+    which supports multi-level conditional decisions.
+
+    Parameters:
+        metal_atom1 (Atom): The first metal atom object in the ring.
+        ligand_stats1 (LigandStats): Coordination and geometry information for metal_atom1.
+        metal_atom2 (Atom): The second metal atom object in the ring.
+        ligand_stats2 (LigandStats): Coordination and geometry information for metal_atom2.
+
+    Returns:
+        dict: A dictionary mapping metal atom names to their estimated angles and std.
+        If the classifier does not have statistics for a given combination, an empty dict is returned.
+
+    Raises:
+        TypeError: If any of the inputs are not instances of Atom or LigandStats.
+        ValueError: If the provided atoms are not metals or if the coordination numbers are missing.
+        KeyError: If the classifier encounters a combination of properties that is not covered
+                  by the decision tree.
+    """
+    
+    if not isinstance(metal_atom1, Atom):
+        raise TypeError(f"Expected Atom for atom1, got {type(metal_atom1)}")
+    if not isinstance(ligand_stats1, LigandStats):
+        raise TypeError(f"Expected LigandStats for metal_stat1, got {type(ligand_stats1)}")
+    if not isinstance(metal_atom2, Atom):
+        raise TypeError(f"Expected Atom for atom2, got {type(metal_atom2)}")
+    if not isinstance(ligand_stats2, LigandStats):
+        raise TypeError(f"Expected LigandStats for metal_stat2, got {type(ligand_stats2)}")
+        
+    class AngleStatClassifier:
+        def __init__(self, condition=None, statistics=None, result=None):
+            self.condition = condition
+            self.statistics = statistics or {}
+            self.result = result
+        
+        def get_angles_stats(self, ring_stats):
+            if self.result is not None:
+                return self.result(ring_stats) if callable(self.result) else self.result
+            key = self.condition(ring_stats)
+            if key not in self.statistics:
+                raise KeyError(f"No statistic value for output: {key}")
+            return self.statistics[key].get_angles_stats(ring_stats)  
+
+    metals = {gemmi.Element(i).name.upper() for i in range(1, 119) if gemmi.Element(i).is_metal}
+    
+    if metal_atom1.element.upper() not in metals or metal_atom2.element.upper() not in metals:
+        raise ValueError("metal_atoms are not metals")
+        
+    if ligand_stats1._coordination is None:
+        raise ValueError("coordination missing")
+    if ligand_stats2._coordination is None:
+        raise ValueError("coordination missing")
+
+    # need to check for simpicity of the structures
+    
+    coord1, coord2 = ligand_stats1._coordination, ligand_stats2._coordination 
+    clazz1, clazz2 = ligand_stats1._clazz, ligand_stats2._clazz
+
+    atom_names2 = {distance_stat.ligand.name for distance_stat in ligand_stats2._bonds}  
+    shared_atoms = [atom.ligand for atom in ligand_stats1._bonds if atom.ligand.name in atom_names2]
+    
+    ring = [metal_atom1, shared_atoms[0], metal_atom2, shared_atoms[1]] # we assume that the ring is len 4 
+    
+    metal_ring_count = sum(1 for atom in ring if atom.element.upper() in metals)
+    fe_ring_count = sum(1 for atom in ring if atom.element.upper() == "FE")
+    s_ring_count = sum(1 for atom in ring if atom.element.upper() == "S")
+    
+    ring_type = None
+    if s_ring_count >= 2:
+        if fe_ring_count == 1:
+            ring_type = "s-fe-s-m" if metal_ring_count == 2 else "s-fe-s-nm"
+        if fe_ring_count == 2 and s_ring_count == 2:
+            ring_type = "s-fe-s-fe"
+
+    ring_stats = {
+        "ring": ring,
+        "ring_type": ring_type,
+        "metal_name": metal_atom1.name,
+        "metal_element": metal_atom1.element,
+        "coordination": coord1,
+        "class_name": clazz1,
+        "other_metal_name": metal_atom2.name,
+        "other_metal_element": metal_atom2.element,
+        "other_coordination": coord2,
+        "other_class_name": clazz2,
+        "bonds": None # to improve
+        # add more stats to classify 
+    }
+
+    classifier = AngleStatClassifier(
+        condition=lambda r: r['ring_type'] if r['ring_type'] is not None else "other",
+        statistics={
+            "s-fe-s-fe": AngleStatClassifier(
+                condition=lambda r: (
+                    f"({r['coordination']}, {r['other_coordination']})"
+                    if r["coordination"] == r['other_coordination'] and r['coordination'] in {4,5,6,8}
+                    else "()"
+                ),
+                statistics={
+                    "(4, 4)": AngleStatClassifier(
+                        condition=lambda r: (
+                            f"({r['class_name']}, {r['other_class_name']})"
+                            if r["class_name"] == 'tetrahedral' and r["other_class_name"] == 'tetrahedral' # to improve
+                            else "()"
+                        ),
+                        statistics={
+                            "(tetrahedral, tetrahedral)": AngleStatClassifier(
+                                result=lambda r: { # most of 4 coord metals in ring have these stats
+                                    r['metal_name']: {'angle': 104.89, 'std': 4.13},
+                                    r['other_metal_name']: {'angle': 104.89, 'std': 4.13},
+                                }),
+                            "()": AngleStatClassifier(result=lambda r: {}), # unknown / add more variations
+                        }
+                    ),
+                    "(5, 5)": AngleStatClassifier(
+                        condition=lambda r: (
+                            f"({r['class_name']}, {r['other_class_name']})"
+                            if r["class_name"] == 'square-pyramid' and r["other_class_name"] == 'square-pyramid' # to improve
+                            else "()"
+                        ),
+                        statistics={
+                            "(square-pyramid, square-pyramid)": AngleStatClassifier(
+                                result=lambda r: { # most of 5 coord metals in ring have these stats
+                                    r['metal_name']: {'angle': 84.77, 'std': 1.10}, 
+                                    r['other_metal_name']: {'angle': 84.77, 'std': 1.10},
+                                }),
+                            "()": AngleStatClassifier(result=lambda r: {}), # unknown / add more variations
+                        }
+                    ),
+                    "(6, 6)": AngleStatClassifier(
+                        condition=lambda r: (
+                            f"({r['class_name']}, {r['other_class_name']})"
+                            if r["class_name"] == 'octahedral' and r["other_class_name"] == 'octahedral' # to improve
+                            else "()"
+                        ),
+                        statistics={
+                            "(octahedral, octahedral)": AngleStatClassifier(
+                                result=lambda r: { # most of 6 coord metals in ring have these stats
+                                    r['metal_name']: {'angle': 82.35, 'std': 2.56},  
+                                    r['other_metal_name']: {'angle': 82.35, 'std': 2.56}, 
+                                }),
+                            "()": AngleStatClassifier(result=lambda r: {}), # unknown / add more variations
+                        }
+                    ),
+                    "(8, 8)": AngleStatClassifier(result=lambda r: {}), # there are soome ambiguities
+                    "()": AngleStatClassifier(result=lambda r: {}), # unknown / add more variations
+                }
+            ),
+            "s-fe-s-m": AngleStatClassifier(result=lambda r: {}), # to unknown / add more variations
+            "s-fe-s-nm": AngleStatClassifier(result=lambda r: {}), # to unknown / add more variations
+            "other": AngleStatClassifier(result=lambda r: {}), # to unknown / add more variations
+        }
+    )
+    return classifier.get_angles_stats(ring_stats)
 
 def count_atoms(atoms: Dict[str, Any]) -> Tuple[int, int]:
     """
