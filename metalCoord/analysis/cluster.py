@@ -3,19 +3,19 @@ from scipy import stats
 import sklearn.mixture
 
 
-def _inlist(x, l, x_tol=1e-5):
+def _inlist(x, lst, x_tol=1e-5):
     """
     Check if a value is present in a list within a tolerance.
 
     Args:
         x (float): The value to check.
-        l (list): The list of values to search in.
+        lst (list): The list of values to search in.
         x_tol (float, optional): The tolerance for comparing values. Defaults to 1e-5.
 
     Returns:
         bool: True if the value is present in the list within the tolerance, False otherwise.
     """
-    for v in l:
+    for v in lst:
         if np.abs(x - v) < x_tol:
             return True
     return False
@@ -39,19 +39,19 @@ def _remove_dup(duplicate, x_tol=1e-5):
     return final_list
 
 
-def _filter_bymax(l, f):
+def _filter_bymax(values, f):
     """
     Filter a list based on a function that calculates a score for each value.
 
     Args:
-        l (list): The list to filter.
+        values (list): The list to filter.
         f (function): The scoring function.
 
     Returns:
         list: The filtered list.
     """
-    mx = max([f(v) for v in l])
-    return [v for v in l if f(v)/mx > 0.1]
+    mx = max([f(v) for v in values])
+    return [v for v in values if f(v)/mx > 0.1]
 
 
 def _modes(data, kernel, x_tol=1e-5, rnd=2, neighbour=1):

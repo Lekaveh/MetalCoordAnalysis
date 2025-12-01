@@ -292,9 +292,12 @@ def frobenius_distance(A: np.ndarray, B: np.ndarray) -> np.ndarray:
     Returns:
     np.ndarray: The Frobenius distance between the two matrices.
     """
-    return frobenius_norm(preshape(A)  - preshape(B) )
+    return frobenius_norm(preshape(A) - preshape(B))
 
-def procrustes_fit(A: np.ndarray, B: np.ndarray) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+def procrustes_fit(
+    A: np.ndarray,
+    B: np.ndarray
+) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
     """
     Computes the Procrustes fit between two matrices A and B.
 

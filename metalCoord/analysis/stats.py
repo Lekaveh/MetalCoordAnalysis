@@ -1,5 +1,4 @@
 from abc import ABC, abstractmethod
-from typing import List
 
 import gemmi
 import numpy as np

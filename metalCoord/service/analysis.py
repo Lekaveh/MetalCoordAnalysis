@@ -9,7 +9,11 @@ from typing import Dict, Any, Tuple, Optional
 import gemmi
 import networkx as nx
 import metalCoord
-from metalCoord.analysis.classify import find_classes_pdb, find_classes_cif, read_structure
+from metalCoord.analysis.classify import (
+    find_classes_pdb,
+    find_classes_cif,
+    read_structure,
+)
 
 from metalCoord.analysis.metal import MetalPairStatsService
 from metalCoord.analysis.models import PdbStats
@@ -48,7 +52,6 @@ from metalCoord.cif.utils import (
 from metalCoord.cif.utils import get_element_name, get_bonds, get_metal_metal_bonds
 
 
-
 d = os.path.dirname(sys.modules["metalCoord"].__file__)
 mons = json.load(open(os.path.join(d, "data/mons.json"), encoding="utf-8"))
 
@@ -85,7 +88,7 @@ def pack(values):
 
 def get_distance(clazz, ligand_name):
     """
-    Get the distance, standard deviation, class, procrustes value, 
+    Get the distance, standard deviation, class, procrustes value,
     and coordination
     for a given ligand name in a coordination class.
 
@@ -125,7 +128,7 @@ def get_distance(clazz, ligand_name):
 
 def get_angles(clazz, ligand_name1, ligand_name2):
     """
-    Get the angle, standard deviation, class, procrustes value, 
+    Get the angle, standard deviation, class, procrustes value,
     and coordination
     for a given pair of ligand names in a coordination class.
 
@@ -243,7 +246,7 @@ def save_cods(pdb_stats: PdbStats, path: str):
     Save COD files for ligands in the given PdbStats object.
 
     Args:
-        pdb_stats (PdbStats): The PdbStats object containing the ligand 
+        pdb_stats (PdbStats): The PdbStats object containing the ligand
             information.
         path (str): The path where the COD files will be saved.
 
@@ -265,6 +268,7 @@ def save_cods(pdb_stats: PdbStats, path: str):
                 Path(output_folder).mkdir(exist_ok=True, parents=True)
                 for file, st in ligand_stats.cods:
                     st.write_pdb(os.path.join(output_folder, file))
+
 
 def extract_name_from_doc(doc: gemmi.cif.Document) -> str:
     """
@@ -294,8 +298,9 @@ def extract_name_from_doc(doc: gemmi.cif.Document) -> str:
                 continue
             Logger().info(f"Ligand {name} found")
             return name
-    raise ValueError("No block found for <name>|comp_<name>. "
-                     "Please check the CIF file.")
+    raise ValueError(
+        "No block found for <name>|comp_<name>. " "Please check the CIF file."
+    )
 
 
 def extract_block_from_doc(name: str, doc: gemmi.cif.Document) -> gemmi.cif.Block:
@@ -322,58 +327,53 @@ def extract_block_from_doc(name: str, doc: gemmi.cif.Document) -> gemmi.cif.Bloc
 
     if block is None:
         raise ValueError(
-            f"No block found for {name}|comp_{name}. "
-            "Please check the CIF file."
+            f"No block found for {name}|comp_{name}. " "Please check the CIF file."
         )
-        
+
     return block
+
 
 def update_ace_drg(block: gemmi.cif.Block, name: str):
     """
-    Update the ACE/DRG 
-    category of a CIF block 
-    with metal coordination 
+    Update the ACE/DRG
+    category of a CIF block
+    with metal coordination
     analysis details.
 
-    This function retrieves 
-    the ACE/DRG category 
-    from the provided CIF block. 
-    If the category does not 
-    exist, it creates a new one 
-    with predefined keys 
-    (COMP_ID, PROGRAM_NAME, 
-    PROGRAM_VERSION, TYPE). 
-    It then appends the 
-    provided component name 
-    along with the analysis 
-    program details (name, 
-    version, and description) 
-    to the respective fields 
-    of the ACE/DRG category. 
-    Finally, the updated 
-    category is set back 
+    This function retrieves
+    the ACE/DRG category
+    from the provided CIF block.
+    If the category does not
+    exist, it creates a new one
+    with predefined keys
+    (COMP_ID, PROGRAM_NAME,
+    PROGRAM_VERSION, TYPE).
+    It then appends the
+    provided component name
+    along with the analysis
+    program details (name,
+    version, and description)
+    to the respective fields
+    of the ACE/DRG category.
+    Finally, the updated
+    category is set back
     into the block.
 
     Parameters:
-        block (gemmi.cif.Block): 
+        block (gemmi.cif.Block):
             The CIF block to update.
-        name (str): 
-            The component identifier 
+        name (str):
+            The component identifier
             to add to the ACE/DRG category.
 
     Side Effects:
-        Modifies the provided CIF block 
-        by updating or creating 
+        Modifies the provided CIF block
+        by updating or creating
         its ACE/DRG category.
     """
     ace_drg = block.get_mmcif_category(ACEDRG_CATEGORY)
     if not ace_drg:
-        ace_drg = {
-            COMP_ID: [],
-            PROGRAM_NAME: [],
-            PROGRAM_VERSION: [],
-            TYPE: []
-        }
+        ace_drg = {COMP_ID: [], PROGRAM_NAME: [], PROGRAM_VERSION: [], TYPE: []}
     ace_drg[COMP_ID].append(name)
     ace_drg[PROGRAM_NAME].append("metalCoord")
     ace_drg[PROGRAM_VERSION].append(metalCoord.__version__)
@@ -381,11 +381,12 @@ def update_ace_drg(block: gemmi.cif.Block, name: str):
 
     block.set_mmcif_category(ACEDRG_CATEGORY, ace_drg)
 
+
 # Get the mmcif categories
 def get_atoms_category(block: gemmi.cif.Block) -> Dict[str, Any]:
     """
     Retrieve the atoms category from a given mmCIF block.
-    
+
     This function extracts the atoms category,
     which is defined by the constant
     `ATOM_CATEGORY`, from a given
@@ -394,17 +395,17 @@ def get_atoms_category(block: gemmi.cif.Block) -> Dict[str, Any]:
     this function raises a ValueError.
     The error indicates that the CIF file
     may be missing required data.
-    
+
     Parameters:
         block (gemmi.cif.Block):
             The CIF block that contains the data
             to extract the atoms category information.
-    
+
     Returns:
         Dict[str, Any]:
             A dictionary that holds the atoms category
             as extracted from the CIF block.
-    
+
     Raises:
         ValueError:
             If the atoms category (`ATOM_CATEGORY`)
@@ -417,7 +418,10 @@ def get_atoms_category(block: gemmi.cif.Block) -> Dict[str, Any]:
         )
     return atoms
 
-def update_energy_in_atoms(block: gemmi.cif.Block, atoms: Dict[str, Any]) -> Dict[str, Any]:
+
+def update_energy_in_atoms(
+    block: gemmi.cif.Block, atoms: Dict[str, Any]
+) -> Dict[str, Any]:
     """
     Update the energy values in the atoms dictionary within a CIF block.
 
@@ -449,6 +453,7 @@ def update_energy_in_atoms(block: gemmi.cif.Block, atoms: Dict[str, Any]) -> Dic
         return new_atoms
     return atoms
 
+
 def count_atoms(atoms: Dict[str, Any]) -> Tuple[int, int]:
     """
     Count the total number of atoms and the number of non-hydrogen atoms.
@@ -476,9 +481,10 @@ def count_atoms(atoms: Dict[str, Any]) -> Tuple[int, int]:
     n_nhatoms = len([x for x in atoms[TYPE_SYMBOL] if x != "H"])
     return n_atoms, n_nhatoms
 
-def get_category_with_warning(block: gemmi.cif.Block, 
-                              category: str, 
-                              category_name: str) -> Optional[Dict[str, Any]]:
+
+def get_category_with_warning(
+    block: gemmi.cif.Block, category: str, category_name: str
+) -> Optional[Dict[str, Any]]:
     """
     Retrieves the MMCIF category data from a given block and logs a warning if the category is not found.
 
@@ -496,6 +502,7 @@ def get_category_with_warning(block: gemmi.cif.Block,
             f"mmcif category {category_name} not found. Please check the CIF file."
         )
     return data
+
 
 def choose_best_pdb(name: str) -> str:
     """
@@ -516,7 +523,7 @@ def choose_best_pdb(name: str) -> str:
              - Otherwise, the top candidate from the overall sorted list is used.
 
     Raises:
-        ValueError: If the given 'name' is not present in the global 'mons' dictionary, indicating that there is no corresponding 
+        ValueError: If the given 'name' is not present in the global 'mons' dictionary, indicating that there is no corresponding
                     PDB file in the Ligand-PDB database.
 
     Notes:
@@ -532,8 +539,7 @@ def choose_best_pdb(name: str) -> str:
         )
     Logger().info("Choosing best PDB file")
     all_candidates = sorted(
-        mons[name],
-        key=lambda x: (not x[2], x[1] if x[1] else 10000)
+        mons[name], key=lambda x: (not x[2], x[1] if x[1] else 10000)
     )
 
     candidates = [mon for mon in all_candidates if mon[2]]
@@ -568,7 +574,13 @@ def choose_best_pdb(name: str) -> str:
     Logger().info(f"Best PDB file is {pdb}")
     return pdb
 
-def update_bonds(bonds: Dict[str, Any], atoms: Dict[str, Any], pdb_stats: PdbStats, block: gemmi.cif.Block) -> None:
+
+def update_bonds(
+    bonds: Dict[str, Any],
+    atoms: Dict[str, Any],
+    pdb_stats: PdbStats,
+    block: gemmi.cif.Block,
+) -> None:
     """
     Update bond distance information in the bonds dictionary and in the provided CIF block.
 
@@ -598,14 +610,12 @@ def update_bonds(bonds: Dict[str, Any], atoms: Dict[str, Any], pdb_stats: PdbSta
     for metal_stats in pdb_stats.metals:
         metal_groups_by_locant[metal_stats.locant].append(metal_stats)
     metal_groups_by_locant = dict(metal_groups_by_locant)
-    
 
     for i, _atoms in enumerate(zip(bonds[ATOM_ID_1], bonds[ATOM_ID_2])):
         metal_name, ligand_name = _atoms
 
         is_metal1 = gemmi.Element(get_element_name(atoms, metal_name)).is_metal
         is_metal2 = gemmi.Element(get_element_name(atoms, ligand_name)).is_metal
-        
 
         if not is_metal1 and not is_metal2:
             continue
@@ -623,9 +633,7 @@ def update_bonds(bonds: Dict[str, Any], atoms: Dict[str, Any], pdb_stats: PdbSta
                 std = round(std, 3)
                 bonds[VALUE_DIST][i] = bonds[VALUE_DIST_NUCLEUS][i] = str(distance)
                 bonds[VALUE_DIST_ESD][i] = bonds[VALUE_DIST_NUCLEUS_ESD][i] = str(std)
-                    
-                        
-                        
+
                 continue
 
         if is_metal2:
@@ -633,12 +641,19 @@ def update_bonds(bonds: Dict[str, Any], atoms: Dict[str, Any], pdb_stats: PdbSta
 
         bond_stat = pdb_stats.get_ligand_distance(metal_name, ligand_name)
         if bond_stat:
-            bonds[VALUE_DIST][i] = bonds[VALUE_DIST_NUCLEUS][i] = str(round(bond_stat.distance[0], 3))
-            bonds[VALUE_DIST_ESD][i] = bonds[VALUE_DIST_NUCLEUS_ESD][i] = str(round(bond_stat.std[0], 3))
+            bonds[VALUE_DIST][i] = bonds[VALUE_DIST_NUCLEUS][i] = str(
+                round(bond_stat.distance[0], 3)
+            )
+            bonds[VALUE_DIST_ESD][i] = bonds[VALUE_DIST_NUCLEUS_ESD][i] = str(
+                round(bond_stat.std[0], 3)
+            )
 
     block.set_mmcif_category(BOND_CATEGORY, bonds)
 
-def init_angles(angles: Dict[str, Any], pdb_stats: PdbStats, bonds: Dict[str, Any], name: str) -> None:
+
+def init_angles(
+    angles: Dict[str, Any], pdb_stats: PdbStats, bonds: Dict[str, Any], name: str
+) -> None:
     """
     Initializes angle entries in the angles dictionary using ligand angles from pdb_stats.
 
@@ -660,7 +675,9 @@ def init_angles(angles: Dict[str, Any], pdb_stats: PdbStats, bonds: Dict[str, An
 
     for metal_name in pdb_stats.metal_names():
         for angle in pdb_stats.get_ligand_angles(metal_name):
-            if not bond_exist(bonds, angle.ligand1.name, metal_name) or not bond_exist(bonds, angle.ligand2.name, metal_name):
+            if not bond_exist(bonds, angle.ligand1.name, metal_name) or not bond_exist(
+                bonds, angle.ligand2.name, metal_name
+            ):
                 continue
             angles[COMP_ID].append(name)
             angles[ATOM_ID_1].append(angle.ligand1.name)
@@ -670,7 +687,13 @@ def init_angles(angles: Dict[str, Any], pdb_stats: PdbStats, bonds: Dict[str, An
             angles[VALUE_ANGLE_ESD].append(str(round(angle.std, 3)))
 
 
-def update_angles_category(angles:Dict[str, Any], atoms: Dict[str, Any], bonds :Dict[str, Any], pdb_stats: PdbStats, name: str) -> None:
+def update_angles_category(
+    angles: Dict[str, Any],
+    atoms: Dict[str, Any],
+    bonds: Dict[str, Any],
+    pdb_stats: PdbStats,
+    name: str,
+) -> None:
     """
     Update the angles dictionary with ligand angle statistics based on atom and bond data.
 
@@ -688,10 +711,10 @@ def update_angles_category(angles:Dict[str, Any], atoms: Dict[str, Any], bonds :
             for angle values and their standard deviations, respectively.
         atoms (Dict[str, Any]): A dictionary mapping atom identifiers to their corresponding properties.
         bonds (Dict[str, Any]): A dictionary representing bond connectivity information between atoms.
-        pdb_stats(PdbStats): An object that provides statistical data about ligand angles, including methods such as 
-            get_ligand_angle(), get_ligand_angles(), and metal_names(), which supply angle measurements 
+        pdb_stats(PdbStats): An object that provides statistical data about ligand angles, including methods such as
+            get_ligand_angle(), get_ligand_angles(), and metal_names(), which supply angle measurements
             and standard deviations.
-        name (str): A string identifier used to annotate new angle entries in the angles dictionary (e.g., 
+        name (str): A string identifier used to annotate new angle entries in the angles dictionary (e.g.,
             as a component identifier).
 
     Returns:
@@ -714,10 +737,15 @@ def update_angles_category(angles:Dict[str, Any], atoms: Dict[str, Any], bonds :
 
     for metal_name in pdb_stats.metal_names():
         for angle in pdb_stats.get_ligand_angles(metal_name):
-            if code(angle.ligand1.name, metal_name, angle.ligand2.name) in update_angles:
+            if (
+                code(angle.ligand1.name, metal_name, angle.ligand2.name)
+                in update_angles
+            ):
                 continue
 
-            if not bond_exist(bonds, angle.ligand1.name, metal_name) or not bond_exist(bonds, angle.ligand2.name, metal_name):
+            if not bond_exist(bonds, angle.ligand1.name, metal_name) or not bond_exist(
+                bonds, angle.ligand2.name, metal_name
+            ):
                 continue
 
             angles[COMP_ID].append(name)
@@ -727,95 +755,97 @@ def update_angles_category(angles:Dict[str, Any], atoms: Dict[str, Any], bonds :
             angles[VALUE_ANGLE].append(str(round(angle.angle, 3)))
             angles[VALUE_ANGLE_ESD].append(str(round(angle.std, 3)))
 
+
 def update_tetragons(name: str, angles: Dict[str, Any], monomer, v: list) -> None:
-        """
-        Update angle information for tetragonal coordination cycles within a molecular structure.
+    """
+    Update angle information for tetragonal coordination cycles within a molecular structure.
 
-        This function examines cycles (minimal rings) identified in a given vertex list ('v') and processes those
-        that form a tetragon (four-membered cycle). Depending on whether the first element in the cycle is a metal
-        (by checking gemmi.Element), the function assigns metal and ligand vertices accordingly. It then computes
-        the angles between the metal centers and the ligand atoms using the 'get_angle' method provided on the
-        'monomer' object. If both required angles are present, an adjusted angle value is calculated and either
-        updated in the provided 'angles' dictionary or appended as a new entry.
+    This function examines cycles (minimal rings) identified in a given vertex list ('v') and processes those
+    that form a tetragon (four-membered cycle). Depending on whether the first element in the cycle is a metal
+    (by checking gemmi.Element), the function assigns metal and ligand vertices accordingly. It then computes
+    the angles between the metal centers and the ligand atoms using the 'get_angle' method provided on the
+    'monomer' object. If both required angles are present, an adjusted angle value is calculated and either
+    updated in the provided 'angles' dictionary or appended as a new entry.
 
-        Parameters:
-            name (str): An identifier for the current coordination or computed geometry entry.
-            angles (Dict[str, Any]): A dictionary containing lists of atomic identifiers, angle values,
-                and standard deviations. Expected keys include COMP_ID, ATOM_ID_1, ATOM_ID_2, ATOM_ID_3,
-                VALUE_ANGLE, and VALUE_ANGLE_ESD.
-            monomer: An object representing a molecular fragment with the following properties:
-                - 'code': A string attribute used to match ligand identifiers.
-                - 'get_angle': A method that accepts metal and ligand identifiers to calculate the angular value
-                  between them.
-            v (list): A list of vertices (or nodes) representing atoms or groups within the molecular structure.
-                This list is used to identify minimal cycles in the structure.
+    Parameters:
+        name (str): An identifier for the current coordination or computed geometry entry.
+        angles (Dict[str, Any]): A dictionary containing lists of atomic identifiers, angle values,
+            and standard deviations. Expected keys include COMP_ID, ATOM_ID_1, ATOM_ID_2, ATOM_ID_3,
+            VALUE_ANGLE, and VALUE_ANGLE_ESD.
+        monomer: An object representing a molecular fragment with the following properties:
+            - 'code': A string attribute used to match ligand identifiers.
+            - 'get_angle': A method that accepts metal and ligand identifiers to calculate the angular value
+              between them.
+        v (list): A list of vertices (or nodes) representing atoms or groups within the molecular structure.
+            This list is used to identify minimal cycles in the structure.
 
-        Returns:
-            None
+    Returns:
+        None
 
-        Notes:
-            - The function uses gemmi.Element to determine if a particular vertex represents a metal element.
-            - If an angle cannot be computed or is missing, a warning is logged using the Logger() mechanism.
-            - The standard deviation for the angle value is hardcoded to 5.0.
-        """
-        for cycle in find_minimal_cycles(v):
-            if len(cycle) == 4:
-                if gemmi.Element(cycle[0][1]).is_metal:
-                    metal1 = cycle[0]
-                    metal2 = cycle[2]
-                    ligand1 = cycle[1]
-                    ligand2 = cycle[3]
-                else:
-                    metal1 = cycle[1]
-                    metal2 = cycle[3]
-                    ligand1 = cycle[0]
-                    ligand2 = cycle[2]
+    Notes:
+        - The function uses gemmi.Element to determine if a particular vertex represents a metal element.
+        - If an angle cannot be computed or is missing, a warning is logged using the Logger() mechanism.
+        - The standard deviation for the angle value is hardcoded to 5.0.
+    """
+    for cycle in find_minimal_cycles(v):
+        if len(cycle) == 4:
+            if gemmi.Element(cycle[0][1]).is_metal:
+                metal1 = cycle[0]
+                metal2 = cycle[2]
+                ligand1 = cycle[1]
+                ligand2 = cycle[3]
+            else:
+                metal1 = cycle[1]
+                metal2 = cycle[3]
+                ligand1 = cycle[0]
+                ligand2 = cycle[2]
 
-                angle1 = monomer.get_angle(metal1[0], ligand1, ligand2)
-                angle2 = monomer.get_angle(metal2[0], ligand1, ligand2)
+            angle1 = monomer.get_angle(metal1[0], ligand1, ligand2)
+            angle2 = monomer.get_angle(metal2[0], ligand1, ligand2)
 
-                if not angle1 or not angle2:
-                    if not angle1:
-                        Logger().warning(
-                            f"Angle {ligand1[0]}- {metal1[0]}-{ligand2[0]} not found in {monomer.code}"
-                        )
-                    if not angle2:
-                        Logger().warning(
-                            f"Angle {ligand1[0]}- {metal2[0]}-{ligand2[0]} not found in {monomer.code}"
-                        )
-                    continue
+            if not angle1 or not angle2:
+                if not angle1:
+                    Logger().warning(
+                        f"Angle {ligand1[0]}- {metal1[0]}-{ligand2[0]} not found in {monomer.code}"
+                    )
+                if not angle2:
+                    Logger().warning(
+                        f"Angle {ligand1[0]}- {metal2[0]}-{ligand2[0]} not found in {monomer.code}"
+                    )
+                continue
 
-                val = (360 - angle1.angle - angle2.angle) / 2
-                std = 5.0
+            val = (360 - angle1.angle - angle2.angle) / 2
+            std = 5.0
 
-                for ligand in [ligand1, ligand2]:
-                    if monomer.code == ligand[2:]:
-                        found = False
-                        for i, _atoms in enumerate(
-                            zip(angles[ATOM_ID_1], angles[ATOM_ID_2], angles[ATOM_ID_3])
+            for ligand in [ligand1, ligand2]:
+                if monomer.code == ligand[2:]:
+                    found = False
+                    for i, _atoms in enumerate(
+                        zip(angles[ATOM_ID_1], angles[ATOM_ID_2], angles[ATOM_ID_3])
+                    ):
+                        metal1_name, ligand_name, metal2_name = _atoms
+                        if (
+                            metal1_name == metal1[0]
+                            and ligand_name == ligand[0]
+                            and metal2_name == metal2[0]
+                        ) or (
+                            metal1_name == metal2[0]
+                            and ligand_name == ligand[0]
+                            and metal2_name == metal1[0]
                         ):
-                            metal1_name, ligand_name, metal2_name = _atoms
-                            if (
-                                metal1_name == metal1[0]
-                                and ligand_name == ligand[0]
-                                and metal2_name == metal2[0]
-                            ) or (
-                                metal1_name == metal2[0]
-                                and ligand_name == ligand[0]
-                                and metal2_name == metal1[0]
-                            ):
-                                angles[VALUE_ANGLE][i] = str(round(val, 3))
-                                angles[VALUE_ANGLE_ESD][i] = str(round(std, 3))
-                                found = True
-                                break
-                        if not found:
-                            angles[COMP_ID].append(name)
-                            angles[ATOM_ID_1].append(metal1[0])
-                            angles[ATOM_ID_2].append(ligand[0])
-                            angles[ATOM_ID_3].append(metal2[0])
-                            angles[VALUE_ANGLE].append(str(round(val, 3)))
-                            angles[VALUE_ANGLE_ESD].append(str(round(std, 3)))
-            
+                            angles[VALUE_ANGLE][i] = str(round(val, 3))
+                            angles[VALUE_ANGLE_ESD][i] = str(round(std, 3))
+                            found = True
+                            break
+                    if not found:
+                        angles[COMP_ID].append(name)
+                        angles[ATOM_ID_1].append(metal1[0])
+                        angles[ATOM_ID_2].append(ligand[0])
+                        angles[ATOM_ID_3].append(metal2[0])
+                        angles[VALUE_ANGLE].append(str(round(val, 3)))
+                        angles[VALUE_ANGLE_ESD].append(str(round(std, 3)))
+
+
 def update_cif(output_path, path, pdb, use_cif=False, clazz=None):
     """
     Update the CIF file with ligand information.
@@ -844,7 +874,6 @@ def update_cif(output_path, path, pdb, use_cif=False, clazz=None):
     # inside update_cif function replace the $SELECTION_PLACEHOLDER$ section with:
     update_ace_drg(block, name)
 
-
     # Modified $SELECTION_PLACEHOLDER$ code:
     atoms = get_atoms_category(block)
     atoms = update_energy_in_atoms(block, atoms)
@@ -852,11 +881,11 @@ def update_cif(output_path, path, pdb, use_cif=False, clazz=None):
 
     bonds = get_category_with_warning(block, BOND_CATEGORY, BOND_CATEGORY)
     angles = block.get_mmcif_category(ANGLE_CATEGORY)
-    
+
     if not contains_metal(atoms):
         Logger().info(f"No metal found in {name}")
         return
-    
+
     if use_cif:
         pdb_stats, metal_pair_stats = find_classes_cif(name, atoms, bonds, clazz=clazz)
     else:
@@ -864,7 +893,12 @@ def update_cif(output_path, path, pdb, use_cif=False, clazz=None):
             pdb = choose_best_pdb(name)
 
         pdb_stats, metal_pair_stats = find_classes_pdb(
-            name, pdb, get_bonds(atoms, bonds), get_metal_metal_bonds(atoms, bonds), only_best=True, clazz=clazz
+            name,
+            pdb,
+            get_bonds(atoms, bonds),
+            get_metal_metal_bonds(atoms, bonds),
+            only_best=True,
+            clazz=clazz,
         )
 
     if not use_cif and pdb_stats.is_empty():
@@ -926,14 +960,13 @@ def update_cif(output_path, path, pdb, use_cif=False, clazz=None):
     Path(directory).mkdir(exist_ok=True, parents=True)
     with open(report_path, "w", encoding="utf-8") as json_file:
         json.dump(pdb_stats.json(), json_file, indent=4, separators=(",", ": "))
-    
+
     with open(metal_metal_path, "w", encoding="utf-8") as json_file:
         json.dump(metal_metal_json, json_file, indent=4, separators=(",", ": "))
 
     if Config().save:
         save_cods(pdb_stats, os.path.dirname(output_path))
     Logger().info(f"Report written to {report_path}")
-      
 
 
 def get_stats(ligand, pdb, output, clazz=None):
@@ -977,13 +1010,14 @@ def get_ligand_stats(ligand, pdb, output, clazz=None):
     metal_metal_path = output + ".metal_metal.json"
     with open(output, "w", encoding="utf-8") as json_file:
         json.dump(results, json_file, indent=4, separators=(",", ": "))
-   
+
     with open(metal_metal_path, "w", encoding="utf-8") as json_file:
         json.dump(metal_metal_json, json_file, indent=4, separators=(",", ": "))
     if Config().save:
         save_cods(pdb_stats, os.path.dirname(output))
 
     Logger().info(f"Report written to {output}")
+
 
 def get_stats_for_all_ligands(pdb, output, clazz=None):
     """
@@ -1014,4 +1048,6 @@ def get_stats_for_all_ligands(pdb, output, clazz=None):
     else:
         pdb_name = pdb
     for ligand in monomers_with_metals:
-        get_stats(ligand, pdb, os.path.join(output, f"{pdb_name}_{ligand}.json"), clazz=clazz)
+        get_stats(
+            ligand, pdb, os.path.join(output, f"{pdb_name}_{ligand}.json"), clazz=clazz
+        )
