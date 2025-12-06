@@ -540,6 +540,7 @@ class Ligand:
         #     return
 
         self._ligands.append(ligand)
+        self._ligands = sorted(self._ligands, key=lambda x: x.atom.name)
 
     def add_extra_ligand(self, ligand: IAtom):
         """
@@ -550,6 +551,7 @@ class Ligand:
         """
 
         self._extra_ligands.append(ligand)
+        self._extra_ligands = sorted(self._extra_ligands, key=lambda x: x.atom.name)
 
     def elements(self):
         """

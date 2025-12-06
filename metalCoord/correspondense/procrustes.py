@@ -753,8 +753,7 @@ def fit(coords: np.ndarray, ideal_coords: np.ndarray, groups: tuple = None, all:
         distances, approxs, c, r, indices, rotated = fit_group(
             coords, ideal_coords, groups)
 
-
-    min_arg = np.argmin(distances)
+    min_arg = np.argmin(np.round(distances, decimals=2))
     if all:
         return (distances, indices, distances[min_arg].squeeze(), rotated)
     
