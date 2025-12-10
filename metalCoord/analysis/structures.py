@@ -107,8 +107,9 @@ class Atom(IAtom):
         self._symmetry = mark.image_idx if mark else 0
         self._st = st
         self._metal = metal
+
         self._symmetry_operator = (
-            st.find_spacegroup().operations().sym_ops[self._symmetry].triplet()
+            list(st.find_spacegroup().operations())[self._symmetry].triplet()
         )
 
     @property
