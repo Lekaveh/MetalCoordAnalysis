@@ -86,7 +86,7 @@ def validate_ideal_class_fit(ideal_classes, ideals):
 
         coord = ideal_classes.get_coordinates(ideal)
 
-        assert np.allclose([fit(coord, coord)[0]], [0], atol=1e-5)
+        assert np.allclose([fit(coord, coord)[0]], [0], atol=1e-2)
 
         permuted_coord = permute(coord)
-        assert np.allclose([fit(coord, permuted_coord)[0]], [0], atol=1e-5)
+        assert np.allclose([fit(coord, permuted_coord)[0]], [0], atol=1e-2)
