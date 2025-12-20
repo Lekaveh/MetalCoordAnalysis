@@ -600,6 +600,29 @@ class Ligand:
         return [
             ligand.atom.element.name for ligand in self._ligands + self._extra_ligands
         ]
+    
+    def atom_names_with_symmetries(self):
+        """
+        Returns a list of names with symmetries for all ligands and extra ligands.
+
+        Returns:
+            A list of  names.
+        """
+        return [self._metal.name] + [
+            f"{ligand.name} {'(' + str(ligand.symmetry) + ')' if ligand.symmetry else ''}"
+            for ligand in self._ligands + self._extra_ligands
+        ]
+    
+    def element_names(self):
+        """
+        Returns a list of names with symmetries for all ligands and extra ligands.
+
+        Returns:
+            A list of  names.
+        """
+        return [self._metal.atom.element.name] + [
+            ligand.atom.element.name for ligand in self._ligands + self._extra_ligands
+        ]
 
     def code(self):
         """

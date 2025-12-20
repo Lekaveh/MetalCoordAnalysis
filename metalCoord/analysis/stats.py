@@ -31,7 +31,12 @@ def get_coordinate(file_data: pd.DataFrame) -> np.ndarray:
     Returns:
     numpy.ndarray: A 2D array containing the metal and ligand coordinates.
     """
-    return np.vstack([file_data[["MetalX", "MetalY", "MetalZ"]].values[:1], file_data[["LigandX", "LigandY", "LigandZ"]].values])
+    return np.vstack(
+        [
+            file_data[["MetalX", "MetalY", "MetalZ"]].values[:1],
+            file_data[["LigandX", "LigandY", "LigandZ"]].values,
+        ]
+    )
 
 
 def get_groups(atoms1, atoms2):
@@ -67,7 +72,7 @@ def euclidean(coords1, coords2):
     Returns:
     float: The Euclidean distance between the two sets of coordinates.
     """
-    return np.sqrt(np.sum((coords1 - coords2)**2))
+    return np.sqrt(np.sum((coords1 - coords2) ** 2))
 
 
 def angle(metal, ligand1, ligand2):
@@ -84,11 +89,10 @@ def angle(metal, ligand1, ligand2):
     """
     a = metal - ligand1
     b = metal - ligand2
-    a = np.array(a)/np.linalg.norm(a)
-    b = np.array(b)/np.linalg.norm(b)
+    a = np.array(a) / np.linalg.norm(a)
+    b = np.array(b) / np.linalg.norm(b)
     cosine_angle = np.clip(np.dot(a, b), -1.0, 1.0)
     return np.rad2deg(np.arccos(cosine_angle))
-
 
 
 class StatsFinder(ABC):
@@ -139,9 +143,16 @@ class StatsFinder(ABC):
         for i in range(1, structure.coordination()):
             for j in range(i + 1, structure.coordination() + 1):
                 a = angle(
-                    ideal_ligand_coord[0], ideal_ligand_coord[i], ideal_ligand_coord[j])
+                    ideal_ligand_coord[0], ideal_ligand_coord[i], ideal_ligand_coord[j]
+                )
                 std = 5.000
-                yield AngleStats(Atom(ligands[i - 1]), Atom(ligands[j - 1]), a, std, is_ligand=i <= n1 and j <= n1)
+                yield AngleStats(
+                    Atom(ligands[i - 1]),
+                    Atom(ligands[j - 1]),
+                    a,
+                    std,
+                    is_ligand=i <= n1 and j <= n1,
+                )
 
     def add_ideal_angels(self, structure, class_result, clazz_stats):
         """
@@ -161,7 +172,12 @@ class StatsFinder(ABC):
                 clazz_stats.add_angle(ideal_angle)
         return clazz_stats
 
-    def _create_covalent_distance_stats(self, structure: metalCoord.analysis.structures.Ligand, l: metalCoord.analysis.structures.Atom, description: str = "") -> DistanceStats:
+    def _create_covalent_distance_stats(
+        self,
+        structure: metalCoord.analysis.structures.Ligand,
+        l: metalCoord.analysis.structures.Atom,
+        description: str = "",
+    ) -> DistanceStats:
         """
         Create covalent distance statistics for a ligand and an atom.
 
@@ -174,7 +190,17 @@ class StatsFinder(ABC):
             DistanceStats: The covalent distance statistics.
 
         """
-        return DistanceStats(Atom(l), np.array([gemmi.Element(l.atom.element.name).covalent_r + gemmi.Element(structure.metal.atom.element.name).covalent_r]), np.array([0.2]), description=description)
+        return DistanceStats(
+            Atom(l),
+            np.array(
+                [
+                    gemmi.Element(l.atom.element.name).covalent_r
+                    + gemmi.Element(structure.metal.atom.element.name).covalent_r
+                ]
+            ),
+            np.array([0.2]),
+            description=description,
+        )
 
 
 class FileStatsFinder(StatsFinder):
@@ -193,6 +219,7 @@ class FileStatsFinder(StatsFinder):
     @abstractmethod
     def _calculate(self, stucture, clazz, main_proc_dist):
         pass
+
 
 def create_gemmi_structure(df, coords):
     """
@@ -214,27 +241,35 @@ def create_gemmi_structure(df, coords):
         # Create metal residue and add metal atom
         if atom_number == 1:
             metal_atom = gemmi.Atom()
-            metal_atom.name = row['MetalName']
-            metal_atom.element = gemmi.Element(row['Metal'])
+            metal_atom.name = row["MetalName"]
+            metal_atom.element = gemmi.Element(row["Metal"])
             # metal_atom.pos = gemmi.Position(row['MetalX'], row['MetalY'], row['MetalZ'])
-            metal_atom.pos = gemmi.Position(coords[atom_number - 1, 0], coords[atom_number - 1, 2], coords[atom_number - 1, 1])
+            metal_atom.pos = gemmi.Position(
+                coords[atom_number - 1, 0],
+                coords[atom_number - 1, 2],
+                coords[atom_number - 1, 1],
+            )
             metal_atom.serial = atom_number
             residue.add_atom(metal_atom)
             atom_number += 1
-       
+
         # Create ligand residue and add ligand atom
         ligand_atom = gemmi.Atom()
-        ligand_atom.name = row['LigandName']
-        ligand_atom.element = gemmi.Element(row['Ligand'])
+        ligand_atom.name = row["LigandName"]
+        ligand_atom.element = gemmi.Element(row["Ligand"])
         # ligand_atom.pos = gemmi.Position(row['LigandX'], row['LigandY'], row['LigandZ'])
-        ligand_atom.pos = gemmi.Position(coords[atom_number - 1, 0], coords[atom_number - 1, 2], coords[atom_number - 1, 1])
+        ligand_atom.pos = gemmi.Position(
+            coords[atom_number - 1, 0],
+            coords[atom_number - 1, 2],
+            coords[atom_number - 1, 1],
+        )
         ligand_atom.serial = atom_number
         residue.add_atom(ligand_atom)
         atom_number += 1
 
-    chain = gemmi.Chain('A')
+    chain = gemmi.Chain("A")
     chain.add_residue(residue)
-    model = gemmi.Model('1')
+    model = gemmi.Model("1")
     model.add_chain(chain)
 
     # Save to PDB
@@ -243,7 +278,9 @@ def create_gemmi_structure(df, coords):
     return structure
 
 
-def create_descriptor(class_result: ClassificationResult, structure: metalCoord.analysis.structures.Ligand) -> str:
+def create_descriptor(
+    class_result: ClassificationResult, structure: metalCoord.analysis.structures.Ligand
+) -> str:
     """
     Create a compact descriptor string for a classified ligand structure.
 
@@ -302,9 +339,17 @@ def create_descriptor(class_result: ClassificationResult, structure: metalCoord.
         "@<code>{Fe,O,C,N}"
     where "<code>" is the result of idealClasses.get_class_code(5).
     """
-    inv_index = class_result.order
+    inv_index = class_result.lexicographic_order(
+        structure.atom_names_with_symmetries(), structure.element_names()
+    )
     atoms = np.array([structure.metal.element] + structure.atoms())
-    return  f"@{idealClasses.get_class_code(class_result.clazz)}" + "{"  + f"{','.join(atoms[inv_index])}" + "}"
+    return (
+        f"@{idealClasses.get_class_code(class_result.clazz)}"
+        + "{"
+        + f"{','.join(atoms[inv_index])}"
+        + "}"
+    )
+
 
 class StrictCorrespondenceStatsFinder(FileStatsFinder):
     def _calculate(self, structure, class_result):
@@ -312,7 +357,7 @@ class StrictCorrespondenceStatsFinder(FileStatsFinder):
 
         if class_result.clazz in self._classes:
             files = self._files[class_result.clazz]
-            
+
             if Config().use_pdb:
                 pattern_ligand_coord = structure.get_coord()
             else:
@@ -327,56 +372,97 @@ class StrictCorrespondenceStatsFinder(FileStatsFinder):
                 files = np.random.choice(files, MAX_FILES, replace=False)
 
             cods = {}
-            
-            for file in tqdm(files, desc=f"{class_result.clazz} ligands", leave=False, disable=not Logger().progress_bars):
+
+            for file in tqdm(
+                files,
+                desc=f"{class_result.clazz} ligands",
+                leave=False,
+                disable=not Logger().progress_bars,
+            ):
                 file_data = self._finder.data(file)
                 m_ligand_coord = get_coordinate(file_data)
                 m_ligand_atoms = np.insert(
-                    file_data[["Ligand"]].values.ravel(), 0, structure.metal.atom.name)
+                    file_data[["Ligand"]].values.ravel(), 0, structure.metal.atom.name
+                )
 
-                groups = get_groups(o_ligand_atoms,  m_ligand_atoms)
+                groups = get_groups(o_ligand_atoms, m_ligand_atoms)
 
                 proc_dists, indices, _, rotateds = fit(
-                    pattern_ligand_coord, m_ligand_coord, groups=groups, all=True)
+                    pattern_ligand_coord, m_ligand_coord, groups=groups, all=True
+                )
 
                 m = n
                 for proc_dist, index, rotated in zip(proc_dists, indices, rotateds):
                     if proc_dist >= Config().procrustes_thr():
                         continue
 
-                    sum_coords += (rotated[index] - rotated[index][0])
+                    sum_coords += rotated[index] - rotated[index][0]
                     n = n + 1
 
                     procrustes_dists.append(proc_dist)
-                    distances.append(np.sqrt(np.sum(
-                        (m_ligand_coord[index][0] - m_ligand_coord[index])**2, axis=1))[1:].tolist())
-                    angles.append([angle(m_ligand_coord[index][0], m_ligand_coord[index][i], m_ligand_coord[index][j]) for i in range(
-                        1, len(pattern_ligand_coord) - 1) for j in range(i + 1, len(pattern_ligand_coord))])
-                   
+                    distances.append(
+                        np.sqrt(
+                            np.sum(
+                                (m_ligand_coord[index][0] - m_ligand_coord[index]) ** 2,
+                                axis=1,
+                            )
+                        )[1:].tolist()
+                    )
+                    angles.append(
+                        [
+                            angle(
+                                m_ligand_coord[index][0],
+                                m_ligand_coord[index][i],
+                                m_ligand_coord[index][j],
+                            )
+                            for i in range(1, len(pattern_ligand_coord) - 1)
+                            for j in range(i + 1, len(pattern_ligand_coord))
+                        ]
+                    )
+
                 if m < n:
                     cods[file] = create_gemmi_structure(file_data, rotateds[0])
             procrustes_dists = np.array(procrustes_dists)
             distances = np.array(distances).T
             angles = np.array(angles).T
 
-            if (len(distances) > 0 and distances.shape[1] >= Config().min_sample_size):
-                
+            if len(distances) > 0 and distances.shape[1] >= Config().min_sample_size:
+
                 clazz_stats = LigandStats(
-                    class_result.clazz, create_descriptor(class_result, structure), class_result.order, class_result.proc, structure.coordination(), distances.shape[1], self._finder.description())
+                    class_result.clazz,
+                    create_descriptor(class_result, structure),
+                    class_result.lexicographic_order(structure.atom_names_with_symmetries(), structure.element_names()),
+                    class_result.proc,
+                    structure.coordination(),
+                    distances.shape[1],
+                    self._finder.description(),
+                )
                 for file, st in cods.items():
                     clazz_stats.add_cod_file(file, st)
 
-                sum_coords = sum_coords/n
+                sum_coords = sum_coords / n
 
                 for i, l in enumerate(list(structure.ligands)):
                     dist, std = modes(distances[i])
-                    clazz_stats.add_bond(DistanceStats(
-                        Atom(l), dist, std, distances[i], procrustes_dists))
+                    clazz_stats.add_bond(
+                        DistanceStats(
+                            Atom(l), dist, std, distances[i], procrustes_dists
+                        )
+                    )
 
                 for i, l in enumerate(list(structure.extra_ligands)):
                     dist, std = modes(distances[i + structure.ligands_len])
-                    clazz_stats.add_pdb_bond(DistanceStats(Atom(l), dist, std, euclidean(
-                        sum_coords[i + 1 + structure.ligands_len], sum_coords[0]), procrustes_dists))
+                    clazz_stats.add_pdb_bond(
+                        DistanceStats(
+                            Atom(l),
+                            dist,
+                            std,
+                            euclidean(
+                                sum_coords[i + 1 + structure.ligands_len], sum_coords[0]
+                            ),
+                            procrustes_dists,
+                        )
+                    )
 
                 if Config().ideal_angles:
                     self.add_ideal_angels(structure, class_result, clazz_stats)
@@ -387,8 +473,17 @@ class StrictCorrespondenceStatsFinder(FileStatsFinder):
                     for i in range(structure.coordination() - 1):
                         for j in range(i + 1, structure.coordination()):
                             a, std = calculate_stats(angles[k])
-                            clazz_stats.add_angle(AngleStats(Atom(ligands[i]), Atom(
-                                ligands[j]), a, std, is_ligand=i < n1 and j < n1, angles=angles[k], procrustes_dists=procrustes_dists))
+                            clazz_stats.add_angle(
+                                AngleStats(
+                                    Atom(ligands[i]),
+                                    Atom(ligands[j]),
+                                    a,
+                                    std,
+                                    is_ligand=i < n1 and j < n1,
+                                    angles=angles[k],
+                                    procrustes_dists=procrustes_dists,
+                                )
+                            )
                             k += 1
 
                 return clazz_stats
@@ -412,26 +507,39 @@ class WeekCorrespondenceStatsFinder(FileStatsFinder):
                 files = np.random.choice(files, MAX_FILES, replace=False)
 
             cods = {}
-            for file in tqdm(files, desc=f"{class_result.clazz} ligands", leave=False, disable=not Logger().progress_bars):
+            for file in tqdm(
+                files,
+                desc=f"{class_result.clazz} ligands",
+                leave=False,
+                disable=not Logger().progress_bars,
+            ):
                 file_data = self._finder.data(file)
 
                 m_ligand_coord = get_coordinate(file_data)
-                proc_dist, _, _, r, _ = fit(
-                    pattern_ligand_coord, m_ligand_coord)
+                proc_dist, _, _, r, _ = fit(pattern_ligand_coord, m_ligand_coord)
 
                 if proc_dist < Config().procrustes_thr():
-                    distances.append(np.sqrt(np.sum(
-                        (m_ligand_coord[0] - m_ligand_coord)**2, axis=1))[1:].tolist())
-                    lig_names.append(
-                        file_data[["Ligand"]].values.ravel().tolist())
-                    cods[file] = create_gemmi_structure(file_data, m_ligand_coord@r)
+                    distances.append(
+                        np.sqrt(
+                            np.sum((m_ligand_coord[0] - m_ligand_coord) ** 2, axis=1)
+                        )[1:].tolist()
+                    )
+                    lig_names.append(file_data[["Ligand"]].values.ravel().tolist())
+                    cods[file] = create_gemmi_structure(file_data, m_ligand_coord @ r)
 
             distances = np.array(distances).T
             lig_names = np.array(lig_names).T
 
-            if (len(distances) > 0 and distances.shape[1] >= Config().min_sample_size):
+            if len(distances) > 0 and distances.shape[1] >= Config().min_sample_size:
                 clazz_stats = LigandStats(
-                    class_result.clazz, create_descriptor(class_result, structure), class_result.order, class_result.proc, structure.coordination(), distances.shape[1], self._finder.description())
+                    class_result.clazz,
+                    create_descriptor(class_result, structure),
+                    class_result.lexicographic_order(structure.atom_names_with_symmetries(), structure.element_names()),
+                    class_result.proc,
+                    structure.coordination(),
+                    distances.shape[1],
+                    self._finder.description(),
+                )
                 for file, st in cods.items():
                     clazz_stats.add_cod_file(file, st)
 
@@ -439,8 +547,7 @@ class WeekCorrespondenceStatsFinder(FileStatsFinder):
 
                 results = {}
                 for element in np.unique(lig_names):
-                    element_distances = distances.ravel(
-                    )[lig_names.ravel() == element]
+                    element_distances = distances.ravel()[lig_names.ravel() == element]
 
                     if element_distances.size == 1:
                         results[element] = modes(element_distances)
@@ -453,16 +560,21 @@ class WeekCorrespondenceStatsFinder(FileStatsFinder):
                         clazz_stats.add_bond(DistanceStats(Atom(l), dist, std))
                     else:
                         clazz_stats.add_bond(
-                            self._create_covalent_distance_stats(structure, l, "Covalent distance"))
+                            self._create_covalent_distance_stats(
+                                structure, l, "Covalent distance"
+                            )
+                        )
 
                 for l in structure.extra_ligands:
                     if l.atom.element.name in results:
                         dist, std = results[l.atom.element.name]
-                        clazz_stats.add_pdb_bond(
-                            DistanceStats(Atom(l), dist, std))
+                        clazz_stats.add_pdb_bond(DistanceStats(Atom(l), dist, std))
                     else:
                         clazz_stats.add_pdb_bond(
-                            self._create_covalent_distance_stats(structure, l, "Covalent distance"))
+                            self._create_covalent_distance_stats(
+                                structure, l, "Covalent distance"
+                            )
+                        )
 
                 self.add_ideal_angels(structure, class_result, clazz_stats)
 
@@ -478,28 +590,45 @@ class OnlyDistanceStatsFinder(StatsFinder):
     def get_stats(self, structure, data, class_result):
         self._finder.load(structure, data)
         data = self._finder.data("")
-        clazz_stats = LigandStats(class_result.clazz, create_descriptor(class_result, structure), class_result.order, class_result.proc,
-                                 structure.coordination(), -1, self._finder.description())
+        clazz_stats = LigandStats(
+            class_result.clazz,
+            create_descriptor(class_result, structure),
+            class_result.lexicographic_order(structure.atom_names_with_symmetries(), structure.element_names()),
+            class_result.proc,
+            structure.coordination(),
+            -1,
+            self._finder.description(),
+        )
 
         for l in structure.ligands:
             dist, std, count = DB.get_distance_stats(
-                structure.metal.atom.element.name, l.atom.element.name)
+                structure.metal.atom.element.name, l.atom.element.name
+            )
             if count > 0:
-                clazz_stats.add_bond(DistanceStats(
-                    Atom(l), np.array([dist]), np.array([std])))
+                clazz_stats.add_bond(
+                    DistanceStats(Atom(l), np.array([dist]), np.array([std]))
+                )
             else:
                 clazz_stats.add_bond(
-                    self._create_covalent_distance_stats(structure, l, "Covalent distance"))
+                    self._create_covalent_distance_stats(
+                        structure, l, "Covalent distance"
+                    )
+                )
 
         for l in structure.extra_ligands:
             dist, std, count = DB.get_distance_stats(
-                structure.metal.atom.element.name, l.atom.element.name)
+                structure.metal.atom.element.name, l.atom.element.name
+            )
             if count > 0:
-                clazz_stats.add_pdb_bond(DistanceStats(
-                    Atom(l), np.array([dist]), np.array([std])))
+                clazz_stats.add_pdb_bond(
+                    DistanceStats(Atom(l), np.array([dist]), np.array([std]))
+                )
             else:
                 clazz_stats.add_pdb_bond(
-                    self._create_covalent_distance_stats(structure, l, "Covalent distance"))
+                    self._create_covalent_distance_stats(
+                        structure, l, "Covalent distance"
+                    )
+                )
 
         self.add_ideal_angels(structure, class_result, clazz_stats)
 
@@ -514,16 +643,21 @@ class CovalentStatsFinder(StatsFinder):
         super().__init__(candidateFinder)
 
     def get_stats(self, structure, data, class_result):
-        clazz_stats = LigandStats(class_result.clazz if class_result else "",
-                                 create_descriptor(class_result, structure) if class_result else "", class_result.order if class_result else [], class_result.proc if class_result else -1, structure.coordination(), -1, self._finder.description())
+        clazz_stats = LigandStats(
+            class_result.clazz if class_result else "",
+            create_descriptor(class_result, structure) if class_result else "",
+            class_result.lexicographic_order(structure.atom_names_with_symmetries(), structure.element_names()) if class_result else [],
+            class_result.proc if class_result else -1,
+            structure.coordination(),
+            -1,
+            self._finder.description(),
+        )
 
         for l in structure.ligands:
-            clazz_stats.add_bond(
-                self._create_covalent_distance_stats(structure, l))
+            clazz_stats.add_bond(self._create_covalent_distance_stats(structure, l))
 
         for l in structure.extra_ligands:
-            clazz_stats.add_pdb_bond(
-                self._create_covalent_distance_stats(structure, l))
+            clazz_stats.add_pdb_bond(self._create_covalent_distance_stats(structure, l))
 
         self.add_ideal_angels(structure, class_result, clazz_stats)
 

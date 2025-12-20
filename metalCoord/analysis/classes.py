@@ -119,7 +119,9 @@ class Class:
 
         Reads the data from a CSV file and calculates the class counts.
         """
-        d = os.path.dirname(sys.modules["metalCoord"].__file__)
+        metalcoord_module = sys.modules.get("metalCoord")
+        module_file = getattr(metalcoord_module, "__file__", "") or ""
+        d = os.path.dirname(module_file)
         self.__data = pd.read_csv(os.path.join(d, "data/ideal.csv"))
         self.__classes = self.__data.groupby("Class").size().to_dict()
 
@@ -206,11 +208,11 @@ class ClassificationResult:
     Attributes:
         _clazz (str): The class name.
         _coord (numpy.ndarray): The coordinates of the class.
-        _index (int): The index of the class in the data.
+        _indices (list[int]): The indices of the class in the data
         _proc (float): The Procrustes distance.
     """
 
-    def __init__(self, clazz, coord, index, proc) -> None:
+    def __init__(self, clazz, coord, indices, proc) -> None:
         """
         Initializes a ClassificationResult object.
 
@@ -222,7 +224,7 @@ class ClassificationResult:
         """
         self._clazz = clazz
         self._coord = coord
-        self._index = index
+        self._indices = indices
         self._proc = proc
 
     @property
@@ -246,6 +248,16 @@ class ClassificationResult:
         return self._coord
 
     @property
+    def indices(self):
+        """
+        Gets the indices of the class in the data.
+
+        Returns:
+            list[int]: The indices of the class.
+        """
+        return self._indices
+    
+    @property
     def index(self):
         """
         Gets the index of the class in the data.
@@ -253,7 +265,7 @@ class ClassificationResult:
         Returns:
             int: The index of the class.
         """
-        return self._index
+        return self._indices[0]
 
     @property
     def order(self):
@@ -263,7 +275,8 @@ class ClassificationResult:
         Returns:
             int: The order of the class.
         """
-        return np.argsort(self._index)
+        return np.argsort(self.index)
+    
 
     @property
     def proc(self):
@@ -274,6 +287,39 @@ class ClassificationResult:
             float: The Procrustes distance.
         """
         return self._proc
+    
+
+    def lexicographic_order(
+        self, atom_names: list[str], element_names: list[str]
+    ) -> list[int]:
+        """
+        Gets the lexicographic indices of the class based on element names and atom names.
+
+        Args:
+            atom_names (list[str]): The list of atom names.
+            element_names (list[str]): The list of element names.
+
+        Returns:
+            list[int]: The lexicographic indices in sorted order.
+        """
+        names = np.array(atom_names)
+        elem_array = np.array(element_names)
+        all_names = [
+            " ".join(names[index]) for index in self._indices
+        ]
+        all_element_names = [
+            " ".join(elem_array[index]) for index in self._indices
+        ]
+        combined_names = [
+            f"{elem}_{name}"
+            for name, elem in zip(all_names, all_element_names)
+        ]
+
+
+        min_idx = np.argmin(combined_names)
+        return np.argsort(self._indices[min_idx])
+
+
 
     def __str__(self) -> str:
         """
@@ -312,19 +358,19 @@ class Classificator:
         """
         return self._thr
 
-    def classify(self, structure: Ligand, class_name: str = None):
+    def classify(self, structure: Ligand, class_name: str | None = None):
         """
         Classifies a structure.
 
         Args:
             structure: The structure to classify.
-            class_name (str): The class name to classify the structure
+            class_name (str | None): The class name to classify the structure
 
         Yields:
             ClassificationResult: The classification results.
         """
 
-        """Skipping structures with coordination number > 17 due to performance issues."""
+        # Skip structures with coordination number > 17 due to performance.
         if structure.coordination() > 17:
             return
 
@@ -340,17 +386,19 @@ class Classificator:
             else:
                 if not idealClasses.contains(class_name):
                     raise ValueError(f"Class {class_name} not found.")
-                if structure.coordination() < idealClasses.get_coordination(class_name):
+                class_coord = idealClasses.get_coordination(class_name)
+                struct_name = structure.name_code_with_symmetries()
+
+                if structure.coordination() < class_coord:
                     raise ValueError(
-                        f"Class {class_name} has higher coordination number {idealClasses.get_coordination(class_name)} than {structure.name_code_with_symmetries()}."
+                        f"Class {class_name} has higher coordination number {class_coord} "
+                        f"than {struct_name}."
                     )
 
-                if (
-                    structure.coordination()
-                    > idealClasses.get_coordination(class_name) + 1
-                ):
+                if structure.coordination() > class_coord + 1:
                     raise ValueError(
-                        f"Class {class_name} has lower coordination number {idealClasses.get_coordination(class_name)} than {structure.name_code_with_symmetries()}."
+                        f"Class {class_name} has lower coordination number {class_coord} "
+                        f"than {struct_name}."
                     )
 
                 if (
@@ -361,19 +409,24 @@ class Classificator:
                 clazz = class_name
 
             m_ligand_coord = idealClasses.get_coordinates(clazz)
-            main_proc_dist, _, _, _, index = fit(structure.get_coord(), m_ligand_coord)
-            yield ClassificationResult(clazz, m_ligand_coord, index, main_proc_dist)
+            fit_result = fit(structure.get_coord(), m_ligand_coord, permutations=True)
+            main_proc_dist = fit_result[0]
+            indices = fit_result[-1]
+            yield ClassificationResult(
+                clazz, m_ligand_coord, indices, main_proc_dist
+            )
         else:
             for clazz in idealClasses.get_ideal_classes():
-                if idealClasses.get_coordination(clazz) != structure.coordination():
+                ideal_coordination = idealClasses.get_coordination(clazz)
+                if ideal_coordination != structure.coordination():
                     continue
                 m_ligand_coord = idealClasses.get_coordinates(clazz)
-                main_proc_dist, _, _, _, index = fit(
-                    structure.get_coord(), m_ligand_coord
-                )
+                fit_result = fit(structure.get_coord(), m_ligand_coord, permutations=True)
+                main_proc_dist = fit_result[0]
+                indices = fit_result[-1]
                 if main_proc_dist < self._thr:
                     yield ClassificationResult(
-                        clazz, m_ligand_coord, index, main_proc_dist
+                        clazz, m_ligand_coord, indices, main_proc_dist
                     )
 
 
