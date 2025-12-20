@@ -698,7 +698,7 @@ def find_in_group(groups, index):
 def fit(
     coords: np.ndarray,
     ideal_coords: np.ndarray,
-    groups: tuple | None = None,
+    groups: tuple = None,
     all: bool = False,
     center: bool = True,
     permutations: bool = False,
