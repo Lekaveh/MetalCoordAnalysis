@@ -358,13 +358,13 @@ class Classificator:
         """
         return self._thr
 
-    def classify(self, structure: Ligand, class_name: str | None = None):
+    def classify(self, structure: Ligand, class_name: str  = None):
         """
         Classifies a structure.
 
         Args:
             structure: The structure to classify.
-            class_name (str | None): The class name to classify the structure
+            class_name (str): The class name to classify the structure
 
         Yields:
             ClassificationResult: The classification results.

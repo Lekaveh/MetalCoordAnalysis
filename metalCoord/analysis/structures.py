@@ -110,7 +110,7 @@ class Atom(IAtom):
 
         self._symmetry_operator = (
             list(st.find_spacegroup().operations())[self._symmetry].triplet()
-        )
+        ) if self._symmetry != 0 else "x,y,z"
 
     @property
     def atom(self):
@@ -214,7 +214,6 @@ class Atom(IAtom):
             return ", ".join(parts)
 
         if self.symmetry:
-            # return gemmi.Op(self._symmetry_operator).combine(gemmi.Op(vector_to_symop(self.translation))).triplet()
             return (
                 gemmi.Op(vector_to_symop(self.translation))
                 .combine(gemmi.Op(self._symmetry_operator))
