@@ -342,7 +342,7 @@ def create_descriptor(
     inv_index = class_result.lexicographic_order(
         structure.atom_names_with_symmetries(), structure.element_names()
     )
-    atoms = np.array([structure.metal.element] + structure.atoms())
+    atoms = np.array(structure.element_names())
     return (
         f"@{idealClasses.get_class_code(class_result.clazz)}"
         + "{"

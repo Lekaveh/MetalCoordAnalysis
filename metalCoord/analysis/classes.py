@@ -225,6 +225,7 @@ class ClassificationResult:
         self._clazz = clazz
         self._coord = coord
         self._indices = indices
+        self._inv_indices = np.argsort(indices, axis=1)
         self._proc = proc
 
     @property
@@ -302,23 +303,22 @@ class ClassificationResult:
         Returns:
             list[int]: The lexicographic indices in sorted order.
         """
+
         names = np.array(atom_names)
         elem_array = np.array(element_names)
         all_names = [
-            " ".join(names[index]) for index in self._indices
+            " ".join(names[index]) for index in self._inv_indices
         ]
         all_element_names = [
-            " ".join(elem_array[index]) for index in self._indices
+            " ".join(elem_array[index]) for index in self._inv_indices
         ]
         combined_names = [
             f"{elem}_{name}"
             for name, elem in zip(all_names, all_element_names)
         ]
 
-
         min_idx = np.argmin(combined_names)
-        return np.argsort(self._indices[min_idx])
-
+        return self._inv_indices[min_idx]
 
 
     def __str__(self) -> str:
