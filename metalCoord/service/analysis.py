@@ -601,8 +601,8 @@ def get_ring_angles_stats(metal_stats1: MetalStats, ligand_stats1: LigandStats,
     if not isinstance(ligand_stats2, LigandStats):
         raise TypeError(f"Expected LigandStats for ligand_stats2, got {type(ligand_stats2)}")
 
-    metal1_name, metal1_element, metal1_chain, metal1_residue, metal1_sequence = metal_stats1.code
-    metal2_name, metal2_element, metal2_chain, metal2_residue, metal2_sequence = metal_stats2.code
+    metal1_name, metal1_element, _, _, _ = metal_stats1.code
+    metal2_name, metal2_element, _, _, _ = metal_stats2.code
 
     if metal1_element.upper() not in METALS or metal2_element.upper() not in METALS:
         raise ValueError("Provided metal_atoms are not metals")
@@ -981,7 +981,7 @@ def update_tetragons(name: str, angles: Dict[str, Any], monomer, v: list,
                     ligand1 = cycle[0]
                     ligand2 = cycle[2]
                 metals_stats = [metal_stat_pdb for metal in [metal1, metal2] for metal_stat_pdb in pdb_stats.metals if metal[0] == metal_stat_pdb.metal]
-                has_stat = False
+                has_stats = False
                 if len(metals_stats) == 2:
                     metal1_stats = metals_stats[0]
                     metal2_stats = metals_stats[1]
@@ -991,16 +991,14 @@ def update_tetragons(name: str, angles: Dict[str, Any], monomer, v: list,
                     
                     stat_angles = get_ring_angles_stats(metal1_stats, ligand_stats1, metal2_stats, ligand_stats2)
                     
-                    if stat_angles:
-                        angle1_stat = stat_angles[metal1[0]]
-                        angle2_stat = stat_angles[metal2[0]]
-                        has_stat = True
-                        
-                if has_stat:   
-                    val = stat_angles['S']['angle']
-                    std = stat_angles['S']['std']
-                    
-                else:
+                    if stat_angles and 'S' in stat_angles and 'angle' in stat_angles['S'] and 'std' in stat_angles['S']:
+                        # angle1_stat = stat_angles[metal1[0]] # might be used further
+                        # angle2_stat = stat_angles[metal2[0]] # might be used further
+                        val = stat_angles['S']['angle']
+                        std = stat_angles['S']['std']
+                        has_stats = True
+                            
+                if not(has_stats):
                     angle1 = monomer.get_angle(metal1[0], ligand1, ligand2)
                     angle2 = monomer.get_angle(metal2[0], ligand1, ligand2)
     
