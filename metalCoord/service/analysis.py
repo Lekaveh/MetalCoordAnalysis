@@ -510,6 +510,7 @@ def build_angle_classifier() -> AngleStatClassifier:
                                 result=lambda r: { # most of 4 coord metals in ring have these stats
                                     r.metal_name: {'angle': 104.89, 'std': 4.13},
                                     r.other_metal_name: {'angle': 104.89, 'std': 4.13},
+                                    'S': {'angle': 74.47, 'std': 4.05},
                                 }
                             ),
                             None: AngleStatClassifier(result=lambda r: {}), # unknown / add more variations
@@ -526,6 +527,7 @@ def build_angle_classifier() -> AngleStatClassifier:
                                 result=lambda r: { # most of 5 coord metals in ring have these stats
                                     r.metal_name: {'angle': 84.77, 'std': 1.10},
                                     r.other_metal_name: {'angle': 84.77, 'std': 1.10},
+                                    'S': {'angle': 68.06, 'std': 1.18}, 
                                 }
                             ),
                             None: AngleStatClassifier(result=lambda r: {}), # unknown / add more variations
@@ -542,6 +544,7 @@ def build_angle_classifier() -> AngleStatClassifier:
                                 result=lambda r: {  # most of 6 coord metals in ring have these stats
                                     r.metal_name: {'angle': 82.35, 'std': 2.56},
                                     r.other_metal_name: {'angle': 82.35, 'std': 2.56},
+                                    'S': {'angle': 95.47, 'std': 3.25}, # hardcoded, there is geometrical differences
                                 }
                             ),
                             None: AngleStatClassifier(result=lambda r: {}), # unknown / add more variations
@@ -994,8 +997,8 @@ def update_tetragons(name: str, angles: Dict[str, Any], monomer, v: list,
                         has_stat = True
                         
                 if has_stat:   
-                    val = (360 - angle1_stat['angle'] - angle2_stat['angle']) / 2
-                    std = ((angle1_stat['std'] ** 2 + angle1_stat['std'] ** 2) ** 0.5) / 2
+                    val = stat_angles['S']['angle']
+                    std = stat_angles['S']['std']
                     
                 else:
                     angle1 = monomer.get_angle(metal1[0], ligand1, ligand2)
