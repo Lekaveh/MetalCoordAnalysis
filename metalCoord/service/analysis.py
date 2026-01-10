@@ -1,10 +1,11 @@
+from dataclasses import dataclass
 from collections import defaultdict
 import re
 import json
 import os
 from pathlib import Path
 import sys
-from typing import Dict, Any, Tuple, Optional
+from typing import Dict, Any, Tuple, Optional, Union, Callable
 
 import gemmi
 import networkx as nx
@@ -12,7 +13,7 @@ import metalCoord
 from metalCoord.analysis.classify import find_classes_pdb, find_classes_cif, read_structure
 
 from metalCoord.analysis.metal import MetalPairStatsService
-from metalCoord.analysis.models import PdbStats
+from metalCoord.analysis.models import DistanceStats, LigandStats, PdbStats, MetalStats
 from metalCoord.config import Config
 from metalCoord.logging import Logger
 from metalCoord.cif.utils import (
@@ -449,6 +450,214 @@ def update_energy_in_atoms(block: gemmi.cif.Block, atoms: Dict[str, Any]) -> Dic
         return new_atoms
     return atoms
 
+#################################################################################################################
+
+
+
+@dataclass
+class RingStats:
+    ring_type: Optional[str]
+    coordination: int
+    other_coordination: int
+    class_name: str
+    other_class_name: str
+    metal_name: str
+    other_metal_name: str
+    
+
+class AngleStatClassifier:
+    def __init__(
+        self,
+        condition: Optional[Callable[[RingStats], Any]] = None,
+        statistics: Optional[Dict[Any, "AngleStatClassifier"]] = None,
+        result: Optional[Union[Callable[[RingStats], Dict], Dict]] = None
+    ):
+        self.condition = condition
+        self.statistics = statistics or {}
+        self.result = result
+
+    def get_angles_stats(self, ring_stats: RingStats) -> Dict:
+        if self.result is not None:
+            return self.result(ring_stats) if callable(self.result) else self.result
+        if self.condition is None:
+            raise ValueError("No condition defined for classifier node")
+        key = self.condition(ring_stats)
+        child = self.statistics.get(key)
+        if child is None:
+            return {}  
+        return child.get_angles_stats(ring_stats)
+
+
+def build_angle_classifier() -> AngleStatClassifier:
+    return AngleStatClassifier(
+        condition=lambda r: r.ring_type if r.ring_type is not None else "other",
+        statistics={
+            "s-fe-s-fe": AngleStatClassifier(
+                condition=lambda r: (
+                    (r.coordination, r.other_coordination)
+                    if r.coordination == r.other_coordination and r.coordination in {4, 5, 6, 8}
+                    else None
+                ),
+                statistics={
+                    (4, 4): AngleStatClassifier(
+                        condition=lambda r: (
+                            (r.class_name, r.other_class_name)
+                            if r.class_name == 'tetrahedral' and r.other_class_name == 'tetrahedral'  # to improve
+                            else None
+                        ),
+                        statistics={
+                            ('tetrahedral', 'tetrahedral'): AngleStatClassifier(
+                                result=lambda r: { # most of 4 coord metals in ring have these stats
+                                    r.metal_name: {'angle': 104.89, 'std': 4.13},
+                                    r.other_metal_name: {'angle': 104.89, 'std': 4.13},
+                                    'S': {'angle': 74.47, 'std': 4.05},
+                                }
+                            ),
+                            None: AngleStatClassifier(result=lambda r: {}), # unknown / add more variations
+                        }
+                    ),
+                    (5, 5): AngleStatClassifier(
+                        condition=lambda r: (
+                            (r.class_name, r.other_class_name)
+                            if r.class_name == 'square-pyramid' and r.other_class_name == 'square-pyramid'  # to improve
+                            else None
+                        ),
+                        statistics={
+                            ('square-pyramid', 'square-pyramid'): AngleStatClassifier(
+                                result=lambda r: { # most of 5 coord metals in ring have these stats
+                                    r.metal_name: {'angle': 84.77, 'std': 1.10},
+                                    r.other_metal_name: {'angle': 84.77, 'std': 1.10},
+                                    'S': {'angle': 68.06, 'std': 1.18}, 
+                                }
+                            ),
+                            None: AngleStatClassifier(result=lambda r: {}), # unknown / add more variations
+                        }
+                    ),
+                    (6, 6): AngleStatClassifier(
+                        condition=lambda r: (
+                            (r.class_name, r.other_class_name)
+                            if r.class_name == 'octahedral' and r.other_class_name == 'octahedral'  # to improve
+                            else None
+                        ),
+                        statistics={
+                            ('octahedral', 'octahedral'): AngleStatClassifier(
+                                result=lambda r: {  # most of 6 coord metals in ring have these stats
+                                    r.metal_name: {'angle': 82.35, 'std': 2.56},
+                                    r.other_metal_name: {'angle': 82.35, 'std': 2.56},
+                                    'S': {'angle': 95.47, 'std': 3.25}, # hardcoded, there is geometrical differences
+                                }
+                            ),
+                            None: AngleStatClassifier(result=lambda r: {}), # unknown / add more variations
+                        }
+                    ),
+                    (8, 8): AngleStatClassifier(result=lambda r: {}),  # ambiguities
+                    None: AngleStatClassifier(result=lambda r: {}),   # unknown / add more variations
+                }
+            ),
+            "s-fe-s-m": AngleStatClassifier(result=lambda r: {}), # unknown / add more variations
+            "s-fe-s-nm": AngleStatClassifier(result=lambda r: {}), # unknown / add more variations
+            "other": AngleStatClassifier(result=lambda r: {}), # unknown / add more variations
+        }
+    )
+
+CLASSIFIER = build_angle_classifier()
+METALS = {gemmi.Element(i).name.upper() for i in range(1, 119) if gemmi.Element(i).is_metal}
+
+
+def get_ring_angles_stats(metal_stats1: MetalStats, ligand_stats1: LigandStats,
+              metal_stats2: MetalStats, ligand_stats2: LigandStats) -> Dict[str, Dict[str, float]]:
+    """
+    Estimate approximate bond angles and their variance for a ring.
+
+    This function uses a decision-tree-like classifier to predict angles based on the
+    coordination numbers, coordination geometry classes, and types of two metal atoms
+    connected by shared ligands in a ring.
+
+    The function dynamically computes the angles using a nested `AngleStatClassifier`,
+    which supports multi-level conditional decisions.
+
+    Parameters:
+        metal_stats1 (Atom): The first metal atom object in the ring.
+        ligand_stats1 (LigandStats): Coordination and geometry information for metal_stats1.
+        metal_stats2 (Atom): The second metal atom object in the ring.
+        ligand_stats2 (LigandStats): Coordination and geometry information for metal_stats2.
+
+    Returns:
+        dict: A dictionary mapping metal atom names to their estimated angles and std.
+        If the classifier does not have statistics for a given combination, an empty dict is returned.
+
+    Raises:
+        TypeError: If any of the inputs are not instances of Atom or LigandStats.
+        ValueError: If the provided atoms are not metals or if the coordination numbers are missing.
+        KeyError: If the classifier encounters a combination of properties that is not covered by the decision tree.
+    """
+
+    if not isinstance(metal_stats1, MetalStats):
+        raise TypeError(f"Expected MetalStats for metal_stats1, got {type(metal_stats1)}")
+    if not isinstance(ligand_stats1, LigandStats):
+        raise TypeError(f"Expected LigandStats for ligand_stats1, got {type(ligand_stats1)}")
+    if not isinstance(metal_stats2, MetalStats):
+        raise TypeError(f"Expected MetalStats for metal_stats1, got {type(metal_stats2)}")
+    if not isinstance(ligand_stats2, LigandStats):
+        raise TypeError(f"Expected LigandStats for ligand_stats2, got {type(ligand_stats2)}")
+
+    metal1_name, metal1_element, _, _, _ = metal_stats1.code
+    metal2_name, metal2_element, _, _, _ = metal_stats2.code
+
+    if metal1_element.upper() not in METALS or metal2_element.upper() not in METALS:
+        raise ValueError("Provided metal_atoms are not metals")
+
+    if ligand_stats1.coordination is None:
+        raise ValueError(f"Coordination missing for {metal1_name}")
+    if ligand_stats2.coordination is None:
+        raise ValueError(f"Coordination missing for {metal2_name}")
+
+    # need to check for simpicity of the structures
+
+    atoms_in_ligand2 = (
+        [d.ligand for d in ligand_stats2.bonds] +
+        [d.ligand for d in ligand_stats2.pdb]
+    )
+
+    shared_atoms = [ # using equals methods for finding shared atoms
+        d.ligand
+        for d in (list(ligand_stats1.bonds) + list(ligand_stats1.pdb))
+        for atom2 in atoms_in_ligand2
+        if d.ligand.equals(atom2)
+    ]
+
+    if len(shared_atoms) != 2:
+        raise ValueError(f"Expected exactly 2 shared ligand atoms, got {len(shared_atoms)}") # for now all rings are with len=4
+
+    shared_atom1_name, shared_atom1_element = shared_atoms[0].name, shared_atoms[0].element # hardcoded due to the check above
+    shared_atom2_name, shared_atom2_element = shared_atoms[1].name, shared_atoms[1].element # hardcoded due to the check above
+
+    ring_elements = [metal1_element, shared_atom1_element, metal2_element, shared_atom2_element]
+    metal_ring_count = sum(1 for element in ring_elements if element.upper() in METALS)
+    fe_ring_count = sum(1 for element in ring_elements if element.upper() == "FE")
+    s_ring_count = sum(1 for element in ring_elements if element.upper() == "S")
+
+    ring_type = None
+    if s_ring_count >= 2: # we assume that rings are having 2 atoms of S   
+        if fe_ring_count == 1:
+            ring_type = "s-fe-s-m" if metal_ring_count == 2 else "s-fe-s-nm"
+        elif fe_ring_count == 2 and s_ring_count == 2:
+            ring_type = "s-fe-s-fe"
+
+    ring_stats = RingStats(
+        ring_type=ring_type,
+        coordination=ligand_stats1.coordination,
+        other_coordination=ligand_stats2.coordination,
+        class_name=ligand_stats1.clazz,
+        other_class_name=ligand_stats2.clazz,
+        metal_name=metal1_name,
+        other_metal_name=metal2_name
+    )
+
+    return CLASSIFIER.get_angles_stats(ring_stats)
+
+#################################################################################################################
+
 def count_atoms(atoms: Dict[str, Any]) -> Tuple[int, int]:
     """
     Count the total number of atoms and the number of non-hydrogen atoms.
@@ -727,7 +936,8 @@ def update_angles_category(angles:Dict[str, Any], atoms: Dict[str, Any], bonds :
             angles[VALUE_ANGLE].append(str(round(angle.angle, 3)))
             angles[VALUE_ANGLE_ESD].append(str(round(angle.std, 3)))
 
-def update_tetragons(name: str, angles: Dict[str, Any], monomer, v: list) -> None:
+def update_tetragons(name: str, angles: Dict[str, Any], monomer, v: list, 
+                     pdb_stats: PdbStats) -> None:
         """
         Update angle information for tetragonal coordination cycles within a molecular structure.
 
@@ -770,24 +980,42 @@ def update_tetragons(name: str, angles: Dict[str, Any], monomer, v: list) -> Non
                     metal2 = cycle[3]
                     ligand1 = cycle[0]
                     ligand2 = cycle[2]
-
-                angle1 = monomer.get_angle(metal1[0], ligand1, ligand2)
-                angle2 = monomer.get_angle(metal2[0], ligand1, ligand2)
-
-                if not angle1 or not angle2:
-                    if not angle1:
-                        Logger().warning(
-                            f"Angle {ligand1[0]}- {metal1[0]}-{ligand2[0]} not found in {monomer.code}"
-                        )
-                    if not angle2:
-                        Logger().warning(
-                            f"Angle {ligand1[0]}- {metal2[0]}-{ligand2[0]} not found in {monomer.code}"
-                        )
-                    continue
-
-                val = (360 - angle1.angle - angle2.angle) / 2
-                std = 5.0
-
+                metals_stats = [metal_stat_pdb for metal in [metal1, metal2] for metal_stat_pdb in pdb_stats.metals if metal[0] == metal_stat_pdb.metal]
+                has_stats = False
+                if len(metals_stats) == 2:
+                    metal1_stats = metals_stats[0]
+                    metal2_stats = metals_stats[1]
+                    
+                    ligand_stats1 = pdb_stats.get_best_class(metal1_stats.code[0])
+                    ligand_stats2 = pdb_stats.get_best_class(metal2_stats.code[0])
+                    
+                    stat_angles = get_ring_angles_stats(metal1_stats, ligand_stats1, metal2_stats, ligand_stats2)
+                    
+                    if stat_angles and 'S' in stat_angles and 'angle' in stat_angles['S'] and 'std' in stat_angles['S']:
+                        # angle1_stat = stat_angles[metal1[0]] # might be used further
+                        # angle2_stat = stat_angles[metal2[0]] # might be used further
+                        val = stat_angles['S']['angle']
+                        std = stat_angles['S']['std']
+                        has_stats = True
+                            
+                if not(has_stats):
+                    angle1 = monomer.get_angle(metal1[0], ligand1, ligand2)
+                    angle2 = monomer.get_angle(metal2[0], ligand1, ligand2)
+    
+                    if not angle1 or not angle2:
+                        if not angle1:
+                            Logger().warning(
+                                f"Angle {ligand1[0]}- {metal1[0]}-{ligand2[0]} not found in {monomer.code}"
+                            )
+                        if not angle2:
+                            Logger().warning(
+                                f"Angle {ligand1[0]}- {metal2[0]}-{ligand2[0]} not found in {monomer.code}"
+                            )
+                        continue
+    
+                    val = (360 - angle1.angle - angle2.angle) / 2
+                    std = 5.0
+                    
                 for ligand in [ligand1, ligand2]:
                     if monomer.code == ligand[2:]:
                         found = False
@@ -894,7 +1122,8 @@ def update_cif(output_path, path, pdb, use_cif=False, clazz=None):
                 v.append((metal_stat.code, bond.ligand.code))
 
         Logger().info("update cycles")
-        update_tetragons(name, angles, monomer, v)
+    
+        update_tetragons(name, angles, monomer, v, pdb_stats)
 
         block.set_mmcif_category(ANGLE_CATEGORY, angles)
         Logger().info("Angles updated")
