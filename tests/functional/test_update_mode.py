@@ -1,7 +1,6 @@
 import os
 import re
 import subprocess
-import sys
 from pathlib import Path
 from typing import Any, NamedTuple
 
@@ -25,8 +24,6 @@ ATOM_ID_3 = "atom_id_3"
 VALUE_DIST_NUCLEUS = "value_dist_nucleus"
 VALUE_DIST_NUCLEUS_ESD = "value_dist_nucleus_esd"
 
-
-is_windows = sys.platform.startswith('win')
 
 # TestCase definition
 class UpdateModeTestCase(NamedTuple):
@@ -98,7 +95,9 @@ def temp_dir(test_case: UpdateModeTestCase, tmp_path_factory: pytest.TempPathFac
 
 
 @pytest.fixture
-def cli_output(temp_dir: Path, test_case: UpdateModeTestCase) -> Path:
+def cli_output(
+    temp_dir: Path, test_case: UpdateModeTestCase, cli_cmd
+) -> Path:
     """
     Executes the 'metalCoord update' command with the provided test case parameters
     and verifies the output.
@@ -116,15 +115,18 @@ def cli_output(temp_dir: Path, test_case: UpdateModeTestCase) -> Path:
     pdb = test_case.pdb
     output_path = os.path.join(temp_dir, f"{name}.cif")
 
-    test_args = [
-        'metalCoord', 'update',
-        '-i', input,
-        '-p', pdb,
-        '-o', output_path
-    ]
+    test_args = cli_cmd(
+        "update",
+        "-i",
+        input,
+        "-p",
+        pdb,
+        "-o",
+        output_path,
+    )
 
     result = subprocess.run(
-        test_args, capture_output=True, text=True, check=True, shell=is_windows
+        test_args, capture_output=True, text=True, check=True
     )
 
     assert result.returncode == 0, f"CLI command failed for {name}"

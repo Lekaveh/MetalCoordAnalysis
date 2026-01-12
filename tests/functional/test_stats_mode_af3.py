@@ -1,13 +1,10 @@
 import json
 import os
 import subprocess
-import sys
 from pathlib import Path
 from typing import Any, List, NamedTuple
 
 import pytest
-
-is_windows = sys.platform.startswith("win")
 
 
 class StatsModeTestCase(NamedTuple):
@@ -60,12 +57,11 @@ def temp_dir(
 
 
 @pytest.fixture
-def cli_output(temp_dir: Path, test_case: StatsModeTestCase) -> List:
+def cli_output(temp_dir: Path, test_case: StatsModeTestCase, cli_cmd) -> List:
     """Fixture that runs the CLI command and returns the output data."""
     model = test_case.model
     ligand_name = test_case.ligand_name
-    test_args = [
-        "metalCoord",
+    test_args = cli_cmd(
         "stats",
         "-l",
         ligand_name,
@@ -73,11 +69,11 @@ def cli_output(temp_dir: Path, test_case: StatsModeTestCase) -> List:
         model,
         "-o",
         os.path.join(temp_dir, f"{ligand_name}.json"),
-    ]
+    )
 
     # Run CLI command
     result = subprocess.run(
-        test_args, capture_output=True, text=True, check=True, shell=is_windows
+        test_args, capture_output=True, text=True, check=True
     )
 
     output_path = os.path.join(temp_dir, f"{ligand_name}.json")

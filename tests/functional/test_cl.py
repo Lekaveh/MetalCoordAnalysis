@@ -1,22 +1,25 @@
 import re
-import sys
 import subprocess
 
-is_windows = sys.platform.startswith('win')
-
-def test_help():
+def test_help(cli_cmd):
     """Test basic CLI functionality."""
     result = subprocess.run(
-        ["metalCoord", "--help"], capture_output=True, text=True, check=True, shell = is_windows
+        cli_cmd("--help"),
+        capture_output=True,
+        text=True,
+        check=True,
     )
     assert result.returncode == 0, "CLI help command failed."
     assert "usage" in result.stdout.lower(), "Help output missing 'usage' information."
 
 
-def test_version():
+def test_version(cli_cmd):
     """Test CLI version flag."""
     result = subprocess.run(
-        ["metalCoord", "--version"], capture_output=True, text=True, check=True, shell = is_windows
+        cli_cmd("--version"),
+        capture_output=True,
+        text=True,
+        check=True,
     )
 
     assert result.returncode == 0, "CLI version command failed."

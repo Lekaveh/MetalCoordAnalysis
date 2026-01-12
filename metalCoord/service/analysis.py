@@ -49,8 +49,17 @@ from metalCoord.cif.utils import get_element_name, get_bonds, get_metal_metal_bo
 
 
 
-d = os.path.dirname(sys.modules["metalCoord"].__file__)
-mons = json.load(open(os.path.join(d, "data/mons.json"), encoding="utf-8"))
+_MONS = None
+
+
+def _load_mons():
+    """Lazy-load mons.json to avoid import-time IO."""
+    global _MONS
+    if _MONS is None:
+        d = os.path.dirname(sys.modules["metalCoord"].__file__)
+        with open(os.path.join(d, "data/mons.json"), encoding="utf-8") as handle:
+            _MONS = json.load(handle)
+    return _MONS
 
 
 def decompose(values, n):
@@ -523,6 +532,7 @@ def choose_best_pdb(name: str) -> str:
         - The function logs various informational and warning messages using a Logger instance to track its execution
           and potential issues regarding resolution and occupancy.
     """
+    mons = _load_mons()
     if name not in mons:
         raise ValueError(
             (
