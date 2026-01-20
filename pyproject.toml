@@ -44,6 +44,9 @@ flake8 = "^7.1.2"
 [tool.poetry.plugins."poetry.plugin"]
 "dynamic-versioning" = "poetry_dynamic_versioning.plugin"
 
+[tool.pytest.ini_options]
+pythonpath = ["."]
+
 [tool.poetry-dynamic-versioning]
 enable = true
 
