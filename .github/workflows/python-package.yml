@@ -23,9 +23,9 @@ jobs:
       with:
         python-version: ${{ matrix.python-version }}
 
-    - name: Install Poetry
+    - name: Install Poetry 2.2.0
       run: |
-        curl -sSL https://install.python-poetry.org | python3 -
+        curl -sSL https://install.python-poetry.org | python3 - --version 2.2.0
         echo "$HOME/.local/bin" >> $GITHUB_PATH
 
     - name: Install dependencies with Poetry
