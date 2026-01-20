@@ -6,6 +6,7 @@ import urllib.error
 from metalCoord.service.analysis import update_cif
 
 from metalCoord.cli.commands.common import configure_statistics, log_exception, write_status
+from metalCoord.config import Config
 
 
 def _copy_fixture_output(args) -> bool:
@@ -34,14 +35,14 @@ def _is_network_error(exc: Exception) -> bool:
     return "urlopen error" in str(exc)
 
 
-def handle_update(args) -> None:
+def handle_update(args, config: Config) -> None:
     try:
-        configure_statistics(args)
-        update_cif(args.output, args.input, args.pdb, getattr(args, "cif", False), clazz=args.cl)
-        write_status("Success")
+        configure_statistics(args, config)
+        update_cif(args.output, args.input, args.pdb, config, getattr(args, "cif", False), clazz=args.cl)
+        write_status("Success", config)
     except Exception as exc:
         if _is_network_error(exc) and _copy_fixture_output(args):
-            write_status("Success")
+            write_status("Success", config)
             return
         log_exception(exc)
-        write_status("Failure", reason=str(exc), ensure_dir=True)
+        write_status("Failure", config, reason=str(exc), ensure_dir=True)

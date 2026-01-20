@@ -3,6 +3,7 @@ from metalCoord.cli.commands.pdb import handle_pdb
 from metalCoord.cli.commands.stats import handle_stats
 from metalCoord.cli.commands.update import handle_update
 from metalCoord.cli.parser import create_parser
+from metalCoord.config import Config
 from metalCoord.logging import Logger
 
 
@@ -21,6 +22,7 @@ def main_func():
     Logger().add_handler(True, not args.no_progress)
     Logger().info(
         f"Logging started. Logging level: {Logger().logger.level}")
+    config = Config()
 
     handlers = {
         'update': handle_update,
@@ -30,7 +32,7 @@ def main_func():
     }
     handler = handlers.get(args.command)
     if handler:
-        handler(args)
+        handler(args, config)
     else:
         parser.print_help()
 
