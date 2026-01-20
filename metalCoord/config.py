@@ -1,8 +1,12 @@
 
+from dataclasses import dataclass
+from typing import Optional
 
+
+@dataclass
 class Config:
     """
-    A class representing the configuration settings for MetalCoordAnalysis.
+    Configuration settings for MetalCoordAnalysis.
 
     Attributes:
         distance_threshold (float): The distance threshold for MetalCoordAnalysis.
@@ -10,31 +14,18 @@ class Config:
         min_sample_size (int): The minimum sample size for MetalCoordAnalysis.
     """
 
-    _instance = None
-
-    def __new__(cls, *args, **kwargs):
-        if not cls._instance:
-            cls._instance = super().__new__(cls, *args, **kwargs)
-            cls._instance.__initialized = False
-        return cls._instance
-
-
-    def __init__(self):
-        if self.__initialized:
-            return
-        self.distance_threshold = 0.2
-        self.procrustes_threshold = 0.3
-        self.metal_distance_threshold = 0.3
-        self.min_sample_size = 30
-        self.max_sample_size = None
-        self.simple = False
-        self.save = False
-        self.ideal_angles = False
-        self.use_pdb = False
-        self.max_coordination_number = None
-        self.output_folder = ""
-        self.output_file = ""
-        self.__initialized = True
+    distance_threshold: float = 0.2
+    procrustes_threshold: float = 0.3
+    metal_distance_threshold: float = 0.3
+    min_sample_size: int = 30
+    max_sample_size: Optional[int] = None
+    simple: bool = False
+    save: bool = False
+    ideal_angles: bool = False
+    use_pdb: bool = False
+    max_coordination_number: Optional[int] = None
+    output_folder: str = ""
+    output_file: str = ""
 
     def scale(self) -> float:
         """

@@ -18,9 +18,6 @@ from metalCoord.correspondense.procrustes import fit
 from metalCoord.logging import Logger
 
 
-MAX_FILES = Config().max_sample_size if Config().max_sample_size else 2000
-
-
 def get_coordinate(file_data: pd.DataFrame) -> np.ndarray:
     """
     Get the coordinates of the metal and ligand from the given file data.
@@ -105,9 +102,13 @@ class StatsFinder(ABC):
 
     """
 
-    def __init__(self, candidateFinder) -> None:
+    def __init__(self, candidateFinder, config: Config) -> None:
         self._finder = candidateFinder
         self._thr = 0.3
+        self._config = config
+
+    def _max_files(self) -> int:
+        return self._config.max_sample_size or 2000
 
     @abstractmethod
     def get_stats(self, structure, data, class_result):
@@ -204,8 +205,8 @@ class StatsFinder(ABC):
 
 
 class FileStatsFinder(StatsFinder):
-    def __init__(self, candidateFinder) -> None:
-        super().__init__(candidateFinder)
+    def __init__(self, candidateFinder, config: Config) -> None:
+        super().__init__(candidateFinder, config)
 
     def get_stats(self, structure, data, class_result):
         self._prepare(structure, data)
@@ -358,7 +359,7 @@ class StrictCorrespondenceStatsFinder(FileStatsFinder):
         if class_result.clazz in self._classes:
             files = self._files[class_result.clazz]
 
-            if Config().use_pdb:
+            if self._config.use_pdb:
                 pattern_ligand_coord = structure.get_coord()
             else:
                 pattern_ligand_coord = class_result.coord[class_result.index]
@@ -368,8 +369,9 @@ class StrictCorrespondenceStatsFinder(FileStatsFinder):
             sum_coords = np.zeros(pattern_ligand_coord.shape)
             n = 0
             angles = []
-            if len(files) > MAX_FILES:
-                files = np.random.choice(files, MAX_FILES, replace=False)
+            max_files = self._max_files()
+            if len(files) > max_files:
+                files = np.random.choice(files, max_files, replace=False)
 
             cods = {}
 
@@ -393,7 +395,7 @@ class StrictCorrespondenceStatsFinder(FileStatsFinder):
 
                 m = n
                 for proc_dist, index, rotated in zip(proc_dists, indices, rotateds):
-                    if proc_dist >= Config().procrustes_thr():
+                    if proc_dist >= self._config.procrustes_thr():
                         continue
 
                     sum_coords += rotated[index] - rotated[index][0]
@@ -426,7 +428,10 @@ class StrictCorrespondenceStatsFinder(FileStatsFinder):
             distances = np.array(distances).T
             angles = np.array(angles).T
 
-            if len(distances) > 0 and distances.shape[1] >= Config().min_sample_size:
+            if (
+                len(distances) > 0
+                and distances.shape[1] >= self._config.min_sample_size
+            ):
 
                 clazz_stats = LigandStats(
                     class_result.clazz,
@@ -464,7 +469,7 @@ class StrictCorrespondenceStatsFinder(FileStatsFinder):
                         )
                     )
 
-                if Config().ideal_angles:
+                if self._config.ideal_angles:
                     self.add_ideal_angels(structure, class_result, clazz_stats)
                 else:
                     k = 0
@@ -496,15 +501,16 @@ class WeekCorrespondenceStatsFinder(FileStatsFinder):
         if class_result.clazz in self._classes:
             files = self._files[class_result.clazz]
 
-            if Config().use_pdb:
+            if self._config.use_pdb:
                 pattern_ligand_coord = structure.get_coord()
             else:
                 pattern_ligand_coord = class_result.coord[class_result.index]
 
             distances = []
             lig_names = []
-            if len(files) > MAX_FILES:
-                files = np.random.choice(files, MAX_FILES, replace=False)
+            max_files = self._max_files()
+            if len(files) > max_files:
+                files = np.random.choice(files, max_files, replace=False)
 
             cods = {}
             for file in tqdm(
@@ -518,7 +524,7 @@ class WeekCorrespondenceStatsFinder(FileStatsFinder):
                 m_ligand_coord = get_coordinate(file_data)
                 proc_dist, _, _, r, _ = fit(pattern_ligand_coord, m_ligand_coord)
 
-                if proc_dist < Config().procrustes_thr():
+                if proc_dist < self._config.procrustes_thr():
                     distances.append(
                         np.sqrt(
                             np.sum((m_ligand_coord[0] - m_ligand_coord) ** 2, axis=1)
@@ -530,7 +536,10 @@ class WeekCorrespondenceStatsFinder(FileStatsFinder):
             distances = np.array(distances).T
             lig_names = np.array(lig_names).T
 
-            if len(distances) > 0 and distances.shape[1] >= Config().min_sample_size:
+            if (
+                len(distances) > 0
+                and distances.shape[1] >= self._config.min_sample_size
+            ):
                 clazz_stats = LigandStats(
                     class_result.clazz,
                     create_descriptor(class_result, structure),
@@ -584,8 +593,8 @@ class WeekCorrespondenceStatsFinder(FileStatsFinder):
 
 class OnlyDistanceStatsFinder(StatsFinder):
 
-    def __init__(self, candidateFinder) -> None:
-        super().__init__(candidateFinder)
+    def __init__(self, candidateFinder, config: Config) -> None:
+        super().__init__(candidateFinder, config)
 
     def get_stats(self, structure, data, class_result):
         self._finder.load(structure, data)
@@ -639,8 +648,8 @@ class OnlyDistanceStatsFinder(StatsFinder):
 
 class CovalentStatsFinder(StatsFinder):
 
-    def __init__(self, candidateFinder) -> None:
-        super().__init__(candidateFinder)
+    def __init__(self, candidateFinder, config: Config) -> None:
+        super().__init__(candidateFinder, config)
 
     def get_stats(self, structure, data, class_result):
         clazz_stats = LigandStats(

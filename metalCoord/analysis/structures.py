@@ -902,7 +902,13 @@ def distance(atom1: IAtom, atom2: IAtom) -> float:
 
 
 def get_ligands(
-    st, ligand, bonds=None, metal_metal_bonds=None, max_dist=10, only_best=False
+    st,
+    ligand,
+    config: Config,
+    bonds=None,
+    metal_metal_bonds=None,
+    max_dist=10,
+    only_best=False,
 ) -> Tuple[list[Ligand], MetalBondRegistry]:
     """
     Retrieves ligands associated with a metal in a structure.
@@ -917,8 +923,8 @@ def get_ligands(
     Returns:
         A list of Ligand objects representing the ligands associated with the metal.
     """
-    scale = Config().scale()
-    alpha = Config().distance_threshold + 1
+    scale = config.scale()
+    alpha = config.distance_threshold + 1
     beta1 = [0.8, 0.9, 1.0, 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 1.8, 1.9, 2.0]
     alpha1 = 1.1
     angle1 = 60
@@ -1017,7 +1023,7 @@ def get_ligands(
                                     covalent_radii(metal.atom.element.name)
                                     + covalent_radii(metal2.atom.element.name)
                                 )
-                                * Config().metal_scale()
+                                * config.metal_scale()
                             ):
                                 metal_metals.add_bond(MetalBond(metal, metal2))
 
@@ -1052,7 +1058,7 @@ def get_ligands(
                             else:
                                 marks1.append(mark2)
                     marks = marks1
-                    if Config().simple:
+                    if config.simple:
                         for mark in marks:
                             cra = mark.to_cra(st[0])
                             if cra.atom.element.is_metal:
@@ -1198,13 +1204,13 @@ def get_ligands(
                     ligand_obj.filter_extra()
 
                     if (
-                        Config().max_coordination_number
-                        and ligand_obj.coordination() > Config().max_coordination_number
+                        config.max_coordination_number
+                        and ligand_obj.coordination() > config.max_coordination_number
                     ):
                         ligand_obj = ligand_obj.clean_the_farthest(
                             free=bool(bonds),
                             n=ligand_obj.coordination()
-                            - Config().max_coordination_number,
+                            - config.max_coordination_number,
                         )
 
                     if bonds and set(metal_bonds) != set(

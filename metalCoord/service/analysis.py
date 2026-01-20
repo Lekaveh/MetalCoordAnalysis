@@ -826,7 +826,7 @@ def update_tetragons(name: str, angles: Dict[str, Any], monomer, v: list) -> Non
                             angles[VALUE_ANGLE].append(str(round(val, 3)))
                             angles[VALUE_ANGLE_ESD].append(str(round(std, 3)))
             
-def update_cif(output_path, path, pdb, use_cif=False, clazz=None):
+def update_cif(output_path, path, pdb, config: Config, use_cif=False, clazz=None):
     """
     Update the CIF file with ligand information.
 
@@ -868,13 +868,21 @@ def update_cif(output_path, path, pdb, use_cif=False, clazz=None):
         return
     
     if use_cif:
-        pdb_stats, metal_pair_stats = find_classes_cif(name, atoms, bonds, clazz=clazz)
+        pdb_stats, metal_pair_stats = find_classes_cif(
+            name, atoms, bonds, config, clazz=clazz
+        )
     else:
         if pdb is None:
             pdb = choose_best_pdb(name)
 
         pdb_stats, metal_pair_stats = find_classes_pdb(
-            name, pdb, get_bonds(atoms, bonds), get_metal_metal_bonds(atoms, bonds), only_best=True, clazz=clazz
+            name,
+            pdb,
+            get_bonds(atoms, bonds),
+            get_metal_metal_bonds(atoms, bonds),
+            config,
+            only_best=True,
+            clazz=clazz,
         )
 
     if not use_cif and pdb_stats.is_empty():
@@ -940,13 +948,13 @@ def update_cif(output_path, path, pdb, use_cif=False, clazz=None):
     with open(metal_metal_path, "w", encoding="utf-8") as json_file:
         json.dump(metal_metal_json, json_file, indent=4, separators=(",", ": "))
 
-    if Config().save:
+    if config.save:
         save_cods(pdb_stats, os.path.dirname(output_path))
     Logger().info(f"Report written to {report_path}")
       
 
 
-def get_stats(ligand, pdb, output, clazz=None):
+def get_stats(ligand, pdb, output, config: Config, clazz=None):
     """
     Retrieves statistics for a given ligand and PDB file and writes the results to a JSON file.
 
@@ -960,12 +968,12 @@ def get_stats(ligand, pdb, output, clazz=None):
     """
 
     if ligand:
-        return get_ligand_stats(ligand, pdb, output, clazz=clazz)
+        return get_ligand_stats(ligand, pdb, output, config, clazz=clazz)
 
-    return get_stats_for_all_ligands(pdb, output, clazz=clazz)
+    return get_stats_for_all_ligands(pdb, output, config, clazz=clazz)
 
 
-def get_ligand_stats(ligand, pdb, output, clazz=None):
+def get_ligand_stats(ligand, pdb, output, config: Config, clazz=None):
     """
     Retrieves statistics for a given ligand and PDB file and writes the results to a JSON file.
 
@@ -978,7 +986,9 @@ def get_ligand_stats(ligand, pdb, output, clazz=None):
     Returns:
         None
     """
-    pdb_stats, metal_pair_stats = find_classes_pdb(ligand, pdb, clazz=clazz)
+    pdb_stats, metal_pair_stats = find_classes_pdb(
+        ligand, pdb, config, clazz=clazz
+    )
     results = pdb_stats.json()
     metal_metal_json = [stat.to_dict() for stat in metal_pair_stats]
 
@@ -990,12 +1000,12 @@ def get_ligand_stats(ligand, pdb, output, clazz=None):
    
     with open(metal_metal_path, "w", encoding="utf-8") as json_file:
         json.dump(metal_metal_json, json_file, indent=4, separators=(",", ": "))
-    if Config().save:
+    if config.save:
         save_cods(pdb_stats, os.path.dirname(output))
 
     Logger().info(f"Report written to {output}")
 
-def get_stats_for_all_ligands(pdb, output, clazz=None):
+def get_stats_for_all_ligands(pdb, output, config: Config, clazz=None):
     """
     Retrieves statistics for all ligands in a given PDB file and writes the results to a JSON file.
 
@@ -1024,4 +1034,10 @@ def get_stats_for_all_ligands(pdb, output, clazz=None):
     else:
         pdb_name = pdb
     for ligand in monomers_with_metals:
-        get_stats(ligand, pdb, os.path.join(output, f"{pdb_name}_{ligand}.json"), clazz=clazz)
+        get_stats(
+            ligand,
+            pdb,
+            os.path.join(output, f"{pdb_name}_{ligand}.json"),
+            config,
+            clazz=clazz,
+        )

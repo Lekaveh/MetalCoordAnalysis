@@ -22,6 +22,7 @@ from metalCoord.analysis.metal import MetalPairStatsService
 from metalCoord.analysis.models import MetalPairStats, MetalStats, PdbStats
 from metalCoord.analysis.structures import get_ligands, get_ligands_from_cif, Ligand, MetalBondRegistry
 from metalCoord.cif.utils import get_bonds, get_metal_metal_bonds
+from metalCoord.config import Config
 from metalCoord.load.rcsb import load_pdb
 from metalCoord.logging import Logger
 
@@ -97,7 +98,14 @@ def read_structure(p: str) -> gemmi.Structure:
     return st
 
 
-def get_structures(ligand, path, bonds=None, metal_metal_bonds=None, only_best=False) -> Tuple[list[Ligand], MetalBondRegistry]:
+def get_structures(
+    ligand,
+    path,
+    config: Config,
+    bonds=None,
+    metal_metal_bonds=None,
+    only_best=False,
+) -> Tuple[list[Ligand], MetalBondRegistry]:
     """
     Retrieves structures contained in a specific ligand from a given file or 4-letter PDB code.
 
@@ -117,21 +125,33 @@ def get_structures(ligand, path, bonds=None, metal_metal_bonds=None, only_best=F
         bonds = {}
 
     st = read_structure(path)
-    return get_ligands(st, ligand, bonds, metal_metal_bonds = metal_metal_bonds, only_best=only_best)
+    return get_ligands(
+        st,
+        ligand,
+        config,
+        bonds,
+        metal_metal_bonds=metal_metal_bonds,
+        only_best=only_best,
+    )
 
-convalent_strategy = CovalentStatsFinder(CovalentCandidateFinder())
-strategies = [
-    StrictCorrespondenceStatsFinder(StrictCandidateFinder()),
-    WeekCorrespondenceStatsFinder(ElementCandidateFinder()),
-    WeekCorrespondenceStatsFinder(ElementInCandidateFinder()),
-    WeekCorrespondenceStatsFinder(AnyElementCandidateFinder()),
-    OnlyDistanceStatsFinder(NoCoordinationCandidateFinder()),
-    convalent_strategy,
-]
+
+def build_strategies(config: Config):
+    convalent_strategy = CovalentStatsFinder(CovalentCandidateFinder(), config)
+    return [
+        StrictCorrespondenceStatsFinder(StrictCandidateFinder(), config),
+        WeekCorrespondenceStatsFinder(ElementCandidateFinder(), config),
+        WeekCorrespondenceStatsFinder(ElementInCandidateFinder(), config),
+        WeekCorrespondenceStatsFinder(AnyElementCandidateFinder(), config),
+        OnlyDistanceStatsFinder(NoCoordinationCandidateFinder(), config),
+        convalent_strategy,
+    ]
 
 
 def find_classes_from_structures(
-    structures: list[Ligand], bonds: dict, clazz: str = None
+    structures: list[Ligand],
+    bonds: dict,
+    config: Config,
+    clazz: str = None,
 ):
     """
     Analyzes a list of structures to classify them based on their coordination and other properties.
@@ -153,6 +173,8 @@ def find_classes_from_structures(
     classificator = Classificator()
 
     classes = {}
+    strategies = build_strategies(config)
+    convalent_strategy = strategies[-1]
     for structure in tqdm(
         structures, desc="Structures", position=0, disable=not Logger().progress_bars
     ):
@@ -225,6 +247,7 @@ def find_classes_from_structures(
 def find_classes_pdb(
     ligand: str,
     pdb_name: str,
+    config: Config,
     bonds: dict = None,
     metal_metal_bonds: dict = None,
     only_best: bool = False,
@@ -246,14 +269,23 @@ def find_classes_pdb(
     if bonds is None:
         bonds = {}
     Logger().info(f"Analyzing structures in {pdb_name} for patterns")
-    structures, metal_metal = get_structures(ligand, pdb_name, bonds, metal_metal_bonds, only_best)
+    structures, metal_metal = get_structures(
+        ligand, pdb_name, config, bonds, metal_metal_bonds, only_best
+    )
     metal_pair_stats = MetalPairStatsService().get_metal_pair_stats(metal_metal)
 
-    return find_classes_from_structures(structures, bonds, clazz=clazz), metal_pair_stats
+    return (
+        find_classes_from_structures(structures, bonds, config, clazz=clazz),
+        metal_pair_stats,
+    )
 
 
 def find_classes_cif(
-    name: str, atoms: gemmi.cif.Table, bonds: gemmi.cif.Table, clazz: str = None
+    name: str,
+    atoms: gemmi.cif.Table,
+    bonds: gemmi.cif.Table,
+    config: Config,
+    clazz: str = None,
 ) -> Tuple[PdbStats, MetalPairStats]:
     """Classify ligands and bonds from CIF data.
 
@@ -273,6 +305,7 @@ def find_classes_cif(
     m_b = get_metal_metal_bonds(atoms, bonds)
     ligands, metal_metal_bonds = get_ligands_from_cif(name, atoms, b, m_b)
     metal_pair_stats = MetalPairStatsService().get_metal_pair_stats(metal_metal_bonds)
-    return find_classes_from_structures(
-        ligands, b, clazz=clazz
-    ), metal_pair_stats
+    return (
+        find_classes_from_structures(ligands, b, config, clazz=clazz),
+        metal_pair_stats,
+    )
