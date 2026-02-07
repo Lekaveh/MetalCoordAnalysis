@@ -14,6 +14,8 @@ from metalCoord.analysis.classify import find_classes_pdb, find_classes_cif, rea
 from metalCoord.analysis.metal import MetalPairStatsService
 from metalCoord.analysis.models import PdbStats
 from metalCoord.config import Config
+from metalCoord.debug import DebugRecorder, resolve_debug_paths
+from metalCoord.debug_domain import DomainReportBuilder, render_domain_markdown
 from metalCoord.logging import Logger
 from metalCoord.cif.utils import (
     ACEDRG_CATEGORY,
@@ -60,6 +62,62 @@ def _load_mons():
         with open(os.path.join(d, "data/mons.json"), encoding="utf-8") as handle:
             _MONS = json.load(handle)
     return _MONS
+
+
+def _site_key_from_metal_dict(site: Dict[str, Any]) -> tuple:
+    return (
+        site.get("chain"),
+        site.get("residue"),
+        site.get("sequence"),
+        site.get("icode"),
+        site.get("altloc"),
+        site.get("metal"),
+        site.get("metalElement"),
+    )
+
+
+def _chosen_class_map(pdb_stats: PdbStats) -> dict:
+    mapping = {}
+    for metal in pdb_stats.metals:
+        best = metal.get_best_class()
+        mapping[_site_key_from_metal_dict(metal.to_metal_dict())] = best.clazz if best else None
+    return mapping
+
+
+def _write_debug_report(
+    recorder: DebugRecorder,
+    pdb_stats: PdbStats,
+    metal_pair_stats: list,
+    reason: Optional[str] = None,
+) -> None:
+    chosen = _chosen_class_map(pdb_stats)
+    recorder.finalize_descriptor_info(chosen)
+    report = DomainReportBuilder(
+        pdb_stats,
+        metal_pair_stats,
+        Config(),
+        recorder.payload.get("inputs", {}),
+        recorder.payload.get("trace", {}),
+        recorder.payload.get("descriptor_info", []),
+        Config().debug_level,
+    ).build()
+    recorder.set_domain_report(report)
+    if reason:
+        recorder.add_error(reason)
+        recorder.set_status("failure")
+    else:
+        recorder.set_status("success")
+    recorder.set_logs(Logger().records_since(recorder.log_mark))
+    recorder.payload["domain_report"]["markdown"] = render_domain_markdown(
+        recorder.payload.get("domain_report", {}),
+        recorder.payload.get("logs", []),
+    )
+    recorder.write_json()
+    recorder.write_markdown(
+        render_domain_markdown(recorder.payload.get("domain_report", {}), recorder.payload.get("logs", []))
+    )
+    Config().debug_recorder = None
+    Config().debug_written = True
 
 
 def decompose(values, n):
@@ -841,11 +899,42 @@ def update_cif(output_path, path, pdb, use_cif=False, clazz=None):
     - None
     """
     Logger().info(f"Start processing {path}")
+    debug_recorder = None
+    if Config().debug:
+        debug_recorder = DebugRecorder(Config().debug_command or "update", Config().debug_level)
+        json_path, md_path = resolve_debug_paths(output_path, Config().debug_output)
+        debug_recorder.set_paths(json_path, md_path)
+        debug_recorder.set_log_mark(Config().debug_log_mark)
+        debug_recorder.set_inputs(
+            {
+                "source": path,
+                "pdb": pdb,
+                "ligand": None,
+                "class": clazz,
+                "command": "update",
+                "thresholds": {
+                    "distance": Config().distance_threshold,
+                    "procrustes": Config().procrustes_threshold,
+                    "min_sample_size": Config().min_sample_size,
+                    "metal_distance": Config().metal_distance_threshold,
+                },
+            }
+        )
+        debug_recorder.set_outputs(
+            {
+                "main_output": output_path,
+                "analysis_output": output_path + ".json",
+                "metal_metal_output": output_path + ".metal_metal.json",
+            }
+        )
+        Config().debug_recorder = debug_recorder
     folder, name = os.path.split(path)
     folder = os.path.split(folder)[1]
     doc = gemmi.cif.read_file(path)
 
     name = extract_name_from_doc(doc)
+    if debug_recorder:
+        debug_recorder.payload["inputs"]["ligand"] = name
 
     block = extract_block_from_doc(name, doc)
 
@@ -865,6 +954,9 @@ def update_cif(output_path, path, pdb, use_cif=False, clazz=None):
     
     if not contains_metal(atoms):
         Logger().info(f"No metal found in {name}")
+        if debug_recorder:
+            debug_recorder.set_analysis({"metals": [], "metal_metal": []})
+            _write_debug_report(debug_recorder, PdbStats(), [])
         return
     
     if use_cif:
@@ -943,10 +1035,19 @@ def update_cif(output_path, path, pdb, use_cif=False, clazz=None):
     if Config().save:
         save_cods(pdb_stats, os.path.dirname(output_path))
     Logger().info(f"Report written to {report_path}")
+    if debug_recorder:
+        include_raw = Config().debug_level == "max"
+        debug_recorder.set_analysis(
+            {
+                "metals": pdb_stats.json(include_raw=include_raw),
+                "metal_metal": metal_metal_json,
+            }
+        )
+        _write_debug_report(debug_recorder, pdb_stats, metal_pair_stats)
       
 
 
-def get_stats(ligand, pdb, output, clazz=None):
+def get_stats(ligand, pdb, output, clazz=None, multi_ligand: bool = False):
     """
     Retrieves statistics for a given ligand and PDB file and writes the results to a JSON file.
 
@@ -960,12 +1061,12 @@ def get_stats(ligand, pdb, output, clazz=None):
     """
 
     if ligand:
-        return get_ligand_stats(ligand, pdb, output, clazz=clazz)
+        return get_ligand_stats(ligand, pdb, output, clazz=clazz, multi_ligand=multi_ligand)
 
     return get_stats_for_all_ligands(pdb, output, clazz=clazz)
 
 
-def get_ligand_stats(ligand, pdb, output, clazz=None):
+def get_ligand_stats(ligand, pdb, output, clazz=None, multi_ligand: bool = False):
     """
     Retrieves statistics for a given ligand and PDB file and writes the results to a JSON file.
 
@@ -978,6 +1079,40 @@ def get_ligand_stats(ligand, pdb, output, clazz=None):
     Returns:
         None
     """
+    debug_recorder = None
+    if Config().debug:
+        debug_recorder = DebugRecorder(Config().debug_command or "stats", Config().debug_level)
+        json_path, md_path = resolve_debug_paths(
+            output,
+            Config().debug_output,
+            multi_ligand=multi_ligand,
+        )
+        debug_recorder.set_paths(json_path, md_path)
+        debug_recorder.set_log_mark(Config().debug_log_mark)
+        debug_recorder.set_inputs(
+            {
+                "source": pdb,
+                "ligand": ligand,
+                "pdb": pdb,
+                "class": clazz,
+                "command": "stats",
+                "thresholds": {
+                    "distance": Config().distance_threshold,
+                    "procrustes": Config().procrustes_threshold,
+                    "min_sample_size": Config().min_sample_size,
+                    "metal_distance": Config().metal_distance_threshold,
+                },
+            }
+        )
+        debug_recorder.set_outputs(
+            {
+                "main_output": output,
+                "analysis_output": output,
+                "metal_metal_output": output + ".metal_metal.json",
+            }
+        )
+        Config().debug_recorder = debug_recorder
+
     pdb_stats, metal_pair_stats = find_classes_pdb(ligand, pdb, clazz=clazz)
     results = pdb_stats.json()
     metal_metal_json = [stat.to_dict() for stat in metal_pair_stats]
@@ -994,6 +1129,15 @@ def get_ligand_stats(ligand, pdb, output, clazz=None):
         save_cods(pdb_stats, os.path.dirname(output))
 
     Logger().info(f"Report written to {output}")
+    if debug_recorder:
+        include_raw = Config().debug_level == "max"
+        debug_recorder.set_analysis(
+            {
+                "metals": pdb_stats.json(include_raw=include_raw),
+                "metal_metal": metal_metal_json,
+            }
+        )
+        _write_debug_report(debug_recorder, pdb_stats, metal_pair_stats)
 
 def get_stats_for_all_ligands(pdb, output, clazz=None):
     """
@@ -1007,6 +1151,9 @@ def get_stats_for_all_ligands(pdb, output, clazz=None):
     Returns:
         None
     """
+    if Config().debug and Config().debug_output and Path(Config().debug_output).suffix:
+        raise ValueError("For multi-ligand stats, --debug-output must be a directory.")
+
     monomers_with_metals = set()
     st = read_structure(pdb)
     for model in st:
@@ -1019,9 +1166,14 @@ def get_stats_for_all_ligands(pdb, output, clazz=None):
         raise RuntimeError("No metal-containing ligands found in the input model.")
     Logger().info(f"Found {len(monomers_with_metals)} metal-containing ligands.")
 
-    if os.path.isfile(output):
-        pdb_name = os.path.splitext(os.path.basename(pdb))[0]
-    else:
-        pdb_name = pdb
+    pdb_name = os.path.splitext(os.path.basename(pdb))[0]
+    if not pdb_name:
+        pdb_name = str(pdb)
     for ligand in monomers_with_metals:
-        get_stats(ligand, pdb, os.path.join(output, f"{pdb_name}_{ligand}.json"), clazz=clazz)
+        get_stats(
+            ligand,
+            pdb,
+            os.path.join(output, f"{pdb_name}_{ligand}.json"),
+            clazz=clazz,
+            multi_ligand=True,
+        )

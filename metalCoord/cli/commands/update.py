@@ -5,7 +5,13 @@ import urllib.error
 
 from metalCoord.service.analysis import update_cif
 
-from metalCoord.cli.commands.common import configure_statistics, log_exception, write_status
+from metalCoord.cli.commands.common import (
+    configure_debug,
+    configure_statistics,
+    log_exception,
+    write_failure_debug_report,
+    write_status,
+)
 
 
 def _copy_fixture_output(args) -> bool:
@@ -36,6 +42,7 @@ def _is_network_error(exc: Exception) -> bool:
 
 def handle_update(args) -> None:
     try:
+        configure_debug(args, "update")
         configure_statistics(args)
         update_cif(args.output, args.input, args.pdb, getattr(args, "cif", False), clazz=args.cl)
         write_status("Success")
@@ -44,4 +51,5 @@ def handle_update(args) -> None:
             write_status("Success")
             return
         log_exception(exc)
+        write_failure_debug_report(args, "update", str(exc))
         write_status("Failure", reason=str(exc), ensure_dir=True)

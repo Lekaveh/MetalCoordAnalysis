@@ -1,4 +1,5 @@
 import os
+import math
 from typing import Tuple
 import gemmi
 from tqdm import tqdm
@@ -24,6 +25,7 @@ from metalCoord.analysis.structures import get_ligands, get_ligands_from_cif, Li
 from metalCoord.cif.utils import get_bonds, get_metal_metal_bonds
 from metalCoord.load.rcsb import load_pdb
 from metalCoord.logging import Logger
+from metalCoord.config import Config
 
 
 
@@ -119,6 +121,56 @@ def get_structures(ligand, path, bonds=None, metal_metal_bonds=None, only_best=F
     st = read_structure(path)
     return get_ligands(st, ligand, bonds, metal_metal_bonds = metal_metal_bonds, only_best=only_best)
 
+
+def _distance(atom1, atom2) -> float:
+    return math.sqrt(
+        (atom1.pos.x - atom2.pos.x) ** 2
+        + (atom1.pos.y - atom2.pos.y) ** 2
+        + (atom1.pos.z - atom2.pos.z) ** 2
+    )
+
+
+def _metal_site(structure: Ligand) -> dict:
+    icode = structure.residue.seqid.icode.strip().replace("\x00", "")
+    return {
+        "metal": structure.metal.atom.name,
+        "metalElement": str(structure.metal.element),
+        "chain": structure.chain.name,
+        "residue": structure.residue.name,
+        "sequence": structure.residue.seqid.num,
+        "icode": icode if icode else ".",
+        "altloc": structure.metal.atom.altloc.strip().replace("\x00", ""),
+        "symmetry": structure.metal.symmetry,
+    }
+
+
+def _ligand_environment(structure: Ligand) -> dict:
+    metal_elem = structure.metal.atom.element.name
+    base_ligands = list(structure.ligands)
+    extra_ligands = list(structure.extra_ligands)
+    ligands = []
+    for atom in base_ligands + extra_ligands:
+        cov_sum = gemmi.Element(metal_elem).covalent_r + gemmi.Element(atom.atom.element.name).covalent_r
+        dist = _distance(structure.metal, atom)
+        icode = atom.residue.seqid.icode.strip().replace("\x00", "")
+        ligands.append(
+            {
+                "name": atom.atom.name,
+                "element": atom.atom.element.name,
+                "chain": atom.chain.name,
+                "residue": atom.residue.name,
+                "sequence": atom.residue.seqid.num,
+                "icode": icode if icode else ".",
+                "altloc": atom.atom.altloc.strip().replace("\x00", ""),
+                "symmetry": atom.symmetry,
+                "distance": round(dist, 3),
+                "covalent_sum": round(cov_sum, 3),
+                "covalent_ratio": round(dist / cov_sum, 3) if cov_sum else None,
+                "is_extra": atom in extra_ligands,
+            }
+        )
+    return {"ligands": ligands, "count": len(ligands)}
+
 convalent_strategy = CovalentStatsFinder(CovalentCandidateFinder())
 strategies = [
     StrictCorrespondenceStatsFinder(StrictCandidateFinder()),
@@ -143,6 +195,8 @@ def find_classes_from_structures(
     Returns:
         PdbStats: An object containing the statistics of the analyzed structures.
     """
+
+    debug_recorder = Config().debug_recorder if Config().debug else None
 
     for structure in tqdm(structures, disable=not Logger().progress_bars):
         Logger().info(
@@ -194,8 +248,10 @@ def find_classes_from_structures(
         disable=not Logger().progress_bars,
     ):
         metal_stats = MetalStats(structure)
+        strategy_map = {}
         if classes[structure]:
             for class_result in classes[structure]:
+                chosen_strategy = None
                 for strategy in tqdm(
                     strategies,
                     desc="Strategies",
@@ -208,13 +264,46 @@ def find_classes_from_structures(
                     )
                     if ligand_stats:
                         metal_stats.add_ligand(ligand_stats)
+                        chosen_strategy = type(strategy).__name__
                         break
+                if chosen_strategy:
+                    strategy_map[class_result.clazz] = chosen_strategy
         else:
             ligand_stats = convalent_strategy.get_stats(structure, DB.data(), None)
             metal_stats.add_ligand(ligand_stats)
+            strategy_map[""] = type(convalent_strategy).__name__
 
         if not metal_stats.is_empty():
             results.add_metal(metal_stats)
+
+        if debug_recorder:
+            candidates = []
+            for class_result in classes[structure]:
+                candidates.append(
+                    {
+                        "class": class_result.clazz,
+                        "coordination": len(class_result.coord) - 1,
+                        "procrustes": float(class_result.proc),
+                    }
+                )
+
+            best = metal_stats.get_best_class() if not metal_stats.is_empty() else None
+            chosen_class = best.clazz if best else None
+            chosen_strategy = strategy_map.get(chosen_class, strategy_map.get("", None))
+            debug_recorder.add_trace_structure(
+                {
+                    "metal_site": _metal_site(structure),
+                    "ligand_environment": _ligand_environment(structure),
+                    "coordination": {
+                        "count": structure.coordination(),
+                        "ligands": [lig.atom.name for lig in structure.ligands],
+                        "extra_ligands": [lig.atom.name for lig in structure.extra_ligands],
+                    },
+                    "candidates": candidates,
+                    "chosen_class": chosen_class,
+                    "chosen_strategy": chosen_strategy,
+                }
+            )
 
     Logger().info(
         f"Analysis completed. Statistics for {int(results.len())} ligands(metals) found."

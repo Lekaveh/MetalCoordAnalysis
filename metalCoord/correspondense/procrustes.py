@@ -846,7 +846,7 @@ def fit(
         return (distances, indices, distances[min_arg].squeeze(), rotated)
 
     if permutations:
-        mask = distances <= distances[min_arg]*1.1
+        mask = distances <= distances[min_arg]+0.01
         return (
             distances[min_arg].squeeze(),
             approxs[mask],

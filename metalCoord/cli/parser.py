@@ -111,6 +111,13 @@ def create_parser():
                                help='Read coordinates from mmCIF file', default=argparse.SUPPRESS,  action='store_true')
     update_parser.add_argument('--cl', required=False,
                                help='Predefined class/coordination', metavar='<CLASS>', type=str)
+    update_parser.add_argument('--debug', required=False,
+                               help='Write debug reports (JSON and Markdown sidecars).', action='store_true')
+    update_parser.add_argument('--debug-level', required=False,
+                               help='Debug detail level.', choices=['summary', 'detailed', 'max'], default='detailed')
+    update_parser.add_argument('--debug-output', required=False, type=str,
+                               help='Debug output file (single run) or directory (multi-ligand stats).',
+                               metavar='<DEBUG OUTPUT>')
 
     # App2
     stats_parser = subparsers.add_parser(
@@ -143,6 +150,13 @@ def create_parser():
                                help='Predefined class/coordination', metavar='<CLASS>', type=str)
     stats_parser.add_argument('--metal_distance', type=float, required=False, help='Metal Metal distance threshold.',
                               metavar='<METAL DISTANCE THRESHOLD>', default=0.3, choices=[Range(0, 1)])
+    stats_parser.add_argument('--debug', required=False,
+                              help='Write debug reports (JSON and Markdown sidecars).', action='store_true')
+    stats_parser.add_argument('--debug-level', required=False,
+                              help='Debug detail level.', choices=['summary', 'detailed', 'max'], default='detailed')
+    stats_parser.add_argument('--debug-output', required=False, type=str,
+                              help='Debug output file (single run) or directory (multi-ligand stats).',
+                              metavar='<DEBUG OUTPUT>')
 
     # App3
     coordination_parser = subparsers.add_parser(

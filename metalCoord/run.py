@@ -19,6 +19,8 @@ def main_func():
     parser = create_parser()
     args = parser.parse_args()
     Logger().add_handler(True, not args.no_progress)
+    if getattr(args, "debug", False):
+        Logger().enable_capture(True, reset=True)
     Logger().info(
         f"Logging started. Logging level: {Logger().logger.level}")
 

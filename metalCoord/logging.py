@@ -1,5 +1,6 @@
 import logging
 import sys
+from datetime import datetime
 
 class Logger:
     """Singleton Logger class for unified logging across an application."""
@@ -19,6 +20,8 @@ class Logger:
         self.logger.setLevel(level)
         self.__enabled = False
         self.__progress_bars = False
+        self.__capture = False
+        self.__records = []
 
     @property
     def enabled(self):
@@ -45,27 +48,56 @@ class Logger:
         self.__enabled = enable
         self.__progress_bars = progress_bars
 
+    def enable_capture(self, enable: bool = True, reset: bool = False) -> None:
+        """Enable in-memory log capture."""
+        self.__capture = enable
+        if reset:
+            self.__records = []
+
+    def mark(self) -> int:
+        """Return a record index marker for subsequent slicing."""
+        return len(self.__records)
+
+    def records_since(self, mark: int) -> list:
+        """Return captured log records since the given marker."""
+        return self.__records[mark:]
+
+    def _record(self, level: str, message: str) -> None:
+        if self.__capture:
+            self.__records.append(
+                {
+                    "timestamp": datetime.utcnow().isoformat(timespec="seconds") + "Z",
+                    "level": level,
+                    "message": message,
+                }
+            )
+
     def debug(self, message):
         """Log a debug message."""
         if self.__enabled:
             self.logger.debug(message)
+        self._record("DEBUG", message)
 
     def info(self, message):
         """Log an info message."""
         if self.__enabled:
             self.logger.info(message)
+        self._record("INFO", message)
 
     def warning(self, message):
         """Log a warning message."""
         if self.__enabled:
             self.logger.warning(message)
+        self._record("WARNING", message)
 
     def error(self, message):
         """Log an error message."""
         if self.__enabled:
             self.logger.error(message)
+        self._record("ERROR", message)
 
     def critical(self, message):
         """Log a critical message."""
         if self.__enabled:
             self.logger.critical(message)
+        self._record("CRITICAL", message)

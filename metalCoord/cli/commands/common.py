@@ -4,6 +4,8 @@ from pathlib import Path
 from typing import Optional
 
 from metalCoord.config import Config
+from metalCoord.debug import DebugRecorder, resolve_debug_paths
+from metalCoord.debug_domain import render_domain_markdown
 from metalCoord.logging import Logger
 
 
@@ -22,6 +24,90 @@ def configure_statistics(args) -> None:
     Config().output_file = os.path.basename(args.output)
     Config().max_coordination_number = args.coordination
     Config().max_sample_size = args.max_size
+
+
+def configure_debug(args, command: str) -> None:
+    Config().debug = getattr(args, "debug", False)
+    Config().debug_level = getattr(args, "debug_level", "detailed")
+    Config().debug_output = getattr(args, "debug_output", None)
+    Config().debug_command = command
+    Config().debug_recorder = None
+    Config().debug_written = False
+    Config().debug_log_mark = 0
+    if Config().debug:
+        Logger().enable_capture(True, reset=True)
+        Config().debug_log_mark = Logger().mark()
+    else:
+        Logger().enable_capture(False)
+
+
+def _fallback_debug_paths(output: str, override: Optional[str], multi: bool) -> tuple[str, str]:
+    return resolve_debug_paths(output, override, multi_ligand=multi)
+
+
+def write_failure_debug_report(args, command: str, reason: str) -> None:
+    if not Config().debug or Config().debug_written:
+        return
+
+    existing = Config().debug_recorder
+    if existing:
+        recorder = existing
+    else:
+        recorder = DebugRecorder(command, Config().debug_level)
+        output_path = getattr(args, "output", "")
+        if command == "stats" and not getattr(args, "ligand", "") and not Path(output_path).suffix:
+            output_path = os.path.join(output_path, "analysis")
+        json_path, md_path = _fallback_debug_paths(
+            output_path, Config().debug_output, command == "stats" and not getattr(args, "ligand", "")
+        )
+        recorder.set_paths(json_path, md_path)
+        recorder.set_inputs(
+            {
+                "source": getattr(args, "pdb", getattr(args, "input", None)),
+                "ligand": getattr(args, "ligand", None),
+                "pdb": getattr(args, "pdb", None),
+                "class": getattr(args, "cl", None),
+                "thresholds": {
+                    "distance": Config().distance_threshold,
+                    "procrustes": Config().procrustes_threshold,
+                    "min_sample_size": Config().min_sample_size,
+                    "metal_distance": Config().metal_distance_threshold,
+                },
+            }
+        )
+        recorder.set_outputs(
+            {
+                "main_output": getattr(args, "output", None),
+            }
+        )
+        recorder.set_log_mark(Config().debug_log_mark)
+
+    recorder.set_status("failure")
+    recorder.add_error(reason)
+    recorder.set_logs(Logger().records_since(recorder.log_mark))
+    if not recorder.payload.get("domain_report"):
+        flag = "analysis failure"
+        if "No metal-containing ligands found" in reason or "No metal found" in reason:
+            flag = "no metal found"
+        recorder.set_domain_report(
+            {
+                "title": "Metal Coordination Analysis Report",
+                "inputs": recorder.payload.get("inputs", {}),
+                "steps": [],
+                "summary": {},
+                "flags": [flag],
+            }
+        )
+    recorder.payload["domain_report"]["markdown"] = render_domain_markdown(
+        recorder.payload.get("domain_report", {}),
+        recorder.payload.get("logs", []),
+    )
+    recorder.write_json()
+    recorder.write_markdown(
+        render_domain_markdown(recorder.payload.get("domain_report", {}), recorder.payload.get("logs", []))
+    )
+    Config().debug_recorder = None
+    Config().debug_written = True
 
 
 def write_status(status: str, reason: Optional[str] = None, ensure_dir: bool = False) -> None:

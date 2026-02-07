@@ -1,0 +1,54 @@
+[
+    {
+        "metal1": {
+            "name": "NA",
+            "element": "Na",
+            "chain": "A",
+            "residue": "NA",
+            "sequence": 306,
+            "icode": ".",
+            "altloc": "",
+            "symmetry": 0,
+            "operator": "x,y,z"
+        },
+        "metal2": {
+            "name": "MG",
+            "element": "Mg",
+            "chain": "A",
+            "residue": "MG",
+            "sequence": 305,
+            "icode": ".",
+            "altloc": "",
+            "symmetry": 0,
+            "operator": "x,y,z"
+        },
+        "distance": 3.4,
+        "std": 0.2
+    },
+    {
+        "metal1": {
+            "name": "NA",
+            "element": "Na",
+            "chain": "A",
+            "residue": "NA",
+            "sequence": 306,
+            "icode": ".",
+            "altloc": "",
+            "symmetry": 0,
+            "operator": "x,y,z"
+        },
+        "metal2": {
+            "name": "AL",
+            "element": "Al",
+            "chain": "A",
+            "residue": "AF3",
+            "sequence": 302,
+            "icode": ".",
+            "altloc": "",
+            "symmetry": 0,
+            "operator": "x,y,z"
+        },
+        "distance": 3.29,
+        "std": 0.12
+    }
+]

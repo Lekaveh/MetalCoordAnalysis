@@ -339,16 +339,41 @@ def create_descriptor(
         "@<code>{Fe,O,C,N}"
     where "<code>" is the result of idealClasses.get_class_code(5).
     """
+    atom_names_with_symmetries = structure.atom_names_with_symmetries()
+    element_names = structure.element_names()
     inv_index = class_result.lexicographic_order(
-        structure.atom_names_with_symmetries(), structure.element_names()
+        atom_names_with_symmetries, element_names
     )
-    atoms = np.array(structure.element_names())
-    return (
-        f"@{idealClasses.get_class_code(class_result.clazz)}"
-        + "{"
-        + f"{','.join(atoms[inv_index])}"
-        + "}"
-    )
+    atoms = np.array(element_names)
+    class_code = idealClasses.get_class_code(class_result.clazz)
+    ordered_elements = atoms[inv_index].tolist()
+    descriptor = f"@{class_code}" + "{" + f"{','.join(ordered_elements)}" + "}"
+
+    if Config().debug and Config().debug_recorder:
+        icode = structure.residue.seqid.icode.strip().replace("\x00", "")
+        Config().debug_recorder.add_descriptor_candidate(
+            {
+                "metal_site": {
+                    "metal": structure.metal.atom.name,
+                    "metalElement": str(structure.metal.element),
+                    "chain": structure.chain.name,
+                    "residue": structure.residue.name,
+                    "sequence": structure.residue.seqid.num,
+                    "icode": icode if icode else ".",
+                    "altloc": structure.metal.atom.altloc.strip().replace("\x00", ""),
+                },
+                "class": class_result.clazz,
+                "class_code": class_code,
+                "descriptor": descriptor,
+                "ordered_elements": ordered_elements,
+                "index_mapping": inv_index.tolist(),
+                "atom_names_with_symmetries": atom_names_with_symmetries,
+                "element_names": element_names,
+                "procrustes": float(class_result.proc),
+            }
+        )
+
+    return descriptor
 
 
 class StrictCorrespondenceStatsFinder(FileStatsFinder):

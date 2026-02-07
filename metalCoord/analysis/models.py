@@ -108,7 +108,7 @@ class Atom:
         """
         return self.code == other.code
 
-    def to_dict(self) -> dict:
+    def to_dict(self, include_raw: bool = False) -> dict:
         """
         Converts the object to a dictionary.
 
@@ -189,7 +189,7 @@ class DistanceStats:
         """Returns the description."""
         return self._description
 
-    def to_dict(self) -> dict:
+    def to_dict(self, include_raw: bool = False) -> dict:
         """
         Converts the object to a dictionary.
 
@@ -203,6 +203,11 @@ class DistanceStats:
         }
         if self.description:
             d["description"] = self.description
+        if include_raw:
+            if self.distances is not None:
+                d["distances_raw"] = np.array(self.distances).tolist()
+            if self.procrustes_dists is not None:
+                d["procrustes_raw"] = np.array(self.procrustes_dists).tolist()
         return d
 
 
@@ -290,19 +295,25 @@ class AngleStats:
             self.ligand1.code == code2 and self.ligand2.code == code1
         )
 
-    def to_dict(self) -> dict:
+    def to_dict(self, include_raw: bool = False) -> dict:
         """
         Converts the object to a dictionary representation.
 
         Returns:
             dict: A dictionary containing the object's attributes.
         """
-        return {
+        d = {
             "ligand1": self.ligand1.to_dict(),
             "ligand2": self.ligand2.to_dict(),
             "angle": self.angle,
             "std": self.std,
         }
+        if include_raw:
+            if self.angles is not None:
+                d["angles_raw"] = np.array(self.angles).tolist()
+            if self.procrustes_dists is not None:
+                d["procrustes_raw"] = np.array(self.procrustes_dists).tolist()
+        return d
 
 
 class MetalPairStats:
@@ -664,7 +675,7 @@ class LigandStats:
         """
         self._cod_files[cod_file] = structure
 
-    def to_dict(self) -> dict:
+    def to_dict(self, include_raw: bool = False) -> dict:
         """
         Converts the LigandStats object to a dictionary.
 
@@ -684,9 +695,9 @@ class LigandStats:
             "pdb": [],
             "order": [],
         }
-        clazz["base"] = [b.to_dict() for b in self.bonds]
-        clazz["angles"] = [a.to_dict() for a in self.angles]
-        clazz["pdb"] = [p.to_dict() for p in self.pdb]
+        clazz["base"] = [b.to_dict(include_raw=include_raw) for b in self.bonds]
+        clazz["angles"] = [a.to_dict(include_raw=include_raw) for a in self.angles]
+        clazz["pdb"] = [p.to_dict(include_raw=include_raw) for p in self.pdb]
 
         atoms = self._atoms()
         if self.clazz and len(self._index) > 1:
@@ -1084,7 +1095,7 @@ class MetalStats:
             "altloc": self.altloc,
         }
 
-    def to_dict(self) -> dict:
+    def to_dict(self, include_raw: bool = False) -> dict:
         """
         Convert the MetalStats object to a dictionary.
 
@@ -1098,7 +1109,7 @@ class MetalStats:
             self.ligands,
             key=lambda x: (-x.coordination, x.weighted_procrustes(self.metal_element)),
         ):
-            metal["ligands"].append(l.to_dict())
+            metal["ligands"].append(l.to_dict(include_raw=include_raw))
 
         return metal
 
@@ -1543,7 +1554,7 @@ class PdbStats:
         """
         return np.sum([monomer.len() for monomer in self.monomers()])
 
-    def json(self) -> list[dict]:
+    def json(self, include_raw: bool = False) -> list[dict]:
         """
         Returns a JSON representation of the statistics of the PDB file.
 
@@ -1551,5 +1562,7 @@ class PdbStats:
             list: A list of dictionaries representing the metals in the PDB file.
         """
         return [
-            metal.to_dict() for monomer in self.monomers() for metal in monomer.metals
+            metal.to_dict(include_raw=include_raw)
+            for monomer in self.monomers()
+            for metal in monomer.metals
         ]
