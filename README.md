@@ -32,6 +32,7 @@ The Metal Coordination Analysis Tool is a Python application designed for analyz
 - tqdm>=4.0.0
 - scipy>=1.0.0
 - scikit-learn>=1.4.0
+- pyyaml = ">=6.0.0"
 
 ### Installation
 
