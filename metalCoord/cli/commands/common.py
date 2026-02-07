@@ -1,7 +1,7 @@
 import json
 import os
 from pathlib import Path
-from typing import Optional
+from typing import Any, Optional
 
 from metalCoord.config import Config
 from metalCoord.debug import DebugRecorder, resolve_debug_paths
@@ -39,6 +39,21 @@ def configure_debug(args, command: str) -> None:
         Config().debug_log_mark = Logger().mark()
     else:
         Logger().enable_capture(False)
+
+
+def merge_settings(
+    global_defaults: Optional[dict[str, Any]],
+    mode_defaults: Optional[dict[str, Any]],
+    job: Optional[dict[str, Any]],
+) -> dict[str, Any]:
+    merged: dict[str, Any] = {}
+    if global_defaults:
+        merged.update(global_defaults)
+    if mode_defaults:
+        merged.update(mode_defaults)
+    if job:
+        merged.update(job)
+    return merged
 
 
 def _fallback_debug_paths(output: str, override: Optional[str], multi: bool) -> tuple[str, str]:
@@ -119,6 +134,23 @@ def write_status(status: str, reason: Optional[str] = None, ensure_dir: bool = F
         payload["Reason"] = reason
     with open(status_path, 'w', encoding="utf-8") as json_file:
         json.dump(payload, json_file, indent=4, separators=(',', ': '))
+
+
+def status_path_for_output(output_path: str) -> str:
+    output_folder = os.path.abspath(os.path.dirname(output_path))
+    output_file = os.path.basename(output_path)
+    return os.path.join(output_folder, output_file + ".status.json")
+
+
+def read_status_for_output(output_path: str) -> dict[str, Any]:
+    status_path = status_path_for_output(output_path)
+    if not os.path.exists(status_path):
+        return {
+            "status": "Failure",
+            "Reason": f"Status file not found: {status_path}",
+        }
+    with open(status_path, "r", encoding="utf-8") as handle:
+        return json.load(handle)
 
 
 def log_exception(exc: Exception) -> None:

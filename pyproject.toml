@@ -28,6 +28,7 @@ networkx = "^3.2.1"
 scikit-learn = "^1.4.0"
 gemmi = ">=0.7.3"
 numpy = ">=1.26.4"
+pyyaml = ">=6.0.0"
 
 [tool.poetry.scripts]
 metalCoord = "metalCoord.run:main_func"

@@ -1,3 +1,4 @@
+from metalCoord.cli.commands.batch import handle_batch
 from metalCoord.cli.commands.coord import handle_coord
 from metalCoord.cli.commands.pdb import handle_pdb
 from metalCoord.cli.commands.stats import handle_stats
@@ -27,6 +28,7 @@ def main_func():
     handlers = {
         'update': handle_update,
         'stats': handle_stats,
+        'batch': handle_batch,
         'coord': handle_coord,
         'pdb': handle_pdb,
     }

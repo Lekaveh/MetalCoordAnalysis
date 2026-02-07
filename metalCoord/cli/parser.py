@@ -176,4 +176,16 @@ def create_parser():
                             required=True, help='Ligand code.', metavar='<LIGAND CODE>')
     pdb_parser.add_argument('-o', '--output', type=str, required=False,
                             help='Output json file.', metavar='<OUTPUT JSON FILE>')
+
+    # App5
+    batch_parser = subparsers.add_parser(
+        'batch', help='Run batch stats/update jobs from a YAML config.')
+    batch_parser.add_argument(
+        '-f', '--config', type=str, required=True, metavar='<BATCH YAML FILE>',
+        help='YAML config file for batch execution.'
+    )
+    batch_parser.add_argument(
+        '--dry-run', required=False, action='store_true',
+        help='Validate config and planned outputs without running stats/update jobs.'
+    )
     return parser

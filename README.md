@@ -90,6 +90,14 @@ pip install git+https://github.com/Lekaveh/MetalCoordAnalysis
         - -l, --ligand: Ligand code.
         - -o, --output: Output JSON file
         - --no-progress: Do not show progress bars
+- **Batch Config Mode**:
+    - metalCoord [--no-progress] batch --config <BATCH_YAML_FILE> [--dry-run]
+        - -f, --config: YAML config for batch execution.
+        - --dry-run: Validate config and planned outputs without running analysis jobs.
+        - Exit codes:
+            - `0`: all jobs succeeded, or valid dry-run
+            - `1`: one or more jobs failed (execution continues)
+            - `2`: invalid YAML/config schema
 
 ### Debug mode
 
@@ -115,6 +123,73 @@ Debug level controls detail:
 
 - single-output `stats` or `update`: may be a file path or directory path.
 - multi-ligand `stats` (no `-l`): must be a directory.
+
+### Batch mode
+
+Batch mode runs multiple `stats` and `update` jobs from one YAML file.
+Relative paths in the YAML are resolved relative to the YAML file location.
+
+Batch outputs:
+
+- `<output_root>/batch_report.json`
+- `<output_root>/batch_report.md`
+
+Minimal structure:
+
+```yaml
+version: 1
+output_root: ./outputs
+stats_output_dir: ./outputs/stats
+update_output_dir: ./outputs/update
+
+defaults:
+  dist: 0.5
+  threshold: 0.3
+  min_size: 30
+  max_size: 2000
+  coordination: 1000
+  ideal_angles: false
+  simple: false
+  save: false
+  use_pdb: false
+  cl: null
+  debug: false
+  debug_level: detailed
+  debug_output: null
+
+stats:
+  defaults:
+    metal_distance: 0.3
+  jobs:
+    - name: cu_3kw8
+      ligand: CU
+      pdb: ./inputs/3kw8.cif
+      output: ./outputs/stats/custom_cu_3kw8.json
+      debug: true
+    - name: all_4dl8
+      pdb: ./inputs/4dl8.cif
+
+update:
+  defaults:
+    cif: false
+  jobs:
+    - name: sf4_from_pdb
+      input: ./dicts/SF4.cif
+      pdb: 5d8v
+    - name: nom_from_cif
+      input: ./dicts/NOM.cif
+      cif: true
+```
+
+Output naming defaults when `output` is omitted:
+
+- `stats` with `ligand`: `<stats_output_dir>/<pdb_stem>_<ligand>.json`
+- `stats` without `ligand`: `<stats_output_dir>/<pdb_stem>` (directory)
+- `update`: `<update_output_dir>/<input_stem>.cif`
+
+Merge precedence:
+
+- global `defaults` -> mode `defaults` -> job fields
 
 ### Tutorial
 For a step-by-step tutorial on how to use the Metal Coordination Analysis Tool, visit the [tutorial page](https://github.com/Lekaveh/MetalCoordAnalysis/blob/master/tutorial/tutorial.rst).
