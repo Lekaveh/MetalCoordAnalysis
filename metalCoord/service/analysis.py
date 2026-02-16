@@ -453,7 +453,6 @@ def update_energy_in_atoms(block: gemmi.cif.Block, atoms: Dict[str, Any]) -> Dic
 #################################################################################################################
 
 
-
 @dataclass
 class RingStats:
     ring_type: Optional[str]
@@ -463,6 +462,8 @@ class RingStats:
     other_class_name: str
     metal_name: str
     other_metal_name: str
+    ligand_name: str
+    other_ligand_name: str
     
 
 class AngleStatClassifier:
@@ -510,7 +511,8 @@ def build_angle_classifier() -> AngleStatClassifier:
                                 result=lambda r: { # most of 4 coord metals in ring have these stats
                                     r.metal_name: {'angle': 104.89, 'std': 4.13},
                                     r.other_metal_name: {'angle': 104.89, 'std': 4.13},
-                                    'S': {'angle': 74.47, 'std': 4.05},
+                                    r.ligand_name: {'angle': 74.47, 'std': 4.05},
+                                    r.other_ligand_name: {'angle': 74.47, 'std': 4.05},
                                 }
                             ),
                             None: AngleStatClassifier(result=lambda r: {}), # unknown / add more variations
@@ -527,7 +529,8 @@ def build_angle_classifier() -> AngleStatClassifier:
                                 result=lambda r: { # most of 5 coord metals in ring have these stats
                                     r.metal_name: {'angle': 84.77, 'std': 1.10},
                                     r.other_metal_name: {'angle': 84.77, 'std': 1.10},
-                                    'S': {'angle': 68.06, 'std': 1.18}, 
+                                    r.ligand_name: {'angle': 68.06, 'std': 1.18}, 
+                                    r.other_ligand_name: {'angle': 68.06, 'std': 1.18},
                                 }
                             ),
                             None: AngleStatClassifier(result=lambda r: {}), # unknown / add more variations
@@ -544,7 +547,8 @@ def build_angle_classifier() -> AngleStatClassifier:
                                 result=lambda r: {  # most of 6 coord metals in ring have these stats
                                     r.metal_name: {'angle': 82.35, 'std': 2.56},
                                     r.other_metal_name: {'angle': 82.35, 'std': 2.56},
-                                    'S': {'angle': 95.47, 'std': 3.25}, # hardcoded, there is geometrical differences
+                                    r.ligand_name: {'angle': 95.47, 'std': 3.25}, # hardcoded, there is geometrical differences
+                                    r.other_ligand_name: {'angle': 95.47, 'std': 3.25}, # hardcoded, there is geometrical differences
                                 }
                             ),
                             None: AngleStatClassifier(result=lambda r: {}), # unknown / add more variations
@@ -597,7 +601,7 @@ def get_ring_angles_stats(metal_stats1: MetalStats, ligand_stats1: LigandStats,
     if not isinstance(ligand_stats1, LigandStats):
         raise TypeError(f"Expected LigandStats for ligand_stats1, got {type(ligand_stats1)}")
     if not isinstance(metal_stats2, MetalStats):
-        raise TypeError(f"Expected MetalStats for metal_stats1, got {type(metal_stats2)}")
+        raise TypeError(f"Expected MetalStats for metal_stats2, got {type(metal_stats2)}")
     if not isinstance(ligand_stats2, LigandStats):
         raise TypeError(f"Expected LigandStats for ligand_stats2, got {type(ligand_stats2)}")
 
@@ -651,7 +655,9 @@ def get_ring_angles_stats(metal_stats1: MetalStats, ligand_stats1: LigandStats,
         class_name=ligand_stats1.clazz,
         other_class_name=ligand_stats2.clazz,
         metal_name=metal1_name,
-        other_metal_name=metal2_name
+        other_metal_name=metal2_name,
+        ligand_name=shared_atom1_name,
+        other_ligand_name=shared_atom2_name
     )
 
     return CLASSIFIER.get_angles_stats(ring_stats)
@@ -938,111 +944,135 @@ def update_angles_category(angles:Dict[str, Any], atoms: Dict[str, Any], bonds :
 
 def update_tetragons(name: str, angles: Dict[str, Any], monomer, v: list, 
                      pdb_stats: PdbStats) -> None:
-        """
-        Update angle information for tetragonal coordination cycles within a molecular structure.
+    """
+    Update angle information for tetragonal coordination cycles within a molecular structure.
 
-        This function examines cycles (minimal rings) identified in a given vertex list ('v') and processes those
-        that form a tetragon (four-membered cycle). Depending on whether the first element in the cycle is a metal
-        (by checking gemmi.Element), the function assigns metal and ligand vertices accordingly. It then computes
-        the angles between the metal centers and the ligand atoms using the 'get_angle' method provided on the
-        'monomer' object. If both required angles are present, an adjusted angle value is calculated and either
-        updated in the provided 'angles' dictionary or appended as a new entry.
+    This function examines cycles (minimal rings) identified in a given vertex list ('v') and processes those
+    that form a tetragon (four-membered cycle). Depending on whether the first element in the cycle is a metal
+    (by checking gemmi.Element), the function assigns metal and ligand vertices accordingly. It then computes
+    the angles between the metal centers and the ligand atoms using the 'get_angle' method provided on the
+    'monomer' object. If both required angles are present, an adjusted angle value is calculated and either
+    updated in the provided 'angles' dictionary or appended as a new entry.
 
-        Parameters:
-            name (str): An identifier for the current coordination or computed geometry entry.
-            angles (Dict[str, Any]): A dictionary containing lists of atomic identifiers, angle values,
-                and standard deviations. Expected keys include COMP_ID, ATOM_ID_1, ATOM_ID_2, ATOM_ID_3,
-                VALUE_ANGLE, and VALUE_ANGLE_ESD.
-            monomer: An object representing a molecular fragment with the following properties:
-                - 'code': A string attribute used to match ligand identifiers.
-                - 'get_angle': A method that accepts metal and ligand identifiers to calculate the angular value
-                  between them.
-            v (list): A list of vertices (or nodes) representing atoms or groups within the molecular structure.
-                This list is used to identify minimal cycles in the structure.
+    Parameters:
+        name (str): An identifier for the current coordination or computed geometry entry.
+        angles (Dict[str, Any]): A dictionary containing lists of atomic identifiers, angle values,
+            and standard deviations. Expected keys include COMP_ID, ATOM_ID_1, ATOM_ID_2, ATOM_ID_3,
+            VALUE_ANGLE, and VALUE_ANGLE_ESD.
+        monomer: An object representing a molecular fragment with the following properties:
+            - 'code': A string attribute used to match ligand identifiers.
+            - 'get_angle': A method that accepts metal and ligand identifiers to calculate the angular value
+              between them.
+        v (list): A list of vertices (or nodes) representing atoms or groups within the molecular structure.
+            This list is used to identify minimal cycles in the structure.
 
-        Returns:
-            None
+    Returns:
+        None
 
-        Notes:
-            - The function uses gemmi.Element to determine if a particular vertex represents a metal element.
-            - If an angle cannot be computed or is missing, a warning is logged using the Logger() mechanism.
-            - The standard deviation for the angle value is hardcoded to 5.0.
-        """
-        for cycle in find_minimal_cycles(v):
-            if len(cycle) == 4:
-                if gemmi.Element(cycle[0][1]).is_metal:
-                    metal1 = cycle[0]
-                    metal2 = cycle[2]
-                    ligand1 = cycle[1]
-                    ligand2 = cycle[3]
-                else:
-                    metal1 = cycle[1]
-                    metal2 = cycle[3]
-                    ligand1 = cycle[0]
-                    ligand2 = cycle[2]
-                metals_stats = [metal_stat_pdb for metal in [metal1, metal2] for metal_stat_pdb in pdb_stats.metals if metal[0] == metal_stat_pdb.metal]
-                has_stats = False
-                if len(metals_stats) == 2:
-                    metal1_stats = metals_stats[0]
-                    metal2_stats = metals_stats[1]
+    Notes:
+        - The function uses gemmi.Element to determine if a particular vertex represents a metal element.
+        - If an angle cannot be computed or is missing, a warning is logged using the Logger() mechanism.
+        - The standard deviation for the angle value is hardcoded to 5.0.
+    """
+    for cycle in find_minimal_cycles(v):
+        if len(cycle) == 4:
+            if gemmi.Element(cycle[0][1]).is_metal:
+                metal1 = cycle[0]
+                metal2 = cycle[2]
+                ligand1 = cycle[1]
+                ligand2 = cycle[3]
+            else:
+                metal1 = cycle[1]
+                metal2 = cycle[3]
+                ligand1 = cycle[0]
+                ligand2 = cycle[2]
+
+            val_ligand1, std_ligand1 = None, 5.0
+            val_ligand2, std_ligand2 = None, 5.0
+            val_m1, std_m1 = None, 5.0
+            val_m2, std_m2 = None, 5.0
+   
+            metals_stats = [m for m_atom in [metal1, metal2] for m in pdb_stats.metals if m_atom[0] == m.metal]
+            has_stats = False
+   
+            if len(metals_stats) == 2:
+                m1_stats, m2_stats = metals_stats[0], metals_stats[1]
+                l_class1 = pdb_stats.get_best_class(m1_stats.code[0])
+                l_class2 = pdb_stats.get_best_class(m2_stats.code[0])
+                
+                stat_angles = get_ring_angles_stats(m1_stats, l_class1, m2_stats, l_class2)
+                
+                if stat_angles and all(k in stat_angles for k in (ligand1[0], ligand2[0], metal1[0], metal2[0])):
                     
-                    ligand_stats1 = pdb_stats.get_best_class(metal1_stats.code[0])
-                    ligand_stats2 = pdb_stats.get_best_class(metal2_stats.code[0])
+                    val_ligand1 = stat_angles[ligand1[0]]['angle']
+                    std_ligand1 = stat_angles[ligand1[0]]['std']
                     
-                    stat_angles = get_ring_angles_stats(metal1_stats, ligand_stats1, metal2_stats, ligand_stats2)
+                    val_ligand2 = stat_angles[ligand2[0]]['angle']
+                    std_ligand2 = stat_angles[ligand2[0]]['std']
                     
-                    if stat_angles and 'S' in stat_angles and 'angle' in stat_angles['S'] and 'std' in stat_angles['S']:
-                        # angle1_stat = stat_angles[metal1[0]] # might be used further
-                        # angle2_stat = stat_angles[metal2[0]] # might be used further
-                        val = stat_angles['S']['angle']
-                        std = stat_angles['S']['std']
-                        has_stats = True
-                            
-                if not(has_stats):
-                    angle1 = monomer.get_angle(metal1[0], ligand1, ligand2)
-                    angle2 = monomer.get_angle(metal2[0], ligand1, ligand2)
-    
-                    if not angle1 or not angle2:
-                        if not angle1:
-                            Logger().warning(
-                                f"Angle {ligand1[0]}- {metal1[0]}-{ligand2[0]} not found in {monomer.code}"
-                            )
-                        if not angle2:
-                            Logger().warning(
-                                f"Angle {ligand1[0]}- {metal2[0]}-{ligand2[0]} not found in {monomer.code}"
-                            )
-                        continue
-    
-                    val = (360 - angle1.angle - angle2.angle) / 2
-                    std = 5.0
+                    val_m1 = stat_angles[metal1[0]]['angle']
+                    std_m1 = stat_angles[metal1[0]]['std']
                     
-                for ligand in [ligand1, ligand2]:
-                    if monomer.code == ligand[2:]:
-                        found = False
-                        for i, _atoms in enumerate(
-                            zip(angles[ATOM_ID_1], angles[ATOM_ID_2], angles[ATOM_ID_3])
-                        ):
-                            metal1_name, ligand_name, metal2_name = _atoms
-                            if (
-                                metal1_name == metal1[0]
-                                and ligand_name == ligand[0]
-                                and metal2_name == metal2[0]
-                            ) or (
-                                metal1_name == metal2[0]
-                                and ligand_name == ligand[0]
-                                and metal2_name == metal1[0]
-                            ):
-                                angles[VALUE_ANGLE][i] = str(round(val, 3))
-                                angles[VALUE_ANGLE_ESD][i] = str(round(std, 3))
+                    val_m2 = stat_angles[metal2[0]]['angle']
+                    std_m2 = stat_angles[metal2[0]]['std']
+                    
+                    has_stats = True
+
+            if not has_stats:
+                angle_obj1 = monomer.get_angle(metal1[0], ligand1, ligand2)
+                angle_obj2 = monomer.get_angle(metal2[0], ligand1, ligand2)
+
+                if not angle_obj1:
+                    Logger().warning(f"Angle {ligand1[0]}-{metal1[0]}-{ligand2[0]} not found in {monomer.code}")
+                if not angle_obj2:
+                    Logger().warning(f"Angle {ligand1[0]}-{metal2[0]}-{ligand2[0]} not found in {monomer.code}")
+                
+                if not angle_obj1 or not angle_obj2:
+                    continue
+
+                val_m1 = angle_obj1.angle
+                val_m2 = angle_obj2.angle
+                
+                calc_ligand_val = (360 - val_m1 - val_m2) / 2
+                
+                val_ligand1 = calc_ligand_val
+                val_ligand2 = calc_ligand_val
+
+            targets = [
+                (ligand1, metal1, metal2, val_ligand1, std_ligand1), 
+                (ligand2, metal1, metal2, val_ligand2, std_ligand2), 
+                (metal1, ligand1, ligand2, val_m1, std_m1),      
+                (metal2, ligand1, ligand2, val_m2, std_m2)       
+            ]
+
+            for center, n1, n2, ang_val, ang_std in targets:
+                chain_match = (center[2] == monomer.code[0])
+                res_name_match = (center[3] == monomer.code[1])
+                seq_num_match = (str(center[4]) == str(monomer.code[2]))
+                
+                if chain_match and res_name_match and seq_num_match:
+                    found = False
+                    
+                    for i, (col_n1, col_center, col_n2) in enumerate(zip(
+                        angles[ATOM_ID_1], angles[ATOM_ID_2], angles[ATOM_ID_3]
+                    )):
+                        if col_center == center[0]:
+                            if (col_n1 == n1[0] and col_n2 == n2[0]) or \
+                               (col_n1 == n2[0] and col_n2 == n1[0]):
+                                
+                                angles[VALUE_ANGLE][i] = str(round(ang_val, 3))
+                                angles[VALUE_ANGLE_ESD][i] = str(round(ang_std, 3))
                                 found = True
                                 break
-                        if not found:
-                            angles[COMP_ID].append(name)
-                            angles[ATOM_ID_1].append(metal1[0])
-                            angles[ATOM_ID_2].append(ligand[0])
-                            angles[ATOM_ID_3].append(metal2[0])
-                            angles[VALUE_ANGLE].append(str(round(val, 3)))
-                            angles[VALUE_ANGLE_ESD].append(str(round(std, 3)))
+
+                    if not found:
+                        angles[COMP_ID].append(name)
+                        angles[ATOM_ID_1].append(n1[0])
+                        angles[ATOM_ID_2].append(center[0])
+                        angles[ATOM_ID_3].append(n2[0])
+                        angles[VALUE_ANGLE].append(str(round(ang_val, 3)))
+                        angles[VALUE_ANGLE_ESD].append(str(round(ang_std, 3)))
+                        
             
 def update_cif(output_path, path, pdb, use_cif=False, clazz=None):
     """
