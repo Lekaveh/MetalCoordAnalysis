@@ -39,13 +39,17 @@ for metal in metals:
         for mark2 in marks2:
             cra2 = mark2.to_cra(st[0])
             dist_cra1_cra2 = cra1.atom.pos.dist(cra2.atom.pos)
-            dist_max = factor * (cra1.atom.element.covalent_r + cra2.atom.element.covalent_r)
-            if cra1.chain.name == cra2.chain.name and \
-                    cra1.residue.seqid == cra2.residue.seqid and \
-                    cra1.atom.element == cra2.atom.element and \
-                    not cra1.atom.element.is_metal and \
-                    not cra2.atom.element.is_metal and \
-                    dist_cra1_cra2 < dist_max:
+            dist_max = factor * (
+                cra1.atom.element.covalent_r + cra2.atom.element.covalent_r
+            )
+            if (
+                cra1.chain.name == cra2.chain.name
+                and cra1.residue.seqid == cra2.residue.seqid
+                and cra1.atom.element == cra2.atom.element
+                and not cra1.atom.element.is_metal
+                and not cra2.atom.element.is_metal
+                and dist_cra1_cra2 < dist_max
+            ):
                 marks2_filtered.append(mark2)
         for mark2 in marks2_filtered:
             cra2 = mark2.to_cra(st[0])
@@ -55,12 +59,18 @@ for metal in metals:
             for mark3 in marks3:
                 cra3 = mark3.to_cra(st[0])
                 dist_metal_cra2 = metal.pos.dist(cra2.atom.pos)
-                dist_metal_cra2_max = factor * (metal.element.covalent_r + cra2.atom.element.covalent_r)
+                dist_metal_cra2_max = factor * (
+                    metal.element.covalent_r + cra2.atom.element.covalent_r
+                )
                 dist_metal_cra1 = metal.pos.dist(cra1.atom.pos)
-                dist_metal_cra1_max = factor * (metal.element.covalent_r + cra1.atom.element.covalent_r)
-                if cra3.atom == metal and \
-                        dist_metal_cra2 < dist_metal_cra2_max and \
-                        dist_metal_cra1 < dist_metal_cra1_max:
+                dist_metal_cra1_max = factor * (
+                    metal.element.covalent_r + cra1.atom.element.covalent_r
+                )
+                if (
+                    cra3.atom == metal
+                    and dist_metal_cra2 < dist_metal_cra2_max
+                    and dist_metal_cra1 < dist_metal_cra1_max
+                ):
                     triangle = {metal, cra1.atom, cra2.atom}
                     atom_pair = {cra1.atom, cra2.atom}
                     atom_cra_pair = {cra1, cra2}
@@ -69,11 +79,17 @@ for metal in metals:
                         print("TRIANGLE!", metal, cra1.atom, cra2.atom, cra3.atom)
                         triangles.append(triangle)
                     if atom_pair not in atom_pairs:
-                        print("ATOM PAIR!", cra1, cra2, "distance:", round(dist_cra1_cra2, 2))
+                        print(
+                            "ATOM PAIR!",
+                            cra1,
+                            cra2,
+                            "distance:",
+                            round(dist_cra1_cra2, 2),
+                        )
                         atom_pairs.append(atom_pair)
                         atom_cra_pairs.append(atom_cra_pair)
 
-pprint.pprint(triangles)                   
+pprint.pprint(triangles)
 print("")
 pprint.pprint(atom_pairs)
 
@@ -85,8 +101,8 @@ for atom_cra_pair in atom_cra_pairs:
     print("Shifted:", atom_cra_pair[0])
     print("Deleted:", atom_cra_pair[1])
     for i in range(2):
-        if atom_cra_pair[i].atom.altloc == '\x00':
-            altloc = ''
+        if atom_cra_pair[i].atom.altloc == "\x00":
+            altloc = ""
         else:
             altloc = atom_cra_pair[i].atom.altloc
         if atom_cra_pair[i].residue.seqid.icode.strip() == "":
@@ -101,15 +117,19 @@ for atom_cra_pair in atom_cra_pairs:
             "sequence": atom_cra_pair[i].residue.seqid.num,
             "icode": icode,
             "altloc": altloc,
-            "symmetry": 0
+            "symmetry": 0,
         }
     atoms_equivalent_all.append(atoms_equivalent)
     atom_cra_pair[0].atom.pos = pos_average
-    atom_cra_pair[1].residue.remove_atom(atom_cra_pair[1].atom.name, atom_cra_pair[1].atom.altloc, atom_cra_pair[1].atom.element)
+    atom_cra_pair[1].residue.remove_atom(
+        atom_cra_pair[1].atom.name,
+        atom_cra_pair[1].atom.altloc,
+        atom_cra_pair[1].atom.element,
+    )
 print("")
 pprint.pprint(atoms_equivalent_all)
 
-with open(prefix + '_nopairs_equivalents.json', 'w') as f:
+with open(prefix + "_nopairs_equivalents.json", "w") as f:
     json.dump(atoms_equivalent_all, f, indent=4)
 outputPdbName = prefix + "_nopairs.pdb"
 outputMmcifName = prefix + "_nopairs.mmcif"

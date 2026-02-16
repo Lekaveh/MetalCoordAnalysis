@@ -156,7 +156,7 @@ class StatsData:
             }
             if cod:
                 result[index]["cod"] = sorted(row["COD"].tolist())
-        return dict(sorted(result.items(), key=lambda item,: item[1]["coordination"]))
+        return dict(sorted(result.items(), key=lambda item: item[1]["coordination"]))
 
     def data(self):
         """

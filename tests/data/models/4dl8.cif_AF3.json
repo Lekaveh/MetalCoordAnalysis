@@ -1,0 +1,600 @@
+[
+    {
+        "metal": "AL",
+        "metalElement": "Al",
+        "chain": "A",
+        "residue": "AF3",
+        "sequence": 302,
+        "icode": ".",
+        "altloc": "",
+        "ligands": [
+            {
+                "class": "octahedral",
+                "class_abr": "OCT",
+                "descriptor": "@OCT{Al,F,F,F,O,O,O}",
+                "procrustes": 0.067,
+                "coordination": 6,
+                "count": 33,
+                "description": "Based on coordination and all atoms availability only",
+                "base": [
+                    {
+                        "ligand": {
+                            "name": "F1",
+                            "element": "F",
+                            "chain": "A",
+                            "residue": "AF3",
+                            "sequence": 302,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0,
+                            "operator": "x,y,z"
+                        },
+                        "distance": [
+                            1.82
+                        ],
+                        "std": [
+                            0.05
+                        ]
+                    },
+                    {
+                        "ligand": {
+                            "name": "F2",
+                            "element": "F",
+                            "chain": "A",
+                            "residue": "AF3",
+                            "sequence": 302,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0,
+                            "operator": "x,y,z"
+                        },
+                        "distance": [
+                            1.82
+                        ],
+                        "std": [
+                            0.05
+                        ]
+                    },
+                    {
+                        "ligand": {
+                            "name": "F3",
+                            "element": "F",
+                            "chain": "A",
+                            "residue": "AF3",
+                            "sequence": 302,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0,
+                            "operator": "x,y,z"
+                        },
+                        "distance": [
+                            1.82
+                        ],
+                        "std": [
+                            0.05
+                        ]
+                    }
+                ],
+                "angles": [
+                    {
+                        "ligand1": {
+                            "name": "F1",
+                            "element": "F",
+                            "chain": "A",
+                            "residue": "AF3",
+                            "sequence": 302,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0,
+                            "operator": "x,y,z"
+                        },
+                        "ligand2": {
+                            "name": "F2",
+                            "element": "F",
+                            "chain": "A",
+                            "residue": "AF3",
+                            "sequence": 302,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0,
+                            "operator": "x,y,z"
+                        },
+                        "angle": 90.0,
+                        "std": 5.0
+                    },
+                    {
+                        "ligand1": {
+                            "name": "F1",
+                            "element": "F",
+                            "chain": "A",
+                            "residue": "AF3",
+                            "sequence": 302,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0,
+                            "operator": "x,y,z"
+                        },
+                        "ligand2": {
+                            "name": "F3",
+                            "element": "F",
+                            "chain": "A",
+                            "residue": "AF3",
+                            "sequence": 302,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0,
+                            "operator": "x,y,z"
+                        },
+                        "angle": 90.0,
+                        "std": 5.0
+                    },
+                    {
+                        "ligand1": {
+                            "name": "F1",
+                            "element": "F",
+                            "chain": "A",
+                            "residue": "AF3",
+                            "sequence": 302,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0,
+                            "operator": "x,y,z"
+                        },
+                        "ligand2": {
+                            "name": "O",
+                            "element": "O",
+                            "chain": "A",
+                            "residue": "HOH",
+                            "sequence": 401,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0,
+                            "operator": "x,y,z"
+                        },
+                        "angle": 90.0,
+                        "std": 5.0
+                    },
+                    {
+                        "ligand1": {
+                            "name": "F1",
+                            "element": "F",
+                            "chain": "A",
+                            "residue": "AF3",
+                            "sequence": 302,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0,
+                            "operator": "x,y,z"
+                        },
+                        "ligand2": {
+                            "name": "O1",
+                            "element": "O",
+                            "chain": "A",
+                            "residue": "PO4",
+                            "sequence": 303,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0,
+                            "operator": "x,y,z"
+                        },
+                        "angle": 180.0,
+                        "std": 5.0
+                    },
+                    {
+                        "ligand1": {
+                            "name": "F1",
+                            "element": "F",
+                            "chain": "A",
+                            "residue": "AF3",
+                            "sequence": 302,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0,
+                            "operator": "x,y,z"
+                        },
+                        "ligand2": {
+                            "name": "OP1",
+                            "element": "O",
+                            "chain": "A",
+                            "residue": "UMP",
+                            "sequence": 301,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0,
+                            "operator": "x,y,z"
+                        },
+                        "angle": 90.0,
+                        "std": 5.0
+                    },
+                    {
+                        "ligand1": {
+                            "name": "F2",
+                            "element": "F",
+                            "chain": "A",
+                            "residue": "AF3",
+                            "sequence": 302,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0,
+                            "operator": "x,y,z"
+                        },
+                        "ligand2": {
+                            "name": "F3",
+                            "element": "F",
+                            "chain": "A",
+                            "residue": "AF3",
+                            "sequence": 302,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0,
+                            "operator": "x,y,z"
+                        },
+                        "angle": 180.0,
+                        "std": 5.0
+                    },
+                    {
+                        "ligand1": {
+                            "name": "F2",
+                            "element": "F",
+                            "chain": "A",
+                            "residue": "AF3",
+                            "sequence": 302,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0,
+                            "operator": "x,y,z"
+                        },
+                        "ligand2": {
+                            "name": "O",
+                            "element": "O",
+                            "chain": "A",
+                            "residue": "HOH",
+                            "sequence": 401,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0,
+                            "operator": "x,y,z"
+                        },
+                        "angle": 90.0,
+                        "std": 5.0
+                    },
+                    {
+                        "ligand1": {
+                            "name": "F2",
+                            "element": "F",
+                            "chain": "A",
+                            "residue": "AF3",
+                            "sequence": 302,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0,
+                            "operator": "x,y,z"
+                        },
+                        "ligand2": {
+                            "name": "O1",
+                            "element": "O",
+                            "chain": "A",
+                            "residue": "PO4",
+                            "sequence": 303,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0,
+                            "operator": "x,y,z"
+                        },
+                        "angle": 90.0,
+                        "std": 5.0
+                    },
+                    {
+                        "ligand1": {
+                            "name": "F2",
+                            "element": "F",
+                            "chain": "A",
+                            "residue": "AF3",
+                            "sequence": 302,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0,
+                            "operator": "x,y,z"
+                        },
+                        "ligand2": {
+                            "name": "OP1",
+                            "element": "O",
+                            "chain": "A",
+                            "residue": "UMP",
+                            "sequence": 301,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0,
+                            "operator": "x,y,z"
+                        },
+                        "angle": 90.0,
+                        "std": 5.0
+                    },
+                    {
+                        "ligand1": {
+                            "name": "F3",
+                            "element": "F",
+                            "chain": "A",
+                            "residue": "AF3",
+                            "sequence": 302,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0,
+                            "operator": "x,y,z"
+                        },
+                        "ligand2": {
+                            "name": "O",
+                            "element": "O",
+                            "chain": "A",
+                            "residue": "HOH",
+                            "sequence": 401,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0,
+                            "operator": "x,y,z"
+                        },
+                        "angle": 90.0,
+                        "std": 5.0
+                    },
+                    {
+                        "ligand1": {
+                            "name": "F3",
+                            "element": "F",
+                            "chain": "A",
+                            "residue": "AF3",
+                            "sequence": 302,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0,
+                            "operator": "x,y,z"
+                        },
+                        "ligand2": {
+                            "name": "O1",
+                            "element": "O",
+                            "chain": "A",
+                            "residue": "PO4",
+                            "sequence": 303,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0,
+                            "operator": "x,y,z"
+                        },
+                        "angle": 90.0,
+                        "std": 5.0
+                    },
+                    {
+                        "ligand1": {
+                            "name": "F3",
+                            "element": "F",
+                            "chain": "A",
+                            "residue": "AF3",
+                            "sequence": 302,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0,
+                            "operator": "x,y,z"
+                        },
+                        "ligand2": {
+                            "name": "OP1",
+                            "element": "O",
+                            "chain": "A",
+                            "residue": "UMP",
+                            "sequence": 301,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0,
+                            "operator": "x,y,z"
+                        },
+                        "angle": 90.0,
+                        "std": 5.0
+                    },
+                    {
+                        "ligand1": {
+                            "name": "O",
+                            "element": "O",
+                            "chain": "A",
+                            "residue": "HOH",
+                            "sequence": 401,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0,
+                            "operator": "x,y,z"
+                        },
+                        "ligand2": {
+                            "name": "O1",
+                            "element": "O",
+                            "chain": "A",
+                            "residue": "PO4",
+                            "sequence": 303,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0,
+                            "operator": "x,y,z"
+                        },
+                        "angle": 90.0,
+                        "std": 5.0
+                    },
+                    {
+                        "ligand1": {
+                            "name": "O",
+                            "element": "O",
+                            "chain": "A",
+                            "residue": "HOH",
+                            "sequence": 401,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0,
+                            "operator": "x,y,z"
+                        },
+                        "ligand2": {
+                            "name": "OP1",
+                            "element": "O",
+                            "chain": "A",
+                            "residue": "UMP",
+                            "sequence": 301,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0,
+                            "operator": "x,y,z"
+                        },
+                        "angle": 180.0,
+                        "std": 5.0
+                    },
+                    {
+                        "ligand1": {
+                            "name": "O1",
+                            "element": "O",
+                            "chain": "A",
+                            "residue": "PO4",
+                            "sequence": 303,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0,
+                            "operator": "x,y,z"
+                        },
+                        "ligand2": {
+                            "name": "OP1",
+                            "element": "O",
+                            "chain": "A",
+                            "residue": "UMP",
+                            "sequence": 301,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0,
+                            "operator": "x,y,z"
+                        },
+                        "angle": 90.0,
+                        "std": 5.0
+                    }
+                ],
+                "pdb": [
+                    {
+                        "ligand": {
+                            "name": "O",
+                            "element": "O",
+                            "chain": "A",
+                            "residue": "HOH",
+                            "sequence": 401,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0,
+                            "operator": "x,y,z"
+                        },
+                        "distance": [
+                            1.88
+                        ],
+                        "std": [
+                            0.04
+                        ]
+                    },
+                    {
+                        "ligand": {
+                            "name": "O1",
+                            "element": "O",
+                            "chain": "A",
+                            "residue": "PO4",
+                            "sequence": 303,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0,
+                            "operator": "x,y,z"
+                        },
+                        "distance": [
+                            1.88
+                        ],
+                        "std": [
+                            0.04
+                        ]
+                    },
+                    {
+                        "ligand": {
+                            "name": "OP1",
+                            "element": "O",
+                            "chain": "A",
+                            "residue": "UMP",
+                            "sequence": 301,
+                            "icode": ".",
+                            "altloc": "",
+                            "symmetry": 0,
+                            "operator": "x,y,z"
+                        },
+                        "distance": [
+                            1.88
+                        ],
+                        "std": [
+                            0.04
+                        ]
+                    }
+                ],
+                "order": [
+                    {
+                        "name": "F2",
+                        "element": "F",
+                        "chain": "A",
+                        "residue": "AF3",
+                        "sequence": 302,
+                        "icode": ".",
+                        "altloc": "",
+                        "symmetry": 0,
+                        "operator": "x,y,z"
+                    },
+                    {
+                        "name": "F1",
+                        "element": "F",
+                        "chain": "A",
+                        "residue": "AF3",
+                        "sequence": 302,
+                        "icode": ".",
+                        "altloc": "",
+                        "symmetry": 0,
+                        "operator": "x,y,z"
+                    },
+                    {
+                        "name": "F3",
+                        "element": "F",
+                        "chain": "A",
+                        "residue": "AF3",
+                        "sequence": 302,
+                        "icode": ".",
+                        "altloc": "",
+                        "symmetry": 0,
+                        "operator": "x,y,z"
+                    },
+                    {
+                        "name": "O1",
+                        "element": "O",
+                        "chain": "A",
+                        "residue": "PO4",
+                        "sequence": 303,
+                        "icode": ".",
+                        "altloc": "",
+                        "symmetry": 0,
+                        "operator": "x,y,z"
+                    },
+                    {
+                        "name": "O",
+                        "element": "O",
+                        "chain": "A",
+                        "residue": "HOH",
+                        "sequence": 401,
+                        "icode": ".",
+                        "altloc": "",
+                        "symmetry": 0,
+                        "operator": "x,y,z"
+                    },
+                    {
+                        "name": "OP1",
+                        "element": "O",
+                        "chain": "A",
+                        "residue": "UMP",
+                        "sequence": 301,
+                        "icode": ".",
+                        "altloc": "",
+                        "symmetry": 0,
+                        "operator": "x,y,z"
+                    }
+                ]
+            }
+        ]
+    }
+]

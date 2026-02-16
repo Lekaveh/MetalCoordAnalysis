@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
-from turtle import st
 from typing import Tuple
+
 
 import gemmi
 import numpy as np
@@ -107,7 +107,10 @@ class Atom(IAtom):
         self._symmetry = mark.image_idx if mark else 0
         self._st = st
         self._metal = metal
-        self._symmetry_operator = st.find_spacegroup().operations().sym_ops[self._symmetry].triplet()
+
+        self._symmetry_operator = (
+            list(st.find_spacegroup().operations())[self._symmetry].triplet()
+        ) if self._symmetry != 0 else "x,y,z"
 
     @property
     def atom(self):
@@ -178,11 +181,11 @@ class Atom(IAtom):
             tuple: The translation vector of the atom.
         """
         if self.symmetry:
-            atom = self._st[0].find_cra(gemmi.AtomAddress(self.chain.name, gemmi.SeqId(str(self.residue.seqid.num)), self.residue.name, self.name))
-            return self._st.cell.find_nearest_image(self._metal.pos, atom.atom.pos).pbc_shift
+            return self._st.cell.find_nearest_pbc_image(
+                self._metal.pos, self._atom.pos, self.symmetry
+            ).pbc_shift
 
         return (0, 0, 0)
-
 
     @property
     def symmetry_operator(self):
@@ -199,7 +202,7 @@ class Atom(IAtom):
             into symmetry string like 'x+1/2, y-1, z+3/4'.
             Keeps signs as-is (no mod 1 wrapping).
             """
-            axes = ['x', 'y', 'z']
+            axes = ["x", "y", "z"]
             parts = []
             for axis, val in zip(axes, vec):
                 if val == 0:
@@ -211,8 +214,11 @@ class Atom(IAtom):
             return ", ".join(parts)
 
         if self.symmetry:
-            # return gemmi.Op(self._symmetry_operator).combine(gemmi.Op(vector_to_symop(self.translation))).triplet()
-            return gemmi.Op(vector_to_symop(self.translation)).combine(gemmi.Op(self._symmetry_operator)).triplet()
+            return (
+                gemmi.Op(vector_to_symop(self.translation))
+                .combine(gemmi.Op(self._symmetry_operator))
+                .triplet()
+            )
         return self._symmetry_operator
 
     @property
@@ -296,7 +302,7 @@ class CifAtom(IAtom):
             tuple: The translation vector of the atom.
         """
         return (0, 0, 0)
-    
+
     @property
     def symmetry_operator(self):
         """
@@ -306,8 +312,7 @@ class CifAtom(IAtom):
             str: The symmetry operator of the atom.
         """
         return "x,y,z"
-        
-    
+
     @property
     def pos(self):
         """
@@ -535,6 +540,7 @@ class Ligand:
         #     return
 
         self._ligands.append(ligand)
+        self._ligands = sorted(self._ligands, key=lambda x: x.atom.name)
 
     def add_extra_ligand(self, ligand: IAtom):
         """
@@ -545,6 +551,7 @@ class Ligand:
         """
 
         self._extra_ligands.append(ligand)
+        self._extra_ligands = sorted(self._extra_ligands, key=lambda x: x.atom.name)
 
     def elements(self):
         """
@@ -590,6 +597,29 @@ class Ligand:
             A list of element names.
         """
         return [
+            ligand.atom.element.name for ligand in self._ligands + self._extra_ligands
+        ]
+    
+    def atom_names_with_symmetries(self):
+        """
+        Returns a list of names with symmetries for all ligands and extra ligands.
+
+        Returns:
+            A list of  names.
+        """
+        return [self._metal.name] + [
+            f"{ligand.name} {'(' + str(ligand.symmetry) + ')' if ligand.symmetry else ''}"
+            for ligand in self._ligands + self._extra_ligands
+        ]
+    
+    def element_names(self):
+        """
+        Returns a list of names with symmetries for all ligands and extra ligands.
+
+        Returns:
+            A list of  names.
+        """
+        return [self._metal.atom.element.name] + [
             ligand.atom.element.name for ligand in self._ligands + self._extra_ligands
         ]
 
@@ -1324,7 +1354,7 @@ def get_ligands_from_cif(
             ligand_obj.add_ligand(CifAtom(ligand, residue, new_chain))
 
         structures.append(ligand_obj)
-  
+
     metal_pairs = MetalBondRegistry()
     for metal_name, metals in metal_metal_bonds.items():
         for metal2_name in metals:

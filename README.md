@@ -32,6 +32,7 @@ The Metal Coordination Analysis Tool is a Python application designed for analyz
 - tqdm>=4.0.0
 - scipy>=1.0.0
 - scikit-learn>=1.4.0
+- pyyaml = ">=6.0.0"
 
 ### Installation
 
@@ -40,7 +41,7 @@ pip install git+https://github.com/Lekaveh/MetalCoordAnalysis
 
 ### Usage
 - **Metal Coordination Analysis**: 
-    - metalCoord [--no-progress] stats -p <PDB_CODE|PDB_FILE> -o OUTPUT_JSON_FILE [-l <LIGAND_CODE> ] [-d <DISTANCE_THRESHOLD>] [-t <PROCRUSTES_DISTANCE_THRESHOLD>] [-m <MINIMUM_SAMPLE_SIZE>] [--ideal_angles] [-s] [--save] [--use-pdb] [-c <MAXIMUM_COORDINATION_NUMBER>] [--cl <PREDEFINED_CLASS>]
+    - metalCoord [--no-progress] stats -p <PDB_CODE|PDB_FILE> -o OUTPUT_JSON_FILE [-l <LIGAND_CODE> ] [-d <DISTANCE_THRESHOLD>] [-t <PROCRUSTES_DISTANCE_THRESHOLD>] [-m <MINIMUM_SAMPLE_SIZE>] [--ideal_angles] [-s] [--save] [--use-pdb] [-c <MAXIMUM_COORDINATION_NUMBER>] [--cl <PREDEFINED_CLASS>] [--debug] [--debug-level <summary|detailed|max>] [--debug-output <DEBUG_OUTPUT>]
         - -l, --ligand: Ligand code. If not specified, all metal-containing ligands will be analyzed.
         - -o, --output: Output JSON file.
         - -p, --pdb: PDB code or PDB file.
@@ -54,9 +55,13 @@ pip install git+https://github.com/Lekaveh/MetalCoordAnalysis
         - --use-pdb Use COD structures based on pdb coordinates.
         - -c, --coordination: Defines maximum coordination number.
         - --cl Predefined class or  "most_common" for the most frequent coordination class
+        - --metal_distance: Metal-metal distance threshold (default: 0.3, range: 0-1).
+        - --debug: Write debug sidecar files (`.debug.json` and `.debug.md`).
+        - --debug-level: Debug detail level (`summary`, `detailed`, or `max`; default: `detailed`).
+        - --debug-output: Optional debug output override. For a single output, use file or directory. For multi-ligand stats, this must be a directory.
         - --no-progress: Do not show progress bars
 - **Ligand Update**: 
-    - metalCoord [--no-progress] update -i <INPUT_CIF_FILE> -o <OUTPUT_CIF_FILE> [-p <PDB_CODE|PDB_FILE>] [-d <DISTANCE_THRESHOLD>] [-t <PROCRUSTES_DISTANCE_THRESHOLD>] [-m <MINIMUM_SAMPLE_SIZE>] [--ideal_angles] [-s] [--save] [--use-pdb] [-c <MAXIMUM_COORDINATION_NUMBER>] [--cif] [--cl <PREDEFINED_CLASS>]
+    - metalCoord [--no-progress] update -i <INPUT_CIF_FILE> -o <OUTPUT_CIF_FILE> [-p <PDB_CODE|PDB_FILE>] [-d <DISTANCE_THRESHOLD>] [-t <PROCRUSTES_DISTANCE_THRESHOLD>] [-m <MINIMUM_SAMPLE_SIZE>] [--ideal_angles] [-s] [--save] [--use-pdb] [-c <MAXIMUM_COORDINATION_NUMBER>] [--cif] [--cl <PREDEFINED_CLASS>] [--debug] [--debug-level <summary|detailed|max>] [--debug-output <DEBUG_OUTPUT>]
         - -i, --input: CIF file.
         - -o, --output: Output CIF file.
         - -p, --pdb: PDB code or PDB file.
@@ -66,11 +71,13 @@ pip install git+https://github.com/Lekaveh/MetalCoordAnalysis
         - -x, --max_size: Maximum sample size for statistics (default: 2000).
         - --ideal-angles: Provide only ideal angles.
         - -s, --simple: Simple distance-based filtering.
-        - --metal_distance: Metal–metal distance threshold (default: 0.3, range: 0–1). This parameter specifies a threshold value for the metal–metal distance. <br> *A threshold to* $d$ *to select an atom is* $(r_1 + r_2) \times (1 + d)$, where $d$ is "metal_distance".
         - --use-pdb Use COD structures based on pdb coordinates.
         - -c, --coordination: Defines maximum coordination number.
         - --cif: Read coordinates from mmCIF file
         - --cl Predefined class or  "most_common" for the most frequent coordination class
+        - --debug: Write debug sidecar files (`.debug.json` and `.debug.md`).
+        - --debug-level: Debug detail level (`summary`, `detailed`, or `max`; default: `detailed`).
+        - --debug-output: Optional debug output override (file or directory).
         - --no-progress: Do not show progress bars
 - **Coordination List**: 
     - metalCoord [--no-progress] coord [-n <COORDINATION_NUMBER>] [-m <METAL_ELEMENT_NAME>] [-o <OUTPUT_JSON_FILE>] [--cod]
@@ -84,6 +91,106 @@ pip install git+https://github.com/Lekaveh/MetalCoordAnalysis
         - -l, --ligand: Ligand code.
         - -o, --output: Output JSON file
         - --no-progress: Do not show progress bars
+- **Batch Config Mode**:
+    - metalCoord [--no-progress] batch --config <BATCH_YAML_FILE> [--dry-run]
+        - -f, --config: YAML config for batch execution.
+        - --dry-run: Validate config and planned outputs without running analysis jobs.
+        - Exit codes:
+            - `0`: all jobs succeeded, or valid dry-run
+            - `1`: one or more jobs failed (execution continues)
+            - `2`: invalid YAML/config schema
+
+### Debug mode
+
+When `--debug` is enabled for `stats` or `update`, MetalCoord writes two sidecar files next to the main output by default:
+
+- `<output>.debug.json`
+- `<output>.debug.md`
+
+The debug JSON contains:
+
+- `domain_report`: chemistry-first stepwise narrative of the analysis process.
+- `descriptor_info`: linear descriptor generation details (class code, ordering, index mapping, and descriptor string).
+- `trace`: structured analysis trace for sites, candidates, and selected strategy.
+- `logs`: captured runtime logs.
+
+Debug level controls detail:
+
+- `summary`: chosen descriptor/class per metal site.
+- `detailed`: chosen + top candidate geometries (up to top 3 plus chosen if different).
+- `max`: all candidates plus raw arrays where available.
+
+`--debug-output` behavior:
+
+- single-output `stats` or `update`: may be a file path or directory path.
+- multi-ligand `stats` (no `-l`): must be a directory.
+
+### Batch mode
+
+Batch mode runs multiple `stats` and `update` jobs from one YAML file.
+Relative paths in the YAML are resolved relative to the YAML file location.
+
+Batch outputs:
+
+- `<output_root>/batch_report.json`
+- `<output_root>/batch_report.md`
+
+Minimal structure:
+
+```yaml
+version: 1
+output_root: ./outputs
+stats_output_dir: ./outputs/stats
+update_output_dir: ./outputs/update
+
+defaults:
+  dist: 0.5
+  threshold: 0.3
+  min_size: 30
+  max_size: 2000
+  coordination: 1000
+  ideal_angles: false
+  simple: false
+  save: false
+  use_pdb: false
+  cl: null
+  debug: false
+  debug_level: detailed
+  debug_output: null
+
+stats:
+  defaults:
+    metal_distance: 0.3
+  jobs:
+    - name: cu_3kw8
+      ligand: CU
+      pdb: ./inputs/3kw8.cif
+      output: ./outputs/stats/custom_cu_3kw8.json
+      debug: true
+    - name: all_4dl8
+      pdb: ./inputs/4dl8.cif
+
+update:
+  defaults:
+    cif: false
+  jobs:
+    - name: sf4_from_pdb
+      input: ./dicts/SF4.cif
+      pdb: 5d8v
+    - name: nom_from_cif
+      input: ./dicts/NOM.cif
+      cif: true
+```
+
+Output naming defaults when `output` is omitted:
+
+- `stats` with `ligand`: `<stats_output_dir>/<pdb_stem>_<ligand>.json`
+- `stats` without `ligand`: `<stats_output_dir>/<pdb_stem>` (directory)
+- `update`: `<update_output_dir>/<input_stem>.cif`
+
+Merge precedence:
+
+- global `defaults` -> mode `defaults` -> job fields
 
 ### Tutorial
 For a step-by-step tutorial on how to use the Metal Coordination Analysis Tool, visit the [tutorial page](https://github.com/Lekaveh/MetalCoordAnalysis/blob/master/tutorial/tutorial.rst).

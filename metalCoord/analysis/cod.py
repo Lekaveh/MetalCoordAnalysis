@@ -3,10 +3,11 @@ import numpy as np
 import pandas as pd
 from metalCoord.analysis.utlis import elementCode, elements
 
+
 class CandidateFinder(ABC):
     """
     Abstract base class for finding candidates.
-    
+
     Attributes:
         _description (str): Description of the candidate finder.
         _classes (np.ndarray): Classes of candidates.
@@ -26,7 +27,7 @@ class CandidateFinder(ABC):
     def load(self, structure, data: pd.DataFrame) -> None:
         """
         Load the structure and data into the candidate finder.
-        
+
         Args:
             structure: The structure to load.
             data (pd.DataFrame): The data to load.
@@ -35,7 +36,10 @@ class CandidateFinder(ABC):
         self._data = data
         self._load()
         self._classes = self._selection.Class.unique()
-        self._files = {cl: self._selection[self._selection.Class == cl].File.unique() for cl in self._classes}
+        self._files = {
+            cl: self._selection[self._selection.Class == cl].File.unique()
+            for cl in self._classes
+        }
 
     @abstractmethod
     def _load(self) -> None:
@@ -47,7 +51,7 @@ class CandidateFinder(ABC):
     def classes(self) -> np.ndarray:
         """
         Get the classes of candidates.
-        
+
         Returns:
             np.ndarray: Array of classes.
         """
@@ -56,7 +60,7 @@ class CandidateFinder(ABC):
     def files(self) -> dict:
         """
         Get the files of candidates.
-        
+
         Returns:
             dict: Dictionary of files.
         """
@@ -65,24 +69,27 @@ class CandidateFinder(ABC):
     def data(self, file: str) -> pd.DataFrame:
         """
         Get the data for a specific file.
-        
+
         Args:
             file (str): The file to get data for.
-        
+
         Returns:
             pd.DataFrame: Data for the file.
         """
-        return self._selection[self._selection.File == file] if self._selection is not None else None
+        return (
+            self._selection[self._selection.File == file]
+            if self._selection is not None
+            else None
+        )
 
     def description(self) -> str:
         """
         Get the description of the candidate finder.
-        
+
         Returns:
             str: Description of the candidate finder.
         """
         return self._description
-
 
 
 class StrictCandidateFinder(CandidateFinder):
@@ -152,8 +159,10 @@ class ElementCandidateFinder(CandidateFinder):
         None
         """
         code = elementCode(self._structure.code())
-        self._selection = self._data[(self._data.ElementCode == code) & (
-            self._data.Coordination == self._structure.coordination())]
+        self._selection = self._data[
+            (self._data.ElementCode == code)
+            & (self._data.Coordination == self._structure.coordination())
+        ]
 
 
 class ElementInCandidateFinder(CandidateFinder):
@@ -182,10 +191,14 @@ class ElementInCandidateFinder(CandidateFinder):
             None
         """
         code = elements(self._structure.code())
-        coordination_data = self._data[(
-            self._data.Coordination == self._structure.coordination())]
-        self._selection = coordination_data[np.all(
-            [coordination_data.ElementCode.str.contains(x) for x in code], axis=0)]
+        coordination_data = self._data[
+            (self._data.Coordination == self._structure.coordination())
+        ]
+        self._selection = coordination_data[
+            np.all(
+                [coordination_data.ElementCode.str.contains(x) for x in code], axis=0
+            )
+        ]
 
 
 class AnyElementCandidateFinder(CandidateFinder):
@@ -205,10 +218,15 @@ class AnyElementCandidateFinder(CandidateFinder):
             None
         """
         code = elements(self._structure.code())[1:]
-        coordination_data = self._data[(self._data.Coordination == self._structure.coordination()) & (
-            self._data.Metal == self._structure.metal.atom.element.name)]
-        self._selection = coordination_data[np.any(
-            [coordination_data.ElementCode.str.contains(x) for x in code], axis=0)]
+        coordination_data = self._data[
+            (self._data.Coordination == self._structure.coordination())
+            & (self._data.Metal == self._structure.metal.atom.element.name)
+        ]
+        self._selection = coordination_data[
+            np.any(
+                [coordination_data.ElementCode.str.contains(x) for x in code], axis=0
+            )
+        ]
 
 
 class NoCoordinationCandidateFinder(CandidateFinder):
@@ -229,8 +247,9 @@ class NoCoordinationCandidateFinder(CandidateFinder):
         `_selection` attribute.
 
         """
-        self._selection = self._data[(
-            self._data.Metal == self._structure.metal.atom.element.name)]
+        self._selection = self._data[
+            (self._data.Metal == self._structure.metal.atom.element.name)
+        ]
 
 
 class CovalentCandidateFinder(CandidateFinder):
@@ -256,5 +275,6 @@ class CovalentCandidateFinder(CandidateFinder):
         Returns:
             None
         """
-        self._selection = self._data[self._data.Metal ==
-                                     self._structure.metal.atom.element.name]
+        self._selection = self._data[
+            self._data.Metal == self._structure.metal.atom.element.name
+        ]

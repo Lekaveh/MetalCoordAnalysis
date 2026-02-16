@@ -34,6 +34,13 @@ class Config:
         self.max_coordination_number = None
         self.output_folder = ""
         self.output_file = ""
+        self.debug = False
+        self.debug_level = "detailed"
+        self.debug_output = None
+        self.debug_command = ""
+        self.debug_log_mark = 0
+        self.debug_recorder = None
+        self.debug_written = False
         self.__initialized = True
 
     def scale(self) -> float:

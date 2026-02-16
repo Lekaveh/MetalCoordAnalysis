@@ -1,12 +1,9 @@
 import json
 import os
 import subprocess
-import sys
 from pathlib import Path
 from typing import Any, Dict, List, NamedTuple
 import pytest
-
-is_windows = sys.platform.startswith('win')
 
 class StatsModeTestCase(NamedTuple):
     """
@@ -158,15 +155,14 @@ def temp_dir(tmp_path_factory: pytest.TempPathFactory) -> Path:
 
 
 def test_metal_coordination_specific_fields(
-    test_case: StatsModeTestCase, temp_dir: Path
+    test_case: StatsModeTestCase, temp_dir: Path, cli_cmd
 ):
     """Test specific fields of metal coordination output."""
     # Build command
     output_file = f"{test_case.ligand_name}_mc{test_case.output_suffix}.json"
     output_path = os.path.join(temp_dir, output_file)
 
-    cmd = [
-        "metalCoord",
+    cmd = cli_cmd(
         "stats",
         "-l",
         test_case.ligand_name,
@@ -174,14 +170,14 @@ def test_metal_coordination_specific_fields(
         test_case.model,
         "-o",
         output_path,
-    ]
+    )
 
     # Add additional parameters
     for param, value in test_case.parameters.items():
         cmd.extend([param, value])
 
     # Run command
-    result = subprocess.run(cmd, capture_output=True, text=True, check=True, shell=is_windows)
+    result = subprocess.run(cmd, capture_output=True, text=True, check=True)
     assert result.returncode == 0, f"Command failed with: {result.stderr}"
 
     # Verify output file exists
