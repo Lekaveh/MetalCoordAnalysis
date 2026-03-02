@@ -179,10 +179,10 @@ def create_parser():
 
     # App5
     batch_parser = subparsers.add_parser(
-        'batch', help='Run batch stats/update jobs from a YAML config.')
+        'batch', help='Run batch stats/update jobs from a JSON config.')
     batch_parser.add_argument(
-        '-f', '--config', type=str, required=True, metavar='<BATCH YAML FILE>',
-        help='YAML config file for batch execution.'
+        '-f', '--config', type=str, required=True, metavar='<BATCH JSON FILE>',
+        help='JSON config file for batch execution.'
     )
     batch_parser.add_argument(
         '--dry-run', required=False, action='store_true',

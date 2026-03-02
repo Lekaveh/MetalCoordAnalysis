@@ -5,8 +5,6 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
-import yaml
-
 from metalCoord.cli.commands.common import (
     merge_settings,
     read_status_for_output,
@@ -218,19 +216,19 @@ def _validate_effective_common(values: dict[str, Any], context: str) -> dict[str
     return values
 
 
-def _load_yaml(config_path: Path) -> dict[str, Any]:
+def _load_json(config_path: Path) -> dict[str, Any]:
     try:
         raw_text = config_path.read_text(encoding="utf-8")
     except OSError as exc:
         raise BatchConfigError(f"Cannot read config file {config_path}: {exc}") from exc
 
     try:
-        payload = yaml.safe_load(raw_text)
-    except yaml.YAMLError as exc:
-        raise BatchConfigError(f"Invalid YAML in {config_path}: {exc}") from exc
+        payload = json.loads(raw_text)
+    except json.JSONDecodeError as exc:
+        raise BatchConfigError(f"Invalid JSON in {config_path}: {exc}") from exc
 
     if not isinstance(payload, dict):
-        raise BatchConfigError("Batch config must be a YAML mapping.")
+        raise BatchConfigError("Batch config must be a JSON object.")
     return payload
 
 
@@ -515,7 +513,7 @@ def handle_batch(args) -> None:
     started_at = _iso_now()
 
     try:
-        payload = _load_yaml(config_path)
+        payload = _load_json(config_path)
         output_root, jobs = _plan_jobs(payload, config_path)
     except BatchConfigError as exc:
         Logger().error(str(exc))
