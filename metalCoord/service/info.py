@@ -2,7 +2,9 @@ import json
 import os
 from pathlib import Path
 import sys
+from html import escape
 import gemmi
+from metalCoord.analysis.classes import idealClasses
 from metalCoord.analysis.data import DB
 from metalCoord.logging import Logger
 
@@ -126,3 +128,112 @@ def process_coordinations(
             Logger().info(f"Coordinations info written to {output}")
     else:
         print(coordinations)
+
+
+def get_ideal_classes_table() -> list:
+    """
+    Build a table for all ideal classes with class code and atom coordinates.
+
+    Returns:
+        list: List of records, one per ideal class.
+    """
+    rows = []
+    for class_name in idealClasses.get_ideal_classes():
+        atom_coordinates = []
+        for index, coord in enumerate(idealClasses.get_coordinates(class_name), start=1):
+            atom_coordinates.append(
+                {
+                    "atom_index": index,
+                    "x": float(coord[0]),
+                    "y": float(coord[1]),
+                    "z": float(coord[2]),
+                }
+            )
+        rows.append(
+            {
+                "class_name": class_name,
+                "class_code": idealClasses.get_class_code(class_name),
+                "atom_coordinates": atom_coordinates,
+            }
+        )
+    return rows
+
+
+def _render_table_html(table_rows: list) -> str:
+    row_lines = []
+    for row in table_rows:
+        coordinates_json = json.dumps(row["atom_coordinates"], indent=2)
+        row_lines.append(
+            "        <tr>"
+            f"<td>{escape(row['class_name'])}</td>"
+            f"<td>{escape(row['class_code'])}</td>"
+            f"<td><pre>{escape(coordinates_json)}</pre></td>"
+            "</tr>"
+        )
+
+    rows_html = "\n".join(row_lines)
+    return (
+        "<!DOCTYPE html>\n"
+        "<html lang=\"en\">\n"
+        "<head>\n"
+        "  <meta charset=\"utf-8\">\n"
+        "  <title>MetalCoord Ideal Classes Table</title>\n"
+        "  <style>\n"
+        "    body { font-family: Arial, sans-serif; margin: 1.5rem; }\n"
+        "    table { border-collapse: collapse; width: 100%; }\n"
+        "    th, td { border: 1px solid #d9d9d9; padding: 0.5rem; text-align: left; vertical-align: top; }\n"
+        "    th { background: #f6f6f6; }\n"
+        "    pre { margin: 0; white-space: pre-wrap; }\n"
+        "  </style>\n"
+        "</head>\n"
+        "<body>\n"
+        "  <h1>MetalCoord Ideal Classes</h1>\n"
+        "  <table>\n"
+        "    <thead>\n"
+        "      <tr><th>Class Name</th><th>Class Code</th><th>Atom Coordinates</th></tr>\n"
+        "    </thead>\n"
+        "    <tbody>\n"
+        f"{rows_html}\n"
+        "    </tbody>\n"
+        "  </table>\n"
+        "</body>\n"
+        "</html>\n"
+    )
+
+
+def process_table(output_folder: str = ".", output_format: str = "json") -> list:
+    """
+    Write a table of ideal classes to JSON, HTML, or both.
+
+    Args:
+        output_folder (str): Destination folder for output files.
+        output_format (str): json, html, or both.
+
+    Returns:
+        list: Paths to files written.
+    """
+    output_format = (output_format or "json").lower()
+    if output_format not in {"json", "html", "both"}:
+        raise ValueError(f"Unsupported format: {output_format}")
+
+    output_dir = os.path.abspath(output_folder or ".")
+    Path(output_dir).mkdir(exist_ok=True, parents=True)
+
+    table_rows = get_ideal_classes_table()
+    output_paths = []
+
+    if output_format in {"json", "both"}:
+        json_output = os.path.join(output_dir, "metalcoord_table.json")
+        with open(json_output, "w", encoding="utf-8") as json_file:
+            json.dump(table_rows, json_file, indent=4, separators=(",", ": "))
+        output_paths.append(json_output)
+        Logger().info(f"Class table (JSON) written to {json_output}")
+
+    if output_format in {"html", "both"}:
+        html_output = os.path.join(output_dir, "metalcoord_table.html")
+        with open(html_output, "w", encoding="utf-8") as html_file:
+            html_file.write(_render_table_html(table_rows))
+        output_paths.append(html_output)
+        Logger().info(f"Class table (HTML) written to {html_output}")
+
+    return output_paths

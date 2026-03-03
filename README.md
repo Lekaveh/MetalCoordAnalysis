@@ -21,6 +21,8 @@ The Metal Coordination Analysis Tool is a Python application designed for analyz
 
 - **Pdb list**: Provide  list of pdb with their resolution for the specific ligand
 
+- **Ideal Class Table**: Export ideal classes with class code and atom coordinates as JSON/HTML.
+
 ## Installation
 
 ### Prerequisites
@@ -89,6 +91,14 @@ pip install git+https://github.com/Lekaveh/MetalCoordAnalysis
     - metalCoord [--no-progress] pdb -l <LIGAND_CODE> [-o <OUTPUT_JSON_FILE>]
         - -l, --ligand: Ligand code.
         - -o, --output: Output JSON file
+        - --no-progress: Do not show progress bars
+- **Ideal Class Table**:
+    - metalCoord [--no-progress] table [-o <OUTPUT_FOLDER>] [--format <json|html|both>]
+        - -o, --output-folder: Output folder (default: current directory).
+        - --format: Output format (`json`, `html`, or `both`; default: `json`).
+        - Output files:
+            - `<OUTPUT_FOLDER>/metalcoord_table.json`
+            - `<OUTPUT_FOLDER>/metalcoord_table.html` (for `html`/`both`)
         - --no-progress: Do not show progress bars
 - **Batch Config Mode**:
     - metalCoord [--no-progress] batch --config <BATCH_JSON_FILE> [--dry-run]
@@ -209,4 +219,3 @@ Merge precedence:
 For a step-by-step tutorial on how to use the Metal Coordination Analysis Tool, visit the [tutorial page](https://github.com/Lekaveh/MetalCoordAnalysis/blob/master/tutorial/tutorial.rst).
 
 This ensures users have clear guidance and an easy way to access additional information through the tutorial.
-

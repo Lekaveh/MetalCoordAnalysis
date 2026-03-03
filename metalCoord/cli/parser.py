@@ -188,4 +188,18 @@ def create_parser():
         '--dry-run', required=False, action='store_true',
         help='Validate config and planned outputs without running stats/update jobs.'
     )
+
+    # App6
+    table_parser = subparsers.add_parser(
+        'table', help='Write a table of ideal classes with class codes and atom coordinates.')
+    table_parser.add_argument(
+        '-o', '--output-folder', type=str, required=False, default='.',
+        help='Output folder for table files (default: current directory).', metavar='<OUTPUT FOLDER>'
+    )
+    table_parser.add_argument(
+        '--format', type=str, required=False, default='json',
+        choices=['json', 'html', 'both'],
+        help='Output format: json, html, or both (default: json).',
+        metavar='<json|html|both>'
+    )
     return parser

@@ -2,6 +2,7 @@ from metalCoord.cli.commands.batch import handle_batch
 from metalCoord.cli.commands.coord import handle_coord
 from metalCoord.cli.commands.pdb import handle_pdb
 from metalCoord.cli.commands.stats import handle_stats
+from metalCoord.cli.commands.table import handle_table
 from metalCoord.cli.commands.update import handle_update
 from metalCoord.cli.parser import create_parser
 from metalCoord.logging import Logger
@@ -31,6 +32,7 @@ def main_func():
         'batch': handle_batch,
         'coord': handle_coord,
         'pdb': handle_pdb,
+        'table': handle_table,
     }
     handler = handlers.get(args.command)
     if handler:
