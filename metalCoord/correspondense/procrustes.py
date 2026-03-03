@@ -1,3 +1,4 @@
+import dis
 import itertools
 import numpy as np
 from scipy.linalg import helmert
@@ -330,6 +331,65 @@ def procrustes_fit(
 
     approx = c * A @ R
     return (frobenius_distance(approx, B), approx, c, R)
+
+
+def procrustes_distances_for_permutations(
+    coordinates: np.ndarray, permutations: np.ndarray, best_approximation_permutation: np.ndarray = None
+) -> np.ndarray:
+    """
+    Compute Procrustes distances for a coordinate set and each provided permutation.
+
+    Parameters:
+    coordinates (np.ndarray): Coordinate matrix of shape (n_points, n_dims).
+    permutations (np.ndarray): Permutation indices of shape (n_permutations, n_points)
+                               or (n_points,) for a single permutation.
+    best_approximation_permutation (np.ndarray, optional): A permutation of indices that represents the best approximation.
+
+    Returns:
+    np.ndarray: Procrustes distances for each permutation, shape (n_permutations,).
+    """
+    coords = np.asarray(coordinates, dtype="float32")
+    if coords.ndim != 2:
+        raise ValueError("coordinates must have shape (n_points, n_dims).")
+
+    perm_indices = np.asarray(permutations, dtype=np.int64)
+    if perm_indices.size == 0:
+        return np.array([], dtype="float32")
+
+    if perm_indices.ndim == 1:
+        perm_indices = perm_indices.reshape(1, -1)
+    elif perm_indices.ndim != 2:
+        raise ValueError(
+            "permutations must have shape (n_permutations, n_points) or (n_points,)."
+        )
+
+    n_points = coords.shape[0]
+    if perm_indices.shape[1] != n_points:
+        raise ValueError(
+            "Each permutation must have the same length as the number of coordinates."
+        )
+
+    if np.any((perm_indices < 0) | (perm_indices >= n_points)):
+        raise ValueError("Permutation indices are out of bounds.")
+
+    expected = np.arange(n_points, dtype=np.int64)
+
+    permuted_coords = coords[perm_indices]
+    if not np.all(np.sort(perm_indices, axis=1) == expected):
+        raise ValueError("Each row in permutations must be a valid permutation.")
+
+    if best_approximation_permutation is not None:
+        best_approximation_permutation = np.asarray(best_approximation_permutation, dtype=np.int64)
+        if best_approximation_permutation.shape != (n_points,):
+            raise ValueError("best_approximation_permutation must have shape (n_points,).")
+        if not np.all(np.sort(best_approximation_permutation) == expected):
+            raise ValueError("best_approximation_permutation must be a valid permutation.")
+        reference_coords = np.broadcast_to(coords[best_approximation_permutation], permuted_coords.shape)  
+    else:
+        reference_coords = np.broadcast_to(coords, permuted_coords.shape)    
+    
+    distances, _, _, _ = procrustes_fit(permuted_coords, reference_coords)
+    return np.round(distances, 6)
 
 
 def get_combinations(groups=None, rings=None):
@@ -846,7 +906,9 @@ def fit(
         return (distances, indices, distances[min_arg].squeeze(), rotated)
 
     if permutations:
-        mask = distances <= distances[min_arg]+0.01
+        new_distances = procrustes_distances_for_permutations(ideal_coords, indices, indices[min_arg])
+        mask = new_distances <=  0.3
+
         return (
             distances[min_arg].squeeze(),
             approxs[mask],
