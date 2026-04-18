@@ -21,12 +21,16 @@ from metalCoord.analysis.stats import (
 )
 from metalCoord.analysis.metal import MetalPairStatsService
 from metalCoord.analysis.models import MetalPairStats, MetalStats, PdbStats
-from metalCoord.analysis.structures import get_ligands, get_ligands_from_cif, Ligand, MetalBondRegistry
+from metalCoord.analysis.structures import (
+    get_ligands,
+    get_ligands_from_cif,
+    Ligand,
+    MetalBondRegistry,
+)
 from metalCoord.cif.utils import get_bonds, get_metal_metal_bonds
 from metalCoord.load.rcsb import load_pdb
 from metalCoord.logging import Logger
 from metalCoord.config import Config
-
 
 
 def read_structure(p: str) -> gemmi.Structure:
@@ -99,7 +103,9 @@ def read_structure(p: str) -> gemmi.Structure:
     return st
 
 
-def get_structures(ligand, path, bonds=None, metal_metal_bonds=None, only_best=False) -> Tuple[list[Ligand], MetalBondRegistry]:
+def get_structures(
+    ligand, path, bonds=None, metal_metal_bonds=None, only_best=False
+) -> Tuple[list[Ligand], MetalBondRegistry]:
     """
     Retrieves structures contained in a specific ligand from a given file or 4-letter PDB code.
 
@@ -119,7 +125,13 @@ def get_structures(ligand, path, bonds=None, metal_metal_bonds=None, only_best=F
         bonds = {}
 
     st = read_structure(path)
-    return get_ligands(st, ligand, bonds, metal_metal_bonds = metal_metal_bonds, only_best=only_best)
+    st.ncs = []
+    st.setup_cell_images()
+
+    st.standardize_crystal_frame()
+    return get_ligands(
+        st, ligand, bonds, metal_metal_bonds=metal_metal_bonds, only_best=only_best
+    )
 
 
 def _distance(atom1, atom2) -> float:
@@ -150,7 +162,10 @@ def _ligand_environment(structure: Ligand) -> dict:
     extra_ligands = list(structure.extra_ligands)
     ligands = []
     for atom in base_ligands + extra_ligands:
-        cov_sum = gemmi.Element(metal_elem).covalent_r + gemmi.Element(atom.atom.element.name).covalent_r
+        cov_sum = (
+            gemmi.Element(metal_elem).covalent_r
+            + gemmi.Element(atom.atom.element.name).covalent_r
+        )
         dist = _distance(structure.metal, atom)
         icode = atom.residue.seqid.icode.strip().replace("\x00", "")
         ligands.append(
@@ -170,6 +185,7 @@ def _ligand_environment(structure: Ligand) -> dict:
             }
         )
     return {"ligands": ligands, "count": len(ligands)}
+
 
 convalent_strategy = CovalentStatsFinder(CovalentCandidateFinder())
 strategies = [
@@ -297,7 +313,9 @@ def find_classes_from_structures(
                     "coordination": {
                         "count": structure.coordination(),
                         "ligands": [lig.atom.name for lig in structure.ligands],
-                        "extra_ligands": [lig.atom.name for lig in structure.extra_ligands],
+                        "extra_ligands": [
+                            lig.atom.name for lig in structure.extra_ligands
+                        ],
                     },
                     "candidates": candidates,
                     "chosen_class": chosen_class,
@@ -335,10 +353,15 @@ def find_classes_pdb(
     if bonds is None:
         bonds = {}
     Logger().info(f"Analyzing structures in {pdb_name} for patterns")
-    structures, metal_metal = get_structures(ligand, pdb_name, bonds, metal_metal_bonds, only_best)
+    structures, metal_metal = get_structures(
+        ligand, pdb_name, bonds, metal_metal_bonds, only_best
+    )
     metal_pair_stats = MetalPairStatsService().get_metal_pair_stats(metal_metal)
 
-    return find_classes_from_structures(structures, bonds, clazz=clazz), metal_pair_stats
+    return (
+        find_classes_from_structures(structures, bonds, clazz=clazz),
+        metal_pair_stats,
+    )
 
 
 def find_classes_cif(
@@ -362,6 +385,4 @@ def find_classes_cif(
     m_b = get_metal_metal_bonds(atoms, bonds)
     ligands, metal_metal_bonds = get_ligands_from_cif(name, atoms, b, m_b)
     metal_pair_stats = MetalPairStatsService().get_metal_pair_stats(metal_metal_bonds)
-    return find_classes_from_structures(
-        ligands, b, clazz=clazz
-    ), metal_pair_stats
+    return find_classes_from_structures(ligands, b, clazz=clazz), metal_pair_stats
