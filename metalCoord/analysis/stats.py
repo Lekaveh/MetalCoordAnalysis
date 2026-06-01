@@ -12,6 +12,7 @@ from metalCoord.analysis.classes import ClassificationResult, idealClasses
 from metalCoord.analysis.cluster import modes
 from metalCoord.analysis.data import DB
 from metalCoord.analysis.directional import calculate_stats
+from metalCoord.analysis.grouping import get_grouped_view
 from metalCoord.analysis.models import AngleStats, Atom, DistanceStats, LigandStats
 from metalCoord.config import Config
 from metalCoord.correspondense.procrustes import fit
@@ -374,6 +375,87 @@ def create_descriptor(
         )
 
     return descriptor
+
+
+def _create_covalent_distance_stats(
+    structure: metalCoord.analysis.structures.Ligand,
+    ligand: metalCoord.analysis.structures.IAtom,
+    description: str = "",
+) -> DistanceStats:
+    return DistanceStats(
+        Atom(ligand),
+        np.array(
+            [
+                gemmi.Element(ligand.atom.element.name).covalent_r
+                + gemmi.Element(structure.metal.atom.element.name).covalent_r
+            ]
+        ),
+        np.array([0.2]),
+        description=description,
+    )
+
+
+def _create_fallback_distance_stats(
+    structure: metalCoord.analysis.structures.Ligand,
+    ligand: metalCoord.analysis.structures.IAtom,
+) -> DistanceStats:
+    dist, std, count = DB.get_distance_stats(
+        structure.metal.atom.element.name, ligand.atom.element.name
+    )
+    if count > 0:
+        return DistanceStats(Atom(ligand), np.array([dist]), np.array([std]))
+    return _create_covalent_distance_stats(structure, ligand, "Covalent distance")
+
+
+def _grouped_ideal_angles(structure, grouped_view, class_result):
+    ideal_ligand_coord = class_result.coord[class_result.index]
+    base_ligands = set(structure.ligands)
+    for i in range(1, grouped_view.coordination()):
+        for j in range(i + 1, grouped_view.coordination() + 1):
+            ideal_angle = angle(
+                ideal_ligand_coord[0], ideal_ligand_coord[i], ideal_ligand_coord[j]
+            )
+            group1 = grouped_view.group_members(i - 1)
+            group2 = grouped_view.group_members(j - 1)
+            for atom1 in group1:
+                for atom2 in group2:
+                    yield AngleStats(
+                        Atom(atom1),
+                        Atom(atom2),
+                        ideal_angle,
+                        5.000,
+                        is_ligand=atom1 in base_ligands and atom2 in base_ligands,
+                    )
+
+
+def create_grouped_ligand_stats(
+    structure: metalCoord.analysis.structures.Ligand,
+    class_result: ClassificationResult,
+) -> LigandStats:
+    grouped_view = get_grouped_view(class_result)
+    if grouped_view is None:
+        return None
+
+    clazz_stats = LigandStats(
+        class_result.clazz,
+        create_descriptor(class_result, grouped_view),
+        np.array([]),
+        class_result.proc,
+        grouped_view.coordination(),
+        -1,
+        f"Grouped fallback ({grouped_view.collapsed_group_count} groups collapsed)",
+    )
+
+    for ligand in structure.ligands:
+        clazz_stats.add_bond(_create_fallback_distance_stats(structure, ligand))
+
+    for ligand in structure.extra_ligands:
+        clazz_stats.add_pdb_bond(_create_fallback_distance_stats(structure, ligand))
+
+    for ideal_angle in _grouped_ideal_angles(structure, grouped_view, class_result):
+        clazz_stats.add_angle(ideal_angle)
+
+    return clazz_stats
 
 
 class StrictCorrespondenceStatsFinder(FileStatsFinder):

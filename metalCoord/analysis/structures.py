@@ -237,6 +237,13 @@ class Atom(IAtom):
                 )
         return self._atom.pos
 
+    @property
+    def structure(self):
+        """
+        Returns the parent gemmi structure for model-derived atoms.
+        """
+        return self._st
+
 
 class CifAtom(IAtom):
     """
@@ -356,6 +363,7 @@ class Ligand:
         self._metal = metal
         self._ligands = []
         self._extra_ligands = []
+        self._nonmetal_bonds = {}
 
     def clean_the_farthest(self, free: bool = False, n: int = 1) -> "Ligand":
         """
@@ -381,6 +389,7 @@ class Ligand:
             )[:n]
         ]
         cleaned_ligand = Ligand(self._metal)
+        cleaned_ligand.nonmetal_bonds = self._nonmetal_bonds
 
         for l in self._ligands:
             if free:
@@ -552,6 +561,17 @@ class Ligand:
 
         self._extra_ligands.append(ligand)
         self._extra_ligands = sorted(self._extra_ligands, key=lambda x: x.atom.name)
+
+    @property
+    def nonmetal_bonds(self):
+        """
+        Optional non-metal connectivity from CIF _chem_comp_bond.
+        """
+        return self._nonmetal_bonds
+
+    @nonmetal_bonds.setter
+    def nonmetal_bonds(self, bonds: dict):
+        self._nonmetal_bonds = bonds or {}
 
     def elements(self):
         """
@@ -1329,7 +1349,11 @@ def create_atom(atoms, atom_name):
 
 
 def get_ligands_from_cif(
-    name: str, atoms: gemmi.cif.Table, bonds: dict, metal_metal_bonds: dict
+    name: str,
+    atoms: gemmi.cif.Table,
+    bonds: dict,
+    metal_metal_bonds: dict,
+    nonmetal_bonds: dict = None,
 ) -> Tuple[list[Ligand], MetalBondRegistry]:
     """
     Extracts ligands from a CIF (Crystallographic Information File) and returns them as a list of Ligand objects.
@@ -1349,6 +1373,7 @@ def get_ligands_from_cif(
     for metal_name, ligands in bonds.items():
         metal = create_atom(atoms, metal_name)
         ligand_obj = Ligand(CifAtom(metal, residue, new_chain))
+        ligand_obj.nonmetal_bonds = nonmetal_bonds or {}
         for ligand_name in ligands:
             ligand = create_atom(atoms, ligand_name)
             ligand_obj.add_ligand(CifAtom(ligand, residue, new_chain))

@@ -97,6 +97,29 @@ def get_bonds(atoms: gemmi.cif.Table, bonds: gemmi.cif.Table) -> dict:
 
     return result
 
+def get_nonmetal_bonds(atoms: gemmi.cif.Table, bonds: gemmi.cif.Table) -> dict:
+    """
+    Identify non-metal/non-metal bonds from CIF bond data.
+
+    Args:
+        atoms: A CIF atom table containing atom IDs and element symbols.
+        bonds: A CIF bond table containing bonded atom IDs.
+
+    Returns:
+        dict: An undirected adjacency mapping by atom ID.
+    """
+    if not bonds:
+        return {}
+    result = {}
+    for atom1, atom2 in zip(bonds[ATOM_ID_1], bonds[ATOM_ID_2]):
+        element1 = gemmi.Element(get_element_name(atoms, atom1))
+        element2 = gemmi.Element(get_element_name(atoms, atom2))
+        if element1.is_metal or element2.is_metal:
+            continue
+        result.setdefault(atom1, []).append(atom2)
+        result.setdefault(atom2, []).append(atom1)
+    return result
+
 def get_metal_metal_bonds(atoms: gemmi.cif.Table, bonds: gemmi.cif.Table) -> dict:
     """
     Identify and return metal-metal bonds from the given atoms and bonds data.

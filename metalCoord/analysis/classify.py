@@ -5,6 +5,12 @@ import gemmi
 from tqdm import tqdm
 from metalCoord.analysis.classes import Classificator
 from metalCoord.analysis.data import DB
+from metalCoord.analysis.grouping import (
+    create_grouped_view,
+    get_grouped_view,
+    is_grouped_candidate,
+    mark_grouped_candidate,
+)
 from metalCoord.analysis.cod import (
     StrictCandidateFinder,
     ElementCandidateFinder,
@@ -14,6 +20,7 @@ from metalCoord.analysis.cod import (
     CovalentCandidateFinder,
 )
 from metalCoord.analysis.stats import (
+    create_grouped_ligand_stats,
     OnlyDistanceStatsFinder,
     WeekCorrespondenceStatsFinder,
     StrictCorrespondenceStatsFinder,
@@ -22,7 +29,7 @@ from metalCoord.analysis.stats import (
 from metalCoord.analysis.metal import MetalPairStatsService
 from metalCoord.analysis.models import MetalPairStats, MetalStats, PdbStats
 from metalCoord.analysis.structures import get_ligands, get_ligands_from_cif, Ligand, MetalBondRegistry
-from metalCoord.cif.utils import get_bonds, get_metal_metal_bonds
+from metalCoord.cif.utils import get_bonds, get_metal_metal_bonds, get_nonmetal_bonds
 from metalCoord.load.rcsb import load_pdb
 from metalCoord.logging import Logger
 from metalCoord.config import Config
@@ -211,17 +218,43 @@ def find_classes_from_structures(
         structures, desc="Structures", position=0, disable=not Logger().progress_bars
     ):
         structure_classes = []
+        direct_error = None
 
-        for class_result in tqdm(
-            classificator.classify(structure, class_name=clazz),
-            desc="Coordination",
-            position=1,
-            leave=False,
-            disable=not Logger().progress_bars,
-        ):
-            structure_classes.append(class_result)
+        try:
+            for class_result in tqdm(
+                classificator.classify(structure, class_name=clazz),
+                desc="Coordination",
+                position=1,
+                leave=False,
+                disable=not Logger().progress_bars,
+            ):
+                structure_classes.append(class_result)
+        except ValueError as exc:
+            direct_error = exc
 
         if not structure_classes:
+            grouped = create_grouped_view(structure)
+            if grouped is not None:
+                try:
+                    grouped_results = list(
+                        classificator.classify(grouped, class_name=clazz)
+                    )
+                except ValueError:
+                    grouped_results = []
+                if grouped_results:
+                    structure_classes = [
+                        mark_grouped_candidate(class_result, grouped)
+                        for class_result in grouped_results
+                    ]
+                    classes[structure] = structure_classes
+                    Logger().info(
+                        f"Class found via centroid grouping for {structure}"
+                    )
+                    continue
+
+            if direct_error is not None:
+                raise direct_error
+
             new_structure = structure.clean_the_farthest(len(bonds))
             for class_result in tqdm(
                 classificator.classify(new_structure, class_name=clazz),
@@ -252,20 +285,28 @@ def find_classes_from_structures(
         if classes[structure]:
             for class_result in classes[structure]:
                 chosen_strategy = None
-                for strategy in tqdm(
-                    strategies,
-                    desc="Strategies",
-                    position=1,
-                    leave=False,
-                    disable=not Logger().progress_bars,
-                ):
-                    ligand_stats = strategy.get_stats(
-                        structure, DB.data(), class_result
+                if is_grouped_candidate(class_result):
+                    ligand_stats = create_grouped_ligand_stats(
+                        structure, class_result
                     )
                     if ligand_stats:
                         metal_stats.add_ligand(ligand_stats)
-                        chosen_strategy = type(strategy).__name__
-                        break
+                        chosen_strategy = "GroupedFallbackStatsBuilder"
+                else:
+                    for strategy in tqdm(
+                        strategies,
+                        desc="Strategies",
+                        position=1,
+                        leave=False,
+                        disable=not Logger().progress_bars,
+                    ):
+                        ligand_stats = strategy.get_stats(
+                            structure, DB.data(), class_result
+                        )
+                        if ligand_stats:
+                            metal_stats.add_ligand(ligand_stats)
+                            chosen_strategy = type(strategy).__name__
+                            break
                 if chosen_strategy:
                     strategy_map[class_result.clazz] = chosen_strategy
         else:
@@ -279,12 +320,23 @@ def find_classes_from_structures(
         if debug_recorder:
             candidates = []
             for class_result in classes[structure]:
+                grouped_view = get_grouped_view(class_result)
+                candidate = {
+                    "class": class_result.clazz,
+                    "coordination": len(class_result.coord) - 1,
+                    "procrustes": float(class_result.proc),
+                }
+                if grouped_view is not None:
+                    candidate.update(
+                        {
+                            "grouped": True,
+                            "original_coordination": grouped_view.original_coordination,
+                            "collapsed_coordination": grouped_view.coordination(),
+                            "groups": grouped_view.debug_groups(),
+                        }
+                    )
                 candidates.append(
-                    {
-                        "class": class_result.clazz,
-                        "coordination": len(class_result.coord) - 1,
-                        "procrustes": float(class_result.proc),
-                    }
+                    candidate
                 )
 
             best = metal_stats.get_best_class() if not metal_stats.is_empty() else None
@@ -360,7 +412,10 @@ def find_classes_cif(
     """
     b = get_bonds(atoms, bonds)
     m_b = get_metal_metal_bonds(atoms, bonds)
-    ligands, metal_metal_bonds = get_ligands_from_cif(name, atoms, b, m_b)
+    nonmetal_bonds = get_nonmetal_bonds(atoms, bonds)
+    ligands, metal_metal_bonds = get_ligands_from_cif(
+        name, atoms, b, m_b, nonmetal_bonds=nonmetal_bonds
+    )
     metal_pair_stats = MetalPairStatsService().get_metal_pair_stats(metal_metal_bonds)
     return find_classes_from_structures(
         ligands, b, clazz=clazz

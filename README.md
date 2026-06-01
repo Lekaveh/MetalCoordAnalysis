@@ -134,6 +134,12 @@ Debug level controls detail:
 - single-output `stats` or `update`: may be a file path or directory path.
 - multi-ligand `stats` (no `-l`): must be a directory.
 
+### Grouped fallback for triangle-like coordination
+
+MetalCoord can automatically handle triangle-like cases such as metal-atom-atom-metal motifs as a classification fallback. If direct ideal-class matching fails, coordinated non-metal atoms that are connected through a non-metal bond path of up to three edges are temporarily collapsed to a centroid and the ideal class is fitted against the lower-coordination centroid view.
+
+This does not add CLI flags and does not put virtual centroid atoms into the main JSON/CIF output. The reported `base`, `pdb`, `angles`, and `order` entries still name the original real atoms. For grouped fallback entries, `coordination` is the collapsed class coordination, `count` is `-1`, and `description` is `Grouped fallback (<n> groups collapsed)`. Distances are assigned to each original metal-ligand atom; ideal angles are expanded between real atoms in different collapsed groups, with no metal-centered angle emitted for atom pairs inside the same collapsed group.
+
 ### Batch mode
 
 Batch mode runs multiple `stats` and `update` jobs from one JSON file.

@@ -1,0 +1,375 @@
+from collections import Counter
+from typing import Iterable, Optional
+
+import gemmi
+import networkx as nx
+import numpy as np
+
+from metalCoord.analysis.structures import IAtom, Ligand
+
+GROUPED_CANDIDATE_ATTR = "_metalcoord_grouped_view"
+
+
+def _pos_array(atom: IAtom) -> np.ndarray:
+    pos = atom.pos
+    return np.array([pos.x, pos.y, pos.z], dtype=float)
+
+
+def _position(values: np.ndarray) -> gemmi.Position:
+    return gemmi.Position(float(values[0]), float(values[1]), float(values[2]))
+
+
+def _clean_altloc(altloc: str) -> str:
+    value = (altloc or "").strip().replace("\x00", "")
+    return "" if value in (".", "?") else value
+
+
+def _clean_icode(icode: str) -> str:
+    return (icode or "").strip().replace("\x00", "")
+
+
+def _atom_altloc(atom: IAtom) -> str:
+    return _clean_altloc(atom.atom.altloc)
+
+
+def _atom_key(atom: IAtom) -> tuple:
+    return (
+        atom.chain.name,
+        atom.residue.name,
+        atom.residue.seqid.num,
+        _clean_icode(atom.residue.seqid.icode),
+        atom.atom.name,
+        _atom_altloc(atom),
+        atom.symmetry,
+        atom.symmetry_operator,
+    )
+
+
+def _cra_key(cra) -> tuple:
+    return (
+        cra.chain.name,
+        cra.residue.name,
+        cra.residue.seqid.num,
+        _clean_icode(cra.residue.seqid.icode),
+        cra.atom.name,
+        _clean_altloc(cra.atom.altloc),
+        0,
+        "x,y,z",
+    )
+
+
+def _is_graph_atom(atom: gemmi.Atom) -> bool:
+    return not atom.element.is_metal and atom.element.name not in ("H", "D")
+
+
+def _same_altloc(atom1: IAtom, atom2: IAtom) -> bool:
+    return _atom_altloc(atom1) == _atom_altloc(atom2)
+
+
+def _can_group(atom1: IAtom, atom2: IAtom) -> bool:
+    if atom1.symmetry or atom2.symmetry:
+        return False
+    return _same_altloc(atom1, atom2)
+
+
+def _representative_element(atoms: list[IAtom]) -> str:
+    counts = Counter(atom.atom.element.name for atom in atoms)
+    max_count = max(counts.values())
+    return sorted(element for element, count in counts.items() if count == max_count)[0]
+
+
+def _atom_name_with_symmetry(atom: IAtom) -> str:
+    return f"{atom.name} {'(' + str(atom.symmetry) + ')' if atom.symmetry else ''}"
+
+
+def _atom_debug(atom: IAtom) -> dict:
+    icode = _clean_icode(atom.residue.seqid.icode)
+    return {
+        "name": atom.atom.name,
+        "element": atom.atom.element.name,
+        "chain": atom.chain.name,
+        "residue": atom.residue.name,
+        "sequence": atom.residue.seqid.num,
+        "icode": icode if icode else ".",
+        "altloc": _atom_altloc(atom),
+        "symmetry": atom.symmetry,
+        "operator": atom.symmetry_operator,
+    }
+
+
+class CentroidAtom(IAtom):
+    """
+    Internal classification-only atom representing a collapsed ligand group.
+    """
+
+    def __init__(self, group_number: int, atoms: list[IAtom]) -> None:
+        self._members = atoms
+        element = _representative_element(atoms)
+        pos = np.mean([_pos_array(atom) for atom in atoms], axis=0)
+
+        self._atom = gemmi.Atom()
+        self._atom.name = f"G{group_number}_{element}"
+        self._atom.element = gemmi.Element(element)
+        self._atom.pos = _position(pos)
+        self._atom.occ = float(np.mean([atom.atom.occ for atom in atoms]))
+        self._atom.b_iso = float(np.mean([atom.atom.b_iso for atom in atoms]))
+        self._atom.altloc = "\x00"
+
+        self._residue = atoms[0].residue
+        self._chain = atoms[0].chain
+
+    @property
+    def atom(self):
+        return self._atom
+
+    @property
+    def name(self):
+        return self._atom.name
+
+    @property
+    def element(self):
+        return self._atom.element.name
+
+    @property
+    def residue(self):
+        return self._residue
+
+    @property
+    def chain(self):
+        return self._chain
+
+    @property
+    def symmetry(self):
+        return 0
+
+    @property
+    def translation(self):
+        return (0, 0, 0)
+
+    @property
+    def symmetry_operator(self):
+        return "x,y,z"
+
+    @property
+    def pos(self):
+        return self._atom.pos
+
+    @property
+    def members(self):
+        return self._members
+
+
+class GroupedLigandView:
+    """
+    Classification-only view where bonded ligand groups are represented by centroids.
+    """
+
+    def __init__(self, structure: Ligand, groups: list[list[IAtom]]) -> None:
+        self._structure = structure
+        self._groups = groups
+        self._atoms = [
+            CentroidAtom(i + 1, group) if len(group) > 1 else group[0]
+            for i, group in enumerate(groups)
+        ]
+
+    @property
+    def original_structure(self) -> Ligand:
+        return self._structure
+
+    @property
+    def metal(self):
+        return self._structure.metal
+
+    @property
+    def residue(self):
+        return self._structure.residue
+
+    @property
+    def chain(self):
+        return self._structure.chain
+
+    @property
+    def groups(self) -> list[list[IAtom]]:
+        return self._groups
+
+    @property
+    def all_ligands(self) -> Iterable[IAtom]:
+        for atom in self._atoms:
+            yield atom
+
+    @property
+    def collapsed_group_count(self) -> int:
+        return sum(1 for group in self._groups if len(group) > 1)
+
+    @property
+    def original_coordination(self) -> int:
+        return self._structure.coordination()
+
+    def group_members(self, view_index: int) -> list[IAtom]:
+        return self._groups[view_index]
+
+    def atom_names_with_symmetries(self):
+        return [self._structure.metal.name] + [
+            _atom_name_with_symmetry(atom) for atom in self._atoms
+        ]
+
+    def element_names(self):
+        return [self._structure.metal.atom.element.name] + [
+            atom.atom.element.name for atom in self._atoms
+        ]
+
+    def name_code_with_symmetries(self):
+        return " ".join(self.atom_names_with_symmetries())
+
+    def atoms(self):
+        return [atom.atom.element.name for atom in self._atoms]
+
+    def get_coord(self):
+        return np.array(
+            [self._structure.metal.pos.tolist()]
+            + [atom.pos.tolist() for atom in self._atoms]
+        )
+
+    def coordination(self):
+        return len(self._atoms)
+
+    def debug_groups(self) -> list[dict]:
+        groups = []
+        for i, (view_atom, members) in enumerate(zip(self._atoms, self._groups), start=1):
+            groups.append(
+                {
+                    "view_index": i,
+                    "centroid": {
+                        "name": view_atom.atom.name,
+                        "element": view_atom.atom.element.name,
+                        "position": view_atom.pos.tolist(),
+                    },
+                    "members": [_atom_debug(atom) for atom in members],
+                }
+            )
+        return groups
+
+
+def _graph_from_cif(structure: Ligand) -> nx.Graph:
+    graph = nx.Graph()
+    for atom_name, neighbors in structure.nonmetal_bonds.items():
+        graph.add_node(atom_name)
+        for neighbor in neighbors:
+            graph.add_edge(atom_name, neighbor)
+    return graph
+
+
+def _graph_from_model(structure: Ligand) -> nx.Graph:
+    st = getattr(structure.metal, "structure", None)
+    if st is None:
+        return nx.Graph()
+
+    graph = nx.Graph()
+    model = st[0]
+    ns = gemmi.NeighborSearch(model, st.cell, 4.2).populate(include_h=False)
+    records = []
+    for chain in model:
+        for residue in chain:
+            for atom in residue:
+                if not _is_graph_atom(atom):
+                    continue
+                key = (
+                    chain.name,
+                    residue.name,
+                    residue.seqid.num,
+                    _clean_icode(residue.seqid.icode),
+                    atom.name,
+                    _clean_altloc(atom.altloc),
+                    0,
+                    "x,y,z",
+                )
+                graph.add_node(key)
+                records.append((key, atom))
+
+    for key, atom in records:
+        for mark in ns.find_neighbors(atom, min_dist=0.1, max_dist=4.2):
+            if mark.image_idx != 0:
+                continue
+            cra = mark.to_cra(model)
+            if not _is_graph_atom(cra.atom):
+                continue
+            other_key = _cra_key(cra)
+            if other_key == key:
+                continue
+            if _clean_altloc(atom.altloc) != _clean_altloc(cra.atom.altloc):
+                continue
+            max_dist = 1.3 * (atom.element.covalent_r + cra.atom.element.covalent_r)
+            if atom.pos.dist(cra.atom.pos) <= max_dist:
+                graph.add_edge(key, other_key)
+
+    return graph
+
+
+def _ligand_graph_key(structure: Ligand, atom: IAtom):
+    if structure.nonmetal_bonds:
+        return atom.atom.name
+    return _atom_key(atom)
+
+
+def _pair_connected(
+    graph: nx.Graph,
+    source,
+    target,
+    max_edges: int,
+) -> bool:
+    if source not in graph or target not in graph:
+        return False
+    try:
+        return nx.shortest_path_length(graph, source, target) <= max_edges
+    except nx.NetworkXNoPath:
+        return False
+
+
+def create_grouped_view(
+    structure: Ligand, max_bridge_atoms: int = 2
+) -> Optional[GroupedLigandView]:
+    """
+    Collapse coordinated non-metal atoms connected within the ligand graph.
+    """
+    ligands = list(structure.all_ligands)
+    if len(ligands) < 2:
+        return None
+
+    graph = _graph_from_cif(structure) if structure.nonmetal_bonds else _graph_from_model(structure)
+    max_edges = max_bridge_atoms + 1
+    ligand_graph = nx.Graph()
+    ligand_graph.add_nodes_from(range(len(ligands)))
+
+    for i, atom1 in enumerate(ligands):
+        for j in range(i + 1, len(ligands)):
+            atom2 = ligands[j]
+            if not _can_group(atom1, atom2):
+                continue
+            key1 = _ligand_graph_key(structure, atom1)
+            key2 = _ligand_graph_key(structure, atom2)
+            if _pair_connected(graph, key1, key2, max_edges):
+                ligand_graph.add_edge(i, j)
+
+    components = [
+        sorted(component) for component in nx.connected_components(ligand_graph)
+    ]
+    components.sort(key=lambda component: component[0])
+    groups = [[ligands[i] for i in component] for component in components]
+
+    if not any(len(group) > 1 for group in groups):
+        return None
+
+    return GroupedLigandView(structure, groups)
+
+
+def mark_grouped_candidate(class_result, grouped_view: GroupedLigandView):
+    setattr(class_result, GROUPED_CANDIDATE_ATTR, grouped_view)
+    return class_result
+
+
+def is_grouped_candidate(class_result) -> bool:
+    return getattr(class_result, GROUPED_CANDIDATE_ATTR, None) is not None
+
+
+def get_grouped_view(class_result) -> Optional[GroupedLigandView]:
+    return getattr(class_result, GROUPED_CANDIDATE_ATTR, None)
