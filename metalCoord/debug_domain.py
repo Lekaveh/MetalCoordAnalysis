@@ -147,6 +147,25 @@ class DomainReportBuilder:
                             "std": angle.std,
                         }
                     )
+                for grouped_bond in best.grouped_bonds:
+                    distances.append(
+                        {
+                            "ligand": grouped_bond.ligand.to_dict(),
+                            "distance": grouped_bond.distance,
+                            "std": grouped_bond.std,
+                            "grouped": True,
+                        }
+                    )
+                for grouped_angle in best.grouped_angles:
+                    angles.append(
+                        {
+                            "ligand1": grouped_angle.ligand1.to_dict(),
+                            "ligand2": grouped_angle.ligand2.to_dict(),
+                            "angle": grouped_angle.angle,
+                            "std": grouped_angle.std,
+                            "grouped": True,
+                        }
+                    )
             distance_data.append({"metal_site": site, "distances": distances})
             angle_data.append({"metal_site": site, "angles": angles})
             final_data.append(

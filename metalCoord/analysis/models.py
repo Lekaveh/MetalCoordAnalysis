@@ -316,6 +316,164 @@ class AngleStats:
         return d
 
 
+class Centroid:
+    """
+    A group of ligand atoms collapsed to a single fictitious centroid atom
+    (a pseudo-atom), used for the generalised (centroid) restraints of the
+    grouped fallback. Serialises like an atom endpoint but carries its member
+    atoms, so it can occupy the same restraint slot as a real ``Atom``.
+    """
+
+    def __init__(self, name: str, members: list) -> None:
+        self._name: str = name
+        self._members: list = members
+
+    @property
+    def name(self) -> str:
+        """Returns the pseudo-atom handle (e.g. ``Q1``)."""
+        return self._name
+
+    @property
+    def members(self) -> list:
+        """Returns the real member atoms of the group."""
+        return self._members
+
+    @property
+    def n(self) -> int:
+        """Returns the number of member atoms."""
+        return len(self._members)
+
+    def to_dict(self, include_raw: bool = False) -> dict:
+        """
+        Converts the centroid pseudo-atom to a dictionary.
+
+        Returns:
+            dict: ``{name, kind, n, members}`` where members are full atom dicts.
+        """
+        return {
+            "name": self._name,
+            "kind": "centroid",
+            "n": self.n,
+            "members": [member.to_dict() for member in self._members],
+        }
+
+
+class GroupedDistanceStats:
+    """
+    Metal-to-group-centroid distance restraint (generalised / centroid).
+
+    Carries a scalar target ``distance`` and never flows through the mmCIF bond
+    writer; it is emitted to JSON only, under the ``grouped_base`` key.
+    """
+
+    def __init__(
+        self,
+        ligand: Centroid,
+        distance: float,
+        std: float,
+        description: str = "",
+    ) -> None:
+        self._ligand: Centroid = ligand
+        self._distance: float = float(np.round(distance, 2))
+        self._std: float = float(
+            np.round(np.where(std > MIN_DISTANCE_STD, std, MIN_DISTANCE_STD), 2)
+        )
+        self._description: str = description
+
+    @property
+    def ligand(self) -> Centroid:
+        """Returns the centroid pseudo-atom."""
+        return self._ligand
+
+    @property
+    def distance(self) -> float:
+        """Returns the metal-to-centroid distance."""
+        return self._distance
+
+    @property
+    def std(self) -> float:
+        """Returns the standard deviation."""
+        return self._std
+
+    @property
+    def description(self) -> str:
+        """Returns the description."""
+        return self._description
+
+    def to_dict(self, include_raw: bool = False) -> dict:
+        """
+        Converts the grouped distance to a dictionary.
+
+        Returns:
+            dict: ``{ligand, distance, std}`` (+ optional ``description``).
+        """
+        d = {
+            "ligand": self._ligand.to_dict(include_raw=include_raw),
+            "distance": self._distance,
+            "std": self._std,
+        }
+        if self._description:
+            d["description"] = self._description
+        return d
+
+
+class GroupedAngleStats:
+    """
+    Centroid-M-centroid angle restraint. Endpoints are polymorphic: each of
+    ``ligand1`` / ``ligand2`` is either a real ``Atom`` (a singleton vertex) or a
+    ``Centroid`` (a true collapsed group). Emitted to JSON only, under the
+    ``grouped_angles`` key.
+    """
+
+    def __init__(
+        self,
+        ligand1,
+        ligand2,
+        angle_value: float,
+        std: float,
+    ) -> None:
+        self._ligand1 = ligand1
+        self._ligand2 = ligand2
+        self._angle: float = float(np.round(angle_value, 2))
+        self._std: float = float(
+            np.round(np.where(std > MIN_ANGLE_STD, std, MIN_ANGLE_STD), 2)
+        )
+
+    @property
+    def ligand1(self):
+        """Returns the first endpoint (Atom or Centroid)."""
+        return self._ligand1
+
+    @property
+    def ligand2(self):
+        """Returns the second endpoint (Atom or Centroid)."""
+        return self._ligand2
+
+    @property
+    def angle(self) -> float:
+        """Returns the angle value."""
+        return self._angle
+
+    @property
+    def std(self) -> float:
+        """Returns the standard deviation."""
+        return self._std
+
+    def to_dict(self, include_raw: bool = False) -> dict:
+        """
+        Converts the grouped angle to a dictionary.
+
+        Returns:
+            dict: ``{ligand1, ligand2, angle, std}`` with polymorphic endpoints.
+        """
+        return {
+            "ligand1": self._ligand1.to_dict(include_raw=include_raw),
+            "ligand2": self._ligand2.to_dict(include_raw=include_raw),
+            "angle": self._angle,
+            "std": self._std,
+        }
+
+
 class MetalPairStats:
     """
     Represents statistics for a pair of metal atoms (both represented as Ligand objects).
@@ -443,6 +601,8 @@ class LigandStats:
         self._bonds: list = []
         self._pdb_bonds: list = []
         self._angles: list = []
+        self._grouped_bonds: list = []
+        self._grouped_angles: list = []
         self._description: str = description
         self._cod_files: dict = {}
 
@@ -552,6 +712,22 @@ class LigandStats:
         for ligand_angle in self._angles:
             if ligand_angle.is_ligand:
                 yield ligand_angle
+
+    @property
+    def grouped_bonds(self) -> iter:
+        """
+        Generator: Yields each generalised (centroid) distance restraint.
+        """
+        for grouped_bond in self._grouped_bonds:
+            yield grouped_bond
+
+    @property
+    def grouped_angles(self) -> iter:
+        """
+        Generator: Yields each generalised (centroid) angle restraint.
+        """
+        for grouped_angle in self._grouped_angles:
+            yield grouped_angle
 
     def _atoms(self) -> list:
         """
@@ -666,6 +842,24 @@ class LigandStats:
         """
         self._angles.append(new_angle)
 
+    def add_grouped_bond(self, grouped_bond: GroupedDistanceStats) -> None:
+        """
+        Adds a generalised (centroid) distance restraint to the ligand.
+
+        Args:
+            grouped_bond: The GroupedDistanceStats to add.
+        """
+        self._grouped_bonds.append(grouped_bond)
+
+    def add_grouped_angle(self, grouped_angle: GroupedAngleStats) -> None:
+        """
+        Adds a generalised (centroid) angle restraint to the ligand.
+
+        Args:
+            grouped_angle: The GroupedAngleStats to add.
+        """
+        self._grouped_angles.append(grouped_angle)
+
     def add_cod_file(
         self, cod_file: str, structure: metalCoord.analysis.structures.Ligand
     ) -> None:
@@ -696,10 +890,18 @@ class LigandStats:
             "angles": [],
             "pdb": [],
             "order": [],
+            "grouped_base": [],
+            "grouped_angles": [],
         }
         clazz["base"] = [b.to_dict(include_raw=include_raw) for b in self.bonds]
         clazz["angles"] = [a.to_dict(include_raw=include_raw) for a in self.angles]
         clazz["pdb"] = [p.to_dict(include_raw=include_raw) for p in self.pdb]
+        clazz["grouped_base"] = [
+            b.to_dict(include_raw=include_raw) for b in self.grouped_bonds
+        ]
+        clazz["grouped_angles"] = [
+            a.to_dict(include_raw=include_raw) for a in self.grouped_angles
+        ]
 
         atoms = self._atoms()
         if self.clazz and len(self._index) > 1:

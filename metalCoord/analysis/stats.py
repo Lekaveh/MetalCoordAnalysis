@@ -13,7 +13,16 @@ from metalCoord.analysis.cluster import modes
 from metalCoord.analysis.data import DB
 from metalCoord.analysis.directional import calculate_stats
 from metalCoord.analysis.grouping import get_grouped_view
-from metalCoord.analysis.models import AngleStats, Atom, DistanceStats, LigandStats
+from metalCoord.analysis.models import (
+    MIN_DISTANCE_STD,
+    AngleStats,
+    Atom,
+    Centroid,
+    DistanceStats,
+    GroupedAngleStats,
+    GroupedDistanceStats,
+    LigandStats,
+)
 from metalCoord.config import Config
 from metalCoord.correspondense.procrustes import fit
 from metalCoord.logging import Logger
@@ -407,25 +416,175 @@ def _create_fallback_distance_stats(
     return _create_covalent_distance_stats(structure, ligand, "Covalent distance")
 
 
-def _grouped_ideal_angles(structure, grouped_view, class_result):
-    ideal_ligand_coord = class_result.coord[class_result.index]
+def _xyz(atom) -> np.ndarray:
+    """Cartesian position of an atom as a float ndarray."""
+    pos = atom.pos
+    return np.array([pos.x, pos.y, pos.z], dtype=float)
+
+
+def _ideal_distance_raw(metal_elem: str, ligand_elem: str) -> tuple:
+    """
+    Raw (unrounded) ideal metal-ligand distance and its std for the generalised
+    centroid geometry. Reuses the DB / covalent-radius fallback logic of
+    ``_create_fallback_distance_stats`` but returns floats (not a rounded
+    ``DistanceStats``); a non-finite DB std is floored to ``MIN_DISTANCE_STD``.
+    """
+    dist, std, count = DB.get_distance_stats(metal_elem, ligand_elem)
+    if count > 0:
+        std = float(std) if np.isfinite(std) and std > 0 else MIN_DISTANCE_STD
+        return float(dist), std
+    covalent = (
+        gemmi.Element(ligand_elem).covalent_r
+        + gemmi.Element(metal_elem).covalent_r
+    )
+    return float(covalent), 0.2
+
+
+def _centroid_distance(d, sigma, c):
+    """
+    Generalised (Apollonius) metal-to-centroid distance for a group.
+
+    Args:
+        d: ideal metal-member distances (raw), length n.
+        sigma: their standard deviations (raw), length n.
+        c: symmetric (n, n) matrix of observed inter-member distances.
+
+    Returns:
+        tuple (d0, sigma0, R_raw) of raw floats, or (None, None, None) when any
+        input is non-finite. The radicand is clamped to 0 when negative while
+        R_raw carries the raw (possibly negative) value; sigma0 is set to
+        MIN_DISTANCE_STD directly when d0 == 0 (no divide-by-zero).
+    """
+    d = np.asarray(d, dtype=float)
+    sigma = np.asarray(sigma, dtype=float)
+    c = np.asarray(c, dtype=float)
+    n = len(d)
+
+    upper = np.triu_indices(n, k=1)
+    c_vals = c[upper]
+    if not (
+        np.all(np.isfinite(d))
+        and np.all(np.isfinite(sigma))
+        and np.all(np.isfinite(c_vals))
+    ):
+        return None, None, None
+
+    r_raw = float(np.sum(d ** 2) / n - np.sum(c_vals ** 2) / (n ** 2))
+    radicand = r_raw if r_raw > 0 else 0.0
+    d0 = float(np.sqrt(radicand))
+
+    if d0 <= 1e-9:
+        sigma0 = MIN_DISTANCE_STD
+    else:
+        sigma0 = float(np.sqrt(np.sum((d / (n * d0)) ** 2 * sigma ** 2)))
+        sigma0 = max(sigma0, MIN_DISTANCE_STD)
+    return d0, sigma0, r_raw
+
+
+def _grouped_centroid_distance(structure, members):
+    """
+    Metal-to-centroid distance and its uncertainty for a collapsed group.
+    Returns (d0, sigma0) as raw floats, or (None, None) when the restraint must
+    be skipped (non-finite inputs). Logs a warning when the ideal and observed
+    geometries are materially inconsistent (radicand well below zero).
+    """
+    metal_elem = structure.metal.atom.element.name
+    n = len(members)
+
+    d = np.empty(n)
+    sigma = np.empty(n)
+    for i, member in enumerate(members):
+        d[i], sigma[i] = _ideal_distance_raw(metal_elem, member.atom.element.name)
+
+    c = np.zeros((n, n))
+    for i in range(n):
+        for j in range(i + 1, n):
+            c[i, j] = c[j, i] = euclidean(_xyz(members[i]), _xyz(members[j]))
+
+    d0, sigma0, r_raw = _centroid_distance(d, sigma, c)
+    names = [member.atom.name for member in members]
+    if d0 is None:
+        Logger().warning(
+            f"Grouped centroid distance skipped for metal {metal_elem} "
+            f"group {names}: non-finite ideal distance or coordinate."
+        )
+        return None, None
+    if r_raw < -1e-6:
+        Logger().warning(
+            f"Grouped centroid distance: inconsistent geometry for metal "
+            f"{metal_elem} group {names} (radicand R={r_raw:.6f}); "
+            f"centroid clamped to the metal (d0=0)."
+        )
+    return d0, sigma0
+
+
+def _make_centroid(view_atom, members):
+    """Build a serialisable centroid pseudo-atom from a collapsed vertex."""
+    return Centroid(view_atom.name, [Atom(member) for member in members])
+
+
+def _add_grouped_restraints(structure, grouped_view, class_result, clazz_stats):
+    """
+    Emit the generalised (centroid) restraints for a grouped site:
+
+    * one ``GroupedDistanceStats`` per true group (>= 2 members);
+    * one ``GroupedAngleStats`` per vertex pair with at least one group
+      (endpoints are polymorphic: Atom for singletons, Centroid for groups);
+    * a standard ``AngleStats`` for a singleton-singleton pair.
+    """
+    ideal_coord = class_result.coord[class_result.index]
     base_ligands = set(structure.ligands)
-    for i in range(1, grouped_view.coordination()):
-        for j in range(i + 1, grouped_view.coordination() + 1):
-            ideal_angle = angle(
-                ideal_ligand_coord[0], ideal_ligand_coord[i], ideal_ligand_coord[j]
-            )
-            group1 = grouped_view.group_members(i - 1)
-            group2 = grouped_view.group_members(j - 1)
-            for atom1 in group1:
-                for atom2 in group2:
-                    yield AngleStats(
-                        Atom(atom1),
-                        Atom(atom2),
+    view_atoms = list(grouped_view.all_ligands)
+    coordination = grouped_view.coordination()
+
+    # metal -> centroid distances (true groups only; singletons live in `base`)
+    for k, view_atom in enumerate(view_atoms):
+        members = grouped_view.group_members(k)
+        if len(members) < 2:
+            continue
+        d0, sigma0 = _grouped_centroid_distance(structure, members)
+        if d0 is None:
+            continue
+        clazz_stats.add_grouped_bond(
+            GroupedDistanceStats(_make_centroid(view_atom, members), d0, sigma0)
+        )
+
+    # centroid-M-centroid angles (any pair touching a group -> grouped)
+    for i in range(1, coordination):
+        for j in range(i + 1, coordination + 1):
+            ideal_angle = angle(ideal_coord[0], ideal_coord[i], ideal_coord[j])
+            members_i = grouped_view.group_members(i - 1)
+            members_j = grouped_view.group_members(j - 1)
+            is_group_i = len(members_i) > 1
+            is_group_j = len(members_j) > 1
+
+            if is_group_i or is_group_j:
+                endpoint_i = (
+                    _make_centroid(view_atoms[i - 1], members_i)
+                    if is_group_i
+                    else Atom(members_i[0])
+                )
+                endpoint_j = (
+                    _make_centroid(view_atoms[j - 1], members_j)
+                    if is_group_j
+                    else Atom(members_j[0])
+                )
+                clazz_stats.add_grouped_angle(
+                    GroupedAngleStats(endpoint_i, endpoint_j, ideal_angle, 5.000)
+                )
+            else:
+                atom_i = members_i[0]
+                atom_j = members_j[0]
+                clazz_stats.add_angle(
+                    AngleStats(
+                        Atom(atom_i),
+                        Atom(atom_j),
                         ideal_angle,
                         5.000,
-                        is_ligand=atom1 in base_ligands and atom2 in base_ligands,
+                        is_ligand=atom_i in base_ligands
+                        and atom_j in base_ligands,
                     )
+                )
 
 
 def create_grouped_ligand_stats(
@@ -446,14 +605,15 @@ def create_grouped_ligand_stats(
         f"Grouped fallback ({grouped_view.collapsed_group_count} groups collapsed)",
     )
 
+    # Per-atom ideal d_i fallback lengths for `_chem_comp_bond` connectivity.
     for ligand in structure.ligands:
         clazz_stats.add_bond(_create_fallback_distance_stats(structure, ligand))
 
     for ligand in structure.extra_ligands:
         clazz_stats.add_pdb_bond(_create_fallback_distance_stats(structure, ligand))
 
-    for ideal_angle in _grouped_ideal_angles(structure, grouped_view, class_result):
-        clazz_stats.add_angle(ideal_angle)
+    # Generalised (centroid) geometry -> grouped_base / grouped_angles (JSON).
+    _add_grouped_restraints(structure, grouped_view, class_result, clazz_stats)
 
     return clazz_stats
 

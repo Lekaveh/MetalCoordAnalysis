@@ -9,6 +9,9 @@ from metalCoord.analysis.structures import IAtom, Ligand
 
 GROUPED_CANDIDATE_ATTR = "_metalcoord_grouped_view"
 
+# Handle prefix for centroid pseudo-atoms (NMR/chemistry convention: Q1, Q2, ...)
+CENTROID_NAME_PREFIX = "Q"
+
 
 def _pos_array(atom: IAtom) -> np.ndarray:
     pos = atom.pos
@@ -108,7 +111,7 @@ class CentroidAtom(IAtom):
         pos = np.mean([_pos_array(atom) for atom in atoms], axis=0)
 
         self._atom = gemmi.Atom()
-        self._atom.name = f"G{group_number}_{element}"
+        self._atom.name = f"{CENTROID_NAME_PREFIX}{group_number}"
         self._atom.element = gemmi.Element(element)
         self._atom.pos = _position(pos)
         self._atom.occ = float(np.mean([atom.atom.occ for atom in atoms]))
