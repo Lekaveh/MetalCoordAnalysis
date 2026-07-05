@@ -8,6 +8,15 @@ MIN_ANGLE_STD = 3.0
 MIN_DISTANCE_STD = 0.02
 
 
+def _round_std(std, floor):
+    """Round a standard deviation to 2 dp, floored at ``floor``.
+
+    Accepts scalars or numpy arrays; the caller converts the result with
+    ``float(...)`` or ``.tolist()`` as needed.
+    """
+    return np.round(np.where(std > floor, std, floor), 2)
+
+
 class Atom:
     """
     Represents a ligand atom in a molecular structure.
@@ -152,9 +161,7 @@ class DistanceStats:
     ) -> None:
         self._ligand: Atom = ligand
         self._distance: float = np.round(distance, 2).tolist()
-        self._std: float = np.round(
-            np.where(std > MIN_DISTANCE_STD, std, MIN_DISTANCE_STD), 2
-        ).tolist()
+        self._std: float = _round_std(std, MIN_DISTANCE_STD).tolist()
         self._distances: np.ndarray = distances
         self._procrustes_dists: np.ndarray = procrustes_dists
         self._description: str = description
@@ -238,9 +245,7 @@ class AngleStats:
         self._ligand1: Atom = ligand1
         self._ligand2: Atom = ligand2
         self._angle: float = np.round(angle_value, 2).tolist()
-        self._std: float = np.round(
-            np.where(std > MIN_ANGLE_STD, std, MIN_ANGLE_STD), 2
-        ).tolist()
+        self._std: float = _round_std(std, MIN_ANGLE_STD).tolist()
         self._is_ligand: bool = is_ligand
         self._angles: np.ndarray = angles
         self._procrustes_dists: np.ndarray = procrustes_dists
@@ -375,9 +380,7 @@ class GroupedDistanceStats:
     ) -> None:
         self._ligand: Centroid = ligand
         self._distance: float = float(np.round(distance, 2))
-        self._std: float = float(
-            np.round(np.where(std > MIN_DISTANCE_STD, std, MIN_DISTANCE_STD), 2)
-        )
+        self._std: float = float(_round_std(std, MIN_DISTANCE_STD))
         self._description: str = description
 
     @property
@@ -435,9 +438,7 @@ class GroupedAngleStats:
         self._ligand1 = ligand1
         self._ligand2 = ligand2
         self._angle: float = float(np.round(angle_value, 2))
-        self._std: float = float(
-            np.round(np.where(std > MIN_ANGLE_STD, std, MIN_ANGLE_STD), 2)
-        )
+        self._std: float = float(_round_std(std, MIN_ANGLE_STD))
 
     @property
     def ligand1(self):

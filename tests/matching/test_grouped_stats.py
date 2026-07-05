@@ -12,6 +12,7 @@ import gemmi
 import numpy as np
 import pytest
 
+from metalCoord.analysis import stats as stats_mod
 from metalCoord.analysis.classes import ClassificationResult, idealClasses
 from metalCoord.analysis.classify import find_classes_from_structures
 from metalCoord.analysis.grouping import create_grouped_view, mark_grouped_candidate
@@ -135,6 +136,21 @@ def test_grouped_angles_pairs_with_at_least_one_group():
         singletons.add(plain["name"])
         assert entry["angle"] == pytest.approx(120.0, abs=1.0)
     assert singletons == {"B1", "C1"}
+
+
+def test_skipped_group_distance_also_skips_its_angles(monkeypatch):
+    # if a group's centroid distance is dropped (e.g. NaN input), the angles
+    # touching that group must not remain dangling in grouped_angles
+    monkeypatch.setattr(
+        stats_mod, "_grouped_centroid_distance", lambda structure, members: (None, None)
+    )
+    _, stats = _trigonal_stats()
+    payload = stats.to_dict()
+
+    assert len(payload["grouped_base"]) == 0
+    assert len(payload["grouped_angles"]) == 0
+    # the singleton-singleton pair is unaffected
+    assert len(payload["angles"]) == 1
 
 
 def test_singleton_singleton_angle_in_standard_angles():

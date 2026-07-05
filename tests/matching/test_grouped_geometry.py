@@ -15,12 +15,20 @@ import pytest
 from metalCoord.analysis import stats
 from metalCoord.analysis.models import MIN_DISTANCE_STD
 from metalCoord.analysis.stats import (
+    _MAX_CENTROID_STD,
     _centroid_distance,
     _grouped_centroid_distance,
     _ideal_distance_raw,
 )
 from metalCoord.analysis.structures import CifAtom, Ligand
 from metalCoord.logging import Logger
+
+
+@pytest.fixture(autouse=True)
+def _reset_logger_capture():
+    """Keep the process-wide Logger capture state from leaking between tests."""
+    yield
+    Logger().enable_capture(False, reset=True)
 
 
 # --------------------------------------------------------------------------- #
@@ -129,6 +137,17 @@ def test_nan_input_returns_none():
         np.array([np.nan, 2.0]), np.array([0.05, 0.05]), _c_matrix({(0, 1): 2.0}, 2)
     )
     assert d0 is None and sigma0 is None and r_raw is None
+
+
+def test_near_degenerate_sigma_is_capped():
+    # d0 just above the zero-guard: the propagated sigma would explode (~70 A),
+    # so it must be capped at _MAX_CENTROID_STD rather than emitted raw.
+    c12 = math.sqrt(16.0 - 4e-6)  # r_raw ~ 1e-6 -> d0 ~ 0.001
+    d0, sigma0, r_raw = _centroid_distance(
+        np.array([2.0, 2.0]), np.array([0.05, 0.05]), _c_matrix({(0, 1): c12}, 2)
+    )
+    assert 1e-9 < d0 < 1e-2  # propagation branch, not the zero-distance floor
+    assert sigma0 == pytest.approx(_MAX_CENTROID_STD)
 
 
 def test_sigma_propagation():

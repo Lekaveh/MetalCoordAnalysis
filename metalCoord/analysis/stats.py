@@ -12,7 +12,7 @@ from metalCoord.analysis.classes import ClassificationResult, idealClasses
 from metalCoord.analysis.cluster import modes
 from metalCoord.analysis.data import DB
 from metalCoord.analysis.directional import calculate_stats
-from metalCoord.analysis.grouping import get_grouped_view
+from metalCoord.analysis.grouping import _pos_array, get_grouped_view
 from metalCoord.analysis.models import (
     MIN_DISTANCE_STD,
     AngleStats,
@@ -416,12 +416,6 @@ def _create_fallback_distance_stats(
     return _create_covalent_distance_stats(structure, ligand, "Covalent distance")
 
 
-def _xyz(atom) -> np.ndarray:
-    """Cartesian position of an atom as a float ndarray."""
-    pos = atom.pos
-    return np.array([pos.x, pos.y, pos.z], dtype=float)
-
-
 def _ideal_distance_raw(metal_elem: str, ligand_elem: str) -> tuple:
     """
     Raw (unrounded) ideal metal-ligand distance and its std for the generalised
@@ -438,6 +432,12 @@ def _ideal_distance_raw(metal_elem: str, ligand_elem: str) -> tuple:
         + gemmi.Element(metal_elem).covalent_r
     )
     return float(covalent), 0.2
+
+
+# Upper bound on the propagated centroid-distance std: as d0 -> 0 the
+# sensitivity d_i/(n*d0) diverges, so cap the std at an effectively-loose value
+# rather than emitting a nonsensically large (or exploding) uncertainty.
+_MAX_CENTROID_STD = 1.0
 
 
 def _centroid_distance(d, sigma, c):
@@ -477,7 +477,7 @@ def _centroid_distance(d, sigma, c):
         sigma0 = MIN_DISTANCE_STD
     else:
         sigma0 = float(np.sqrt(np.sum((d / (n * d0)) ** 2 * sigma ** 2)))
-        sigma0 = max(sigma0, MIN_DISTANCE_STD)
+        sigma0 = min(max(sigma0, MIN_DISTANCE_STD), _MAX_CENTROID_STD)
     return d0, sigma0, r_raw
 
 
@@ -499,7 +499,9 @@ def _grouped_centroid_distance(structure, members):
     c = np.zeros((n, n))
     for i in range(n):
         for j in range(i + 1, n):
-            c[i, j] = c[j, i] = euclidean(_xyz(members[i]), _xyz(members[j]))
+            c[i, j] = c[j, i] = euclidean(
+                _pos_array(members[i]), _pos_array(members[j])
+            )
 
     d0, sigma0, r_raw = _centroid_distance(d, sigma, c)
     names = [member.atom.name for member in members]
@@ -523,6 +525,13 @@ def _make_centroid(view_atom, members):
     return Centroid(view_atom.name, [Atom(member) for member in members])
 
 
+def _endpoint(view_atom, members):
+    """Restraint endpoint for a vertex: Centroid if a group, else a real Atom."""
+    if len(members) > 1:
+        return _make_centroid(view_atom, members)
+    return Atom(members[0])
+
+
 def _add_grouped_restraints(structure, grouped_view, class_result, clazz_stats):
     """
     Emit the generalised (centroid) restraints for a grouped site:
@@ -538,12 +547,14 @@ def _add_grouped_restraints(structure, grouped_view, class_result, clazz_stats):
     coordination = grouped_view.coordination()
 
     # metal -> centroid distances (true groups only; singletons live in `base`)
+    skipped_groups = set()
     for k, view_atom in enumerate(view_atoms):
         members = grouped_view.group_members(k)
         if len(members) < 2:
             continue
         d0, sigma0 = _grouped_centroid_distance(structure, members)
         if d0 is None:
+            skipped_groups.add(k)
             continue
         clazz_stats.add_grouped_bond(
             GroupedDistanceStats(_make_centroid(view_atom, members), d0, sigma0)
@@ -552,25 +563,27 @@ def _add_grouped_restraints(structure, grouped_view, class_result, clazz_stats):
     # centroid-M-centroid angles (any pair touching a group -> grouped)
     for i in range(1, coordination):
         for j in range(i + 1, coordination + 1):
-            ideal_angle = angle(ideal_coord[0], ideal_coord[i], ideal_coord[j])
             members_i = grouped_view.group_members(i - 1)
             members_j = grouped_view.group_members(j - 1)
             is_group_i = len(members_i) > 1
             is_group_j = len(members_j) > 1
 
+            # a group whose centroid distance was skipped must not leave a
+            # dangling angle referencing an undefined centroid
+            if (is_group_i and (i - 1) in skipped_groups) or (
+                is_group_j and (j - 1) in skipped_groups
+            ):
+                continue
+
+            ideal_angle = angle(ideal_coord[0], ideal_coord[i], ideal_coord[j])
             if is_group_i or is_group_j:
-                endpoint_i = (
-                    _make_centroid(view_atoms[i - 1], members_i)
-                    if is_group_i
-                    else Atom(members_i[0])
-                )
-                endpoint_j = (
-                    _make_centroid(view_atoms[j - 1], members_j)
-                    if is_group_j
-                    else Atom(members_j[0])
-                )
                 clazz_stats.add_grouped_angle(
-                    GroupedAngleStats(endpoint_i, endpoint_j, ideal_angle, 5.000)
+                    GroupedAngleStats(
+                        _endpoint(view_atoms[i - 1], members_i),
+                        _endpoint(view_atoms[j - 1], members_j),
+                        ideal_angle,
+                        5.000,
+                    )
                 )
             else:
                 atom_i = members_i[0]
