@@ -221,6 +221,21 @@ class GroupedLigandView:
             atom.atom.element.name for atom in self._atoms
         ]
 
+    def descriptor_tokens(self):
+        """Descriptor tokens with each collapsed group rendered as ``Q``.
+
+        Mirrors ``element_names()`` but substitutes ``CENTROID_NAME_PREFIX`` for a
+        group vertex, so the descriptor marks a grouped site without leaking the
+        group's representative element. Ordering stays element-based via
+        ``element_names()``; this only changes the displayed token.
+        """
+        return [self._structure.metal.atom.element.name] + [
+            CENTROID_NAME_PREFIX
+            if isinstance(atom, CentroidAtom)
+            else atom.atom.element.name
+            for atom in self._atoms
+        ]
+
     def name_code_with_symmetries(self):
         return " ".join(self.atom_names_with_symmetries())
 

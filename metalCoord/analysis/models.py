@@ -604,6 +604,7 @@ class LigandStats:
         self._angles: list = []
         self._grouped_bonds: list = []
         self._grouped_angles: list = []
+        self._order: list = None
         self._description: str = description
         self._cod_files: dict = {}
 
@@ -861,6 +862,16 @@ class LigandStats:
         """
         self._grouped_angles.append(grouped_angle)
 
+    def set_order(self, vertices: list) -> None:
+        """
+        Override the coordination ``order`` with an explicit vertex list.
+
+        Used by the grouped fallback to present the collapsed vertices (a
+        ``Centroid`` for a group, an ``Atom`` for a singleton) instead of the
+        flat real-atom list derived from ``_atoms()``.
+        """
+        self._order = vertices
+
     def add_cod_file(
         self, cod_file: str, structure: metalCoord.analysis.structures.Ligand
     ) -> None:
@@ -904,11 +915,16 @@ class LigandStats:
             a.to_dict(include_raw=include_raw) for a in self.grouped_angles
         ]
 
-        atoms = self._atoms()
-        if self.clazz and len(self._index) > 1:
-            clazz["order"] = [atoms[idx - 1].to_dict() for idx in self._index[1:]]
+        if self._order is not None:
+            clazz["order"] = [vertex.to_dict() for vertex in self._order]
         else:
-            clazz["order"] = [atom.to_dict() for atom in atoms]
+            atoms = self._atoms()
+            if self.clazz and len(self._index) > 1:
+                clazz["order"] = [
+                    atoms[idx - 1].to_dict() for idx in self._index[1:]
+                ]
+            else:
+                clazz["order"] = [atom.to_dict() for atom in atoms]
 
         return clazz
 

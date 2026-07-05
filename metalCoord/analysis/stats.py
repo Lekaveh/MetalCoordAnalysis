@@ -12,7 +12,11 @@ from metalCoord.analysis.classes import ClassificationResult, idealClasses
 from metalCoord.analysis.cluster import modes
 from metalCoord.analysis.data import DB
 from metalCoord.analysis.directional import calculate_stats
-from metalCoord.analysis.grouping import _pos_array, get_grouped_view
+from metalCoord.analysis.grouping import (
+    GroupedLigandView,
+    _pos_array,
+    get_grouped_view,
+)
 from metalCoord.analysis.models import (
     MIN_DISTANCE_STD,
     AngleStats,
@@ -354,7 +358,13 @@ def create_descriptor(
     inv_index = class_result.lexicographic_order(
         atom_names_with_symmetries, element_names
     )
-    atoms = np.array(element_names)
+    # a grouped site renders each collapsed vertex as the bare token Q; ordering
+    # stays element-based (element_names), only the displayed token changes
+    if isinstance(structure, GroupedLigandView):
+        display_tokens = structure.descriptor_tokens()
+    else:
+        display_tokens = element_names
+    atoms = np.array(display_tokens)
     class_code = idealClasses.get_class_code(class_result.clazz)
     ordered_elements = atoms[inv_index].tolist()
     descriptor = f"@{class_code}" + "{" + f"{','.join(ordered_elements)}" + "}"
@@ -545,6 +555,18 @@ def _add_grouped_restraints(structure, grouped_view, class_result, clazz_stats):
     base_ligands = set(structure.ligands)
     view_atoms = list(grouped_view.all_ligands)
     coordination = grouped_view.coordination()
+
+    # `order` presents the collapsed vertices (a Q-centroid with members for a
+    # group, a real atom for a singleton) in the SAME lexicographic order the
+    # descriptor uses, so order and descriptor line up vertex-for-vertex.
+    vertices = [
+        _endpoint(view_atom, grouped_view.group_members(k))
+        for k, view_atom in enumerate(view_atoms)
+    ]
+    order_index = class_result.lexicographic_order(
+        grouped_view.atom_names_with_symmetries(), grouped_view.element_names()
+    )
+    clazz_stats.set_order([vertices[idx - 1] for idx in order_index[1:]])
 
     # metal -> centroid distances (true groups only; singletons live in `base`)
     skipped_groups = set()

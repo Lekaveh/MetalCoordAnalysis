@@ -170,15 +170,44 @@ def test_standard_bonds_present_grouped_populated():
     _, stats = _trigonal_stats()
     payload = stats.to_dict()
 
-    # per-atom connectivity for all four real atoms, no centroid leakage
+    # per-atom connectivity keeps all four real atoms; no Q leaks into base
     assert len(payload["base"]) == 4
-    assert len(payload["order"]) == 4
     assert {b["ligand"]["name"] for b in payload["base"]} == {"A1", "A2", "B1", "C1"}
     assert all(not b["ligand"]["name"].startswith("Q") for b in payload["base"])
-    assert all(not atom["name"].startswith("Q") for atom in payload["order"])
+
+    # order now carries the collapsed vertices (one group + two singletons)
+    assert len(payload["order"]) == 3
 
     assert len(payload["grouped_base"]) == 1
     assert len(payload["grouped_angles"]) == 2
+
+
+def test_order_and_descriptor_use_q_for_groups():
+    _, stats = _trigonal_stats()
+    payload = stats.to_dict()
+
+    # order lists the collapsed vertices: the group as a Q-centroid carrying
+    # its members, the singletons as real atoms
+    order = payload["order"]
+    assert len(order) == 3
+    centroids = [v for v in order if v.get("kind") == "centroid"]
+    reals = [v for v in order if v.get("kind") != "centroid"]
+    assert len(centroids) == 1
+    assert centroids[0]["name"].startswith("Q")
+    assert {m["name"] for m in centroids[0]["members"]} == {"A1", "A2"}
+    assert {v["name"] for v in reals} == {"B1", "C1"}
+
+    # descriptor renders the group vertex as the bare token Q
+    tokens = payload["descriptor"].split("{", 1)[1].rstrip("}").split(",")
+    assert tokens.count("Q") == 1  # exactly one collapsed group
+    assert sorted(tokens) == sorted(["Cu", "Q", "O", "O"])
+
+    # order must line up with the descriptor vertex-for-vertex (metal excluded)
+    order_tokens = [
+        "Q" if v.get("kind") == "centroid" else v["element"] for v in order
+    ]
+    assert tokens[0] == "Cu"  # metal first
+    assert order_tokens == tokens[1:]
 
 
 def test_to_dict_exposes_grouped_keys():
@@ -220,14 +249,19 @@ def test_grouped_fallback_handles_fixed_class_value_error():
     assert best.coordination == 2
     assert best.description == "Grouped fallback (2 groups collapsed)"
 
-    # connectivity retains all four real atoms
+    # connectivity retains all four real atoms; order = two collapsed vertices
     assert len(payload["base"]) == 4
-    assert len(payload["order"]) == 4
+    assert len(payload["order"]) == 2
 
     # two centroid distances, one group-group angle, no standard angles
     assert len(payload["grouped_base"]) == 2
     assert len(payload["grouped_angles"]) == 1
     assert len(payload["angles"]) == 0
+
+    # both order vertices are Q-centroids; descriptor carries two Q tokens
+    assert all(v["kind"] == "centroid" for v in payload["order"])
+    tokens = payload["descriptor"].split("{", 1)[1].rstrip("}").split(",")
+    assert tokens.count("Q") == 2
 
     grouped_angle = payload["grouped_angles"][0]
     assert grouped_angle["ligand1"]["kind"] == "centroid"
