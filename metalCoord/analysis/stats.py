@@ -640,12 +640,30 @@ def create_grouped_ligand_stats(
         f"Grouped fallback ({grouped_view.collapsed_group_count} groups collapsed)",
     )
 
-    # Per-atom ideal d_i fallback lengths for `_chem_comp_bond` connectivity.
+    # Atoms collapsed into a multi-atom group have no per-atom distance
+    # statistics -- only the group (its centroid) does. Such a member must not be
+    # emitted as an individual metal bond to base/pdb (it would become a spurious
+    # `exte dist` restraint / PDB LINK), nor as an individual angle endpoint
+    # (already handled: _add_grouped_restraints routes any group-touching pair to
+    # grouped_angles as a centroid endpoint). Only singleton vertices carry a
+    # per-atom base/pdb bond; every collapsed group is represented solely by its
+    # centroid in grouped_base / grouped_angles.
+    collapsed_member_ids = {
+        id(atom)
+        for group in grouped_view.groups
+        if len(group) > 1
+        for atom in group
+    }
+
+    # Per-atom ideal d_i fallback lengths for `_chem_comp_bond` connectivity
+    # (singletons only; collapsed-group members live in grouped_base).
     for ligand in structure.ligands:
-        clazz_stats.add_bond(_create_fallback_distance_stats(structure, ligand))
+        if id(ligand) not in collapsed_member_ids:
+            clazz_stats.add_bond(_create_fallback_distance_stats(structure, ligand))
 
     for ligand in structure.extra_ligands:
-        clazz_stats.add_pdb_bond(_create_fallback_distance_stats(structure, ligand))
+        if id(ligand) not in collapsed_member_ids:
+            clazz_stats.add_pdb_bond(_create_fallback_distance_stats(structure, ligand))
 
     # Generalised (centroid) geometry -> grouped_base / grouped_angles (JSON).
     _add_grouped_restraints(structure, grouped_view, class_result, clazz_stats)

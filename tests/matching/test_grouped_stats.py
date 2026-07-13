@@ -1,9 +1,10 @@
 """Stats-builder tests for the generalised (centroid) grouped fallback.
 
-A collapsed multi-atom vertex is emitted as a centroid pseudo-atom in the new
-``grouped_base`` / ``grouped_angles`` JSON keys, while the per-atom
-``_chem_comp_bond`` connectivity (``base`` / ``order``) stays populated.  Angle
-restraints route by vertex pair: any pair touching a true group goes to
+A collapsed multi-atom vertex is emitted as a centroid pseudo-atom in the
+``grouped_base`` / ``grouped_angles`` JSON keys.  A collapsed-group member has no
+per-atom distance stat, so it appears on NO per-atom surface: ``base`` / ``pdb``
+hold only singleton vertices and ``angles`` only singleton-singleton pairs.
+Angle restraints route by vertex pair: any pair touching a true group goes to
 ``grouped_angles`` (polymorphic endpoints), a singleton-singleton pair stays in
 the standard ``angles``.
 """
@@ -166,20 +167,40 @@ def test_singleton_singleton_angle_in_standard_angles():
 # --------------------------------------------------------------------------- #
 # connectivity + JSON shape
 # --------------------------------------------------------------------------- #
-def test_standard_bonds_present_grouped_populated():
+def test_base_holds_singletons_only_grouped_populated():
     _, stats = _trigonal_stats()
     payload = stats.to_dict()
 
-    # per-atom connectivity keeps all four real atoms; no Q leaks into base
-    assert len(payload["base"]) == 4
-    assert {b["ligand"]["name"] for b in payload["base"]} == {"A1", "A2", "B1", "C1"}
+    # per-atom connectivity keeps ONLY the singletons; collapsed-group members
+    # {A1, A2} have no per-atom distance stat -- they live solely in the centroid.
+    # No Q leaks into base.
+    assert {b["ligand"]["name"] for b in payload["base"]} == {"B1", "C1"}
     assert all(not b["ligand"]["name"].startswith("Q") for b in payload["base"])
 
-    # order now carries the collapsed vertices (one group + two singletons)
+    # order still carries the collapsed vertices (one group + two singletons)
     assert len(payload["order"]) == 3
 
     assert len(payload["grouped_base"]) == 1
     assert len(payload["grouped_angles"]) == 2
+
+
+def test_grouped_members_absent_from_base_pdb_and_angles():
+    _, stats = _trigonal_stats()
+    payload = stats.to_dict()
+
+    # a collapsed-group member appears on NO per-atom surface (base/pdb/angles)
+    base_pdb = {b["ligand"]["name"] for b in payload["base"] + payload["pdb"]}
+    assert base_pdb == {"B1", "C1"}
+    assert "A1" not in base_pdb and "A2" not in base_pdb
+
+    angle_atoms = {
+        a[key]["name"] for a in payload["angles"] for key in ("ligand1", "ligand2")
+    }
+    assert "A1" not in angle_atoms and "A2" not in angle_atoms
+
+    # they are represented only inside the group's centroid
+    members = {m["name"] for m in payload["grouped_base"][0]["ligand"]["members"]}
+    assert members == {"A1", "A2"}
 
 
 def test_order_and_descriptor_use_q_for_groups():
@@ -249,8 +270,9 @@ def test_grouped_fallback_handles_fixed_class_value_error():
     assert best.coordination == 2
     assert best.description == "Grouped fallback (2 groups collapsed)"
 
-    # connectivity retains all four real atoms; order = two collapsed vertices
-    assert len(payload["base"]) == 4
+    # both vertices are collapsed groups -> no singleton, so base is empty;
+    # order still lists the two collapsed vertices
+    assert len(payload["base"]) == 0
     assert len(payload["order"]) == 2
 
     # two centroid distances, one group-group angle, no standard angles
