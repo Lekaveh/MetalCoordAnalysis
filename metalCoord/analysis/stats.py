@@ -654,6 +654,11 @@ def create_grouped_ligand_stats(
         if len(group) > 1
         for atom in group
     }
+    # Bridge ("added") atoms pulled in while forming a group are not donors and
+    # must never surface as a per-atom bond either; exclude them defensively.
+    for view_index in range(len(grouped_view.groups)):
+        for atom in grouped_view.group_added_members(view_index):
+            collapsed_member_ids.add(id(atom))
 
     # Per-atom ideal d_i fallback lengths for `_chem_comp_bond` connectivity
     # (singletons only; collapsed-group members live in grouped_base).

@@ -5,7 +5,7 @@ import gemmi
 import networkx as nx
 import numpy as np
 
-from metalCoord.analysis.structures import IAtom, Ligand
+from metalCoord.analysis.structures import Atom, IAtom, Ligand
 
 GROUPED_CANDIDATE_ATTR = "_metalcoord_grouped_view"
 
@@ -167,9 +167,19 @@ class GroupedLigandView:
     Classification-only view where bonded ligand groups are represented by centroids.
     """
 
-    def __init__(self, structure: Ligand, groups: list[list[IAtom]]) -> None:
+    def __init__(
+        self,
+        structure: Ligand,
+        groups: list[list[IAtom]],
+        added: Optional[list[list[IAtom]]] = None,
+    ) -> None:
         self._structure = structure
         self._groups = groups
+        # Bridge ("added") atoms pulled in while forming each group. They are
+        # marked here but never contribute to the centroid or to any restraint:
+        # the centroid and grouped_base / grouped_angles use `groups` (the
+        # original metal-bonded donors) only.
+        self._added = added if added is not None else [[] for _ in groups]
         self._atoms = [
             CentroidAtom(i + 1, group) if len(group) > 1 else group[0]
             for i, group in enumerate(groups)
@@ -210,6 +220,10 @@ class GroupedLigandView:
 
     def group_members(self, view_index: int) -> list[IAtom]:
         return self._groups[view_index]
+
+    def group_added_members(self, view_index: int) -> list[IAtom]:
+        """Bridge atoms added while forming this group (excluded from output)."""
+        return self._added[view_index]
 
     def atom_names_with_symmetries(self):
         return [self._structure.metal.name] + [
@@ -253,7 +267,9 @@ class GroupedLigandView:
 
     def debug_groups(self) -> list[dict]:
         groups = []
-        for i, (view_atom, members) in enumerate(zip(self._atoms, self._groups), start=1):
+        for i, (view_atom, members, added) in enumerate(
+            zip(self._atoms, self._groups, self._added), start=1
+        ):
             groups.append(
                 {
                     "view_index": i,
@@ -263,29 +279,35 @@ class GroupedLigandView:
                         "position": view_atom.pos.tolist(),
                     },
                     "members": [_atom_debug(atom) for atom in members],
+                    "added_members": [_atom_debug(atom) for atom in added],
                 }
             )
         return groups
 
 
-def _graph_from_cif(structure: Ligand) -> nx.Graph:
+def _graph_from_cif(structure: Ligand) -> tuple[nx.Graph, dict]:
     graph = nx.Graph()
     for atom_name, neighbors in structure.nonmetal_bonds.items():
         graph.add_node(atom_name)
         for neighbor in neighbors:
             graph.add_edge(atom_name, neighbor)
-    return graph
+    # No coordinate atoms are available on the CIF path, so bridge nodes cannot be
+    # materialised into IAtoms; the node index stays empty (best-effort).
+    return graph, {}
 
 
-def _graph_from_model(structure: Ligand) -> nx.Graph:
+def _graph_from_model(structure: Ligand) -> tuple[nx.Graph, dict]:
     st = getattr(structure.metal, "structure", None)
     if st is None:
-        return nx.Graph()
+        return nx.Graph(), {}
 
     graph = nx.Graph()
     model = st[0]
     ns = gemmi.NeighborSearch(model, st.cell, 4.2).populate(include_h=False)
     records = []
+    # key -> (gemmi.Atom, gemmi.Residue, gemmi.Chain), so a bridge node can later
+    # be materialised into an `Atom` on demand (only for the few bridge keys).
+    node_index = {}
     for chain in model:
         for residue in chain:
             for atom in residue:
@@ -302,6 +324,7 @@ def _graph_from_model(structure: Ligand) -> nx.Graph:
                     "x,y,z",
                 )
                 graph.add_node(key)
+                node_index[key] = (atom, residue, chain)
                 records.append((key, atom))
 
     for key, atom in records:
@@ -320,7 +343,7 @@ def _graph_from_model(structure: Ligand) -> nx.Graph:
             if atom.pos.dist(cra.atom.pos) <= max_dist:
                 graph.add_edge(key, other_key)
 
-    return graph
+    return graph, node_index
 
 
 def _ligand_graph_key(structure: Ligand, atom: IAtom):
@@ -329,18 +352,22 @@ def _ligand_graph_key(structure: Ligand, atom: IAtom):
     return _atom_key(atom)
 
 
-def _pair_connected(
-    graph: nx.Graph,
-    source,
-    target,
-    max_edges: int,
-) -> bool:
-    if source not in graph or target not in graph:
-        return False
-    try:
-        return nx.shortest_path_length(graph, source, target) <= max_edges
-    except nx.NetworkXNoPath:
-        return False
+def _materialise_bridges(bridge_keys, node_index, st) -> list[IAtom]:
+    """Turn bridge node keys into `Atom` IAtoms (model path only).
+
+    On the CIF path `node_index` is empty (no coordinate atoms), so bridges are
+    recorded as none — they are excluded from every output surface regardless.
+    """
+    atoms = []
+    if not node_index or st is None:
+        return atoms
+    for key in bridge_keys:
+        meta = node_index.get(key)
+        if meta is None:
+            continue
+        atom, residue, chain = meta
+        atoms.append(Atom(atom, residue, chain, None, st))
+    return atoms
 
 
 def create_grouped_view(
@@ -353,10 +380,20 @@ def create_grouped_view(
     if len(ligands) < 2:
         return None
 
-    graph = _graph_from_cif(structure) if structure.nonmetal_bonds else _graph_from_model(structure)
+    if structure.nonmetal_bonds:
+        graph, node_index = _graph_from_cif(structure)
+    else:
+        graph, node_index = _graph_from_model(structure)
+    st = getattr(structure.metal, "structure", None)
     max_edges = max_bridge_atoms + 1
+
+    # Donor atoms (the metal-bonded set that exists *before* the group search).
+    # Any node lying on a connecting path that is itself a donor is not a bridge.
+    donor_keys = {_ligand_graph_key(structure, atom) for atom in ligands}
+
     ligand_graph = nx.Graph()
     ligand_graph.add_nodes_from(range(len(ligands)))
+    edge_bridge_keys = {}
 
     for i, atom1 in enumerate(ligands):
         for j in range(i + 1, len(ligands)):
@@ -365,19 +402,47 @@ def create_grouped_view(
                 continue
             key1 = _ligand_graph_key(structure, atom1)
             key2 = _ligand_graph_key(structure, atom2)
-            if _pair_connected(graph, key1, key2, max_edges):
-                ligand_graph.add_edge(i, j)
+            if key1 not in graph or key2 not in graph:
+                continue
+            try:
+                path = nx.shortest_path(graph, key1, key2)
+            except nx.NetworkXNoPath:
+                continue
+            if len(path) - 1 > max_edges:
+                continue
+            ligand_graph.add_edge(i, j)
+            # Interior nodes of the connecting path that are NOT themselves donors
+            # are the "added" bridge atoms pulled in while forming the group. A
+            # donor (e.g. a carboxylate CD linking OE1/OE2) stays a full member --
+            # it is bonded to the metal, so it belongs in the group and centroid.
+            edge_bridge_keys[(i, j)] = [
+                key for key in path[1:-1] if key not in donor_keys
+            ]
 
     components = [
         sorted(component) for component in nx.connected_components(ligand_graph)
     ]
     components.sort(key=lambda component: component[0])
-    groups = [[ligands[i] for i in component] for component in components]
+
+    groups = []
+    added = []
+    for component in components:
+        component_set = set(component)
+        groups.append([ligands[i] for i in component])
+        bridge_keys = []
+        seen = set()
+        for (i, j), keys in edge_bridge_keys.items():
+            if i in component_set and j in component_set:
+                for key in keys:
+                    if key not in seen:
+                        seen.add(key)
+                        bridge_keys.append(key)
+        added.append(_materialise_bridges(bridge_keys, node_index, st))
 
     if not any(len(group) > 1 for group in groups):
         return None
 
-    return GroupedLigandView(structure, groups)
+    return GroupedLigandView(structure, groups, added)
 
 
 def mark_grouped_candidate(class_result, grouped_view: GroupedLigandView):

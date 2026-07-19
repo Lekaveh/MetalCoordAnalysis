@@ -19,7 +19,7 @@ from metalCoord.analysis.classify import find_classes_from_structures
 from metalCoord.analysis.grouping import create_grouped_view, mark_grouped_candidate
 from metalCoord.analysis.models import MIN_DISTANCE_STD
 from metalCoord.analysis.stats import create_grouped_ligand_stats
-from metalCoord.analysis.structures import CifAtom, Ligand
+from metalCoord.analysis.structures import Atom, CifAtom, Ligand
 
 
 # --------------------------------------------------------------------------- #
@@ -55,6 +55,40 @@ def _ligand(atom_specs, bonds):
     for name, element, xyz in atom_specs:
         ligand.add_ligand(CifAtom(_atom(name, element, xyz), residue, chain))
     return ligand
+
+
+def _model_trigonal_with_bridge():
+    """Model-path fixture: a group {N1, N2} bridged by a non-donor carbon CB,
+    plus two singleton oxygens -> trigonal-planar. CB is pulled into the group as
+    an "added" bridge; it must never reach the centroid or any restraint.
+    """
+    st = gemmi.Structure()
+    st.cell = gemmi.UnitCell(30, 30, 30, 90, 90, 90)
+    model = gemmi.Model("1")
+    chain = gemmi.Chain("A")
+    residue = gemmi.Residue()
+    residue.name = "LIG"
+    residue.seqid = gemmi.SeqId("1")
+
+    metal_atom = _atom("CU", "Cu", (0.0, 0.0, 0.0))
+    n1 = _atom("N1", "N", (1.0, 0.0, 0.0))
+    n2 = _atom("N2", "N", (3.0, 0.0, 0.0))
+    cb = _atom("CB", "C", (2.0, 0.0, 0.0))  # bridge: N1-CB-N2, no direct N1-N2 edge
+    b1 = _atom("B1", "O", (0.0, 2.0, 0.0))
+    c1 = _atom("C1", "O", (0.0, -2.0, 0.0))
+    for atom in (metal_atom, n1, n2, cb, b1, c1):
+        residue.add_atom(atom)
+    chain.add_residue(residue)
+    model.add_chain(chain)
+    st.add_model(model)
+
+    ligand = Ligand(Atom(metal_atom, residue, chain, None, st))
+    for atom in (n1, n2, b1, c1):  # CB is NOT a donor
+        ligand.add_ligand(Atom(atom, residue, chain, None, st))
+
+    grouped = create_grouped_view(ligand)
+    class_result = mark_grouped_candidate(_class_result("trigonal-planar"), grouped)
+    return ligand, grouped, create_grouped_ligand_stats(ligand, class_result)
 
 
 def _class_result(clazz):
@@ -229,6 +263,47 @@ def test_order_and_descriptor_use_q_for_groups():
     ]
     assert tokens[0] == "Cu"  # metal first
     assert order_tokens == tokens[1:]
+
+
+def test_added_bridge_atom_marked_but_absent_from_every_surface():
+    ligand, grouped, stats = _model_trigonal_with_bridge()
+
+    # the bridge carbon CB is marked as an "added" member of the {N1, N2} group
+    group_index = next(
+        k for k, g in enumerate(grouped.groups) if len(g) > 1
+    )
+    added_names = {a.atom.name for a in grouped.group_added_members(group_index)}
+    assert added_names == {"CB"}
+    assert {a.atom.name for a in grouped.group_members(group_index)} == {"N1", "N2"}
+
+    payload = stats.to_dict()
+
+    # CB must appear on NO output surface
+    base_pdb = {b["ligand"]["name"] for b in payload["base"] + payload["pdb"]}
+    assert "CB" not in base_pdb
+    angle_atoms = {
+        a[key]["name"] for a in payload["angles"] for key in ("ligand1", "ligand2")
+    }
+    assert "CB" not in angle_atoms
+    grouped_members = {
+        m["name"]
+        for gb in payload["grouped_base"]
+        for m in gb["ligand"]["members"]
+    }
+    assert grouped_members == {"N1", "N2"}  # centroid over donors only, no CB
+    grouped_angle_names = set()
+    for ga in payload["grouped_angles"]:
+        for key in ("ligand1", "ligand2"):
+            endpoint = ga[key]
+            if endpoint.get("kind") == "centroid":
+                grouped_angle_names.update(m["name"] for m in endpoint["members"])
+            else:
+                grouped_angle_names.add(endpoint["name"])
+    assert "CB" not in grouped_angle_names
+
+    # debug view records the bridge under added_members
+    debug = grouped.debug_groups()[group_index]
+    assert {m["name"] for m in debug["added_members"]} == {"CB"}
 
 
 def test_to_dict_exposes_grouped_keys():
