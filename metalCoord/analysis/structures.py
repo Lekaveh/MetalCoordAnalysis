@@ -9,6 +9,14 @@ from metalCoord.cif.utils import ATOM_ID, TYPE_SYMBOL, COORDS
 from metalCoord.config import Config
 from metalCoord.logging import Logger
 
+# Chelate-apex filter: the central atom of a connected three-donor group A-C-B is not a
+# donor when the group is a chelate bite whose apex is turned away from the metal.
+APEX_ANGLE_CUT = 105.0  # degrees; central angle above this flags an apex
+APEX_PLANE_CUT = 30.0  # degrees; metal out-of-plane tilt below this = metal in plane
+APEX_MAX_ANGLE = 170.0  # degrees; above this the A-C-B plane is numerically unstable
+APEX_MIN_SEPARATION = 0.5  # angstrom; closer than this the atoms are overlapping copies
+APEX_BOND_SCALE = 1.3  # covalent-radii multiplier defining a donor-donor bond
+
 
 class IAtom(ABC):
     """Abstract base class representing an atom in a molecular structure."""
@@ -737,6 +745,111 @@ class Ligand:
                 atom for i, atom in enumerate(self._ligands) if i not in to_delete
             ]
 
+    def _donor_neighbours(self, donors: list) -> dict:
+        """
+        Builds the donor-donor adjacency: two donors are joined when they are directly
+        bonded. Connectivity comes from the CIF bonds when they are available and from
+        interatomic distances otherwise.
+
+        Args:
+            donors (list): The donor atoms, indexed as given.
+
+        Returns:
+            A dict mapping a donor index to the set of indices it is bonded to.
+        """
+        neighbours = {i: set() for i in range(len(donors))}
+        for i, atom1 in enumerate(donors):
+            for j in range(i + 1, len(donors)):
+                atom2 = donors[j]
+                if self._nonmetal_bonds:
+                    connected = atom2.atom.name in self._nonmetal_bonds.get(
+                        atom1.atom.name, []
+                    )
+                else:
+                    connected = are_donors_bonded(atom1, atom2)
+                if connected:
+                    neighbours[i].add(j)
+                    neighbours[j].add(i)
+        return neighbours
+
+    def filter_apex_donors(self, include_base: bool = True) -> list:
+        """
+        Drops the apex of a chelating group from the coordination sphere.
+
+        For a connected donor group of exactly three atoms A-C-B the central atom C is
+        reclassified as a non-donor when all three conditions hold: the central angle
+        exceeds APEX_ANGLE_CUT, the metal lies in the plane of A, C, B (out-of-plane tilt
+        below APEX_PLANE_CUT), and C is farther from the metal than both edges. The last
+        condition is what separates a chelate apex, which points away from the metal, from
+        a real donor, which the metal is bonded to and which is therefore the closest of
+        the three.
+
+        Args:
+            include_base (bool, optional): If False, only extra ligands may be removed --
+                used when the donor set is prescribed by a monomer file. Default is True.
+
+        Returns:
+            A list of (atom, angle, tilt) tuples for the removed atoms.
+        """
+        donors = self._ligands + self._extra_ligands
+        if len(donors) < 3:
+            return []
+
+        neighbours = self._donor_neighbours(donors)
+        removed = []
+        for component in connected_components(neighbours):
+            if len(component) != 3:
+                continue
+
+            centrals = [i for i in component if len(neighbours[i]) == 2]
+            if len(centrals) != 1:
+                # A triangle has no unambiguous centre.
+                continue
+
+            central = donors[centrals[0]]
+            if central.symmetry:
+                continue
+            if not include_base and central in self._ligands:
+                continue
+
+            edge1, edge2 = [donors[i] for i in component if i != centrals[0]]
+            central_angle = angle(edge1, central, edge2)
+            if central_angle <= APEX_ANGLE_CUT or central_angle >= APEX_MAX_ANGLE:
+                continue
+
+            # Written as `not tilt < cut` on purpose: a degenerate plane gives NaN, and
+            # NaN must keep the atom rather than fall through the comparison.
+            tilt = out_of_plane_tilt(edge1, central, edge2, self._metal)
+            if not tilt < APEX_PLANE_CUT:
+                continue
+
+            central_distance = distance(self._metal, central)
+            if central_distance <= distance(
+                self._metal, edge1
+            ) or central_distance <= distance(self._metal, edge2):
+                continue
+
+            Logger().info(
+                f"Atom {central.atom.name} in {central.chain.name} - "
+                f"{central.residue.name} - {central.residue.seqid.num} is not a donor of "
+                f"{self}: it is the apex of a chelating group "
+                f"{edge1.atom.name} - {central.atom.name} - {edge2.atom.name} "
+                f"(angle {central_angle:.1f}, metal out-of-plane tilt {tilt:.1f}, "
+                f"distance {central_distance:.2f} greater than both "
+                f"{distance(self._metal, edge1):.2f} and "
+                f"{distance(self._metal, edge2):.2f})"
+            )
+            removed.append((central, central_angle, tilt))
+
+        if removed:
+            removed_atoms = [atom for atom, _, _ in removed]
+            self._ligands = [l for l in self._ligands if l not in removed_atoms]
+            self._extra_ligands = [
+                l for l in self._extra_ligands if l not in removed_atoms
+            ]
+
+        return removed
+
     def mean_occ(self):
         """
         Calculates the mean occupancy of the metal and ligand atoms.
@@ -919,6 +1032,114 @@ def distance(atom1: IAtom, atom2: IAtom) -> float:
         The Euclidean distance between the two atoms.
     """
     return np.sqrt((atom1.pos - atom2.pos).dot(atom1.pos - atom2.pos))
+
+
+def out_of_plane_tilt(
+    atom1: IAtom, atom2: IAtom, atom3: IAtom, point: IAtom
+) -> float:
+    """
+    Calculates how far out of the plane through three atoms a fourth atom sits.
+
+    Args:
+        atom1 (IAtom): The first atom of the plane.
+        atom2 (IAtom): The second atom of the plane, used as the origin.
+        atom3 (IAtom): The third atom of the plane.
+        point (IAtom): The atom whose tilt is measured.
+
+    Returns:
+        The tilt in degrees, or NaN when the plane or the direction is degenerate.
+    """
+    vec1 = atom1.pos - atom2.pos
+    vec2 = atom3.pos - atom2.pos
+    normal = np.cross([vec1.x, vec1.y, vec1.z], [vec2.x, vec2.y, vec2.z])
+    normal_length = np.linalg.norm(normal)
+    if normal_length < 1e-9:
+        return float("nan")
+
+    vec = point.pos - atom2.pos
+    vec = np.array([vec.x, vec.y, vec.z])
+    length = np.linalg.norm(vec)
+    if length < 1e-9:
+        return float("nan")
+
+    sine = abs(vec.dot(normal / normal_length)) / length
+    return float(np.degrees(np.arcsin(np.clip(sine, 0.0, 1.0))))
+
+
+def altloc_code(atom: IAtom) -> str:
+    """
+    Returns the normalised alternative location code of an atom ("" when unset).
+
+    Args:
+        atom (IAtom): The atom.
+
+    Returns:
+        The altloc code without the placeholders used by gemmi and mmCIF.
+    """
+    code = (atom.atom.altloc or "").strip().replace("\x00", "")
+    return "" if code in (".", "?") else code
+
+
+def are_donors_bonded(atom1: IAtom, atom2: IAtom) -> bool:
+    """
+    Checks whether two donor atoms are directly bonded, using the same covalent criterion
+    as the ligand connectivity graph in grouping.
+
+    Symmetry copies and atoms of different alternative locations are never joined, and
+    atoms closer than APEX_MIN_SEPARATION are treated as overlapping copies rather than
+    as a bond.
+
+    Args:
+        atom1 (IAtom): The first atom.
+        atom2 (IAtom): The second atom.
+
+    Returns:
+        True when the two atoms are bonded.
+    """
+    if atom1.symmetry or atom2.symmetry:
+        return False
+
+    if altloc_code(atom1) != altloc_code(atom2):
+        return False
+
+    separation = distance(atom1, atom2)
+    if separation < APEX_MIN_SEPARATION:
+        return False
+
+    return separation <= APEX_BOND_SCALE * (
+        gemmi.Element(atom1.atom.element.name).covalent_r
+        + gemmi.Element(atom2.atom.element.name).covalent_r
+    )
+
+
+def connected_components(neighbours: dict) -> list:
+    """
+    Splits an adjacency mapping into connected components.
+
+    Args:
+        neighbours (dict): A mapping of node to the set of nodes it is connected to.
+
+    Returns:
+        A list of components, each a sorted list of nodes.
+    """
+    seen = set()
+    components = []
+    for start in neighbours:
+        if start in seen:
+            continue
+
+        seen.add(start)
+        stack = [start]
+        component = []
+        while stack:
+            node = stack.pop()
+            component.append(node)
+            for neighbour in neighbours[node]:
+                if neighbour not in seen:
+                    seen.add(neighbour)
+                    stack.append(neighbour)
+        components.append(sorted(component))
+    return components
 
 
 def get_ligands(
@@ -1233,6 +1454,10 @@ def get_ligands(
                         raise ValueError(
                             f"There is inconsistency between ligand(s) in the PDB and monomer file. Metal {metal_name} in {chain.name} - {residue.name} - {residue.seqid.num} has different number of neighbours than expected. Expected: {sorted(bonds.get(metal_name, []))}, found: {sorted([l.atom.name for l in ligand_obj.ligands])}"
                         )
+
+                    # The apex filter is the last one: it needs the final donor set, and it
+                    # must not contradict the donors prescribed by a monomer file.
+                    ligand_obj.filter_apex_donors(include_base=not bonds)
 
                     structures.append(ligand_obj)
 
