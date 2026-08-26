@@ -1,0 +1,35 @@
+[
+    {
+        "elements": ["Fe", "S", "Fe", "S"],
+        "coordinations": [4, 4],
+        "classes": ["tetrahedral", "tetrahedral"],
+        "angles": {
+            "metal1": {"angle": 104.89, "std": 4.13},
+            "ligand1": {"angle": 74.47, "std": 4.05},
+            "metal2": {"angle": 104.89, "std": 4.13},
+            "ligand2": {"angle": 74.47, "std": 4.05}
+        }
+    },
+    {
+        "elements": ["Fe", "S", "Fe", "S"],
+        "coordinations": [5, 5],
+        "classes": ["square-pyramid", "square-pyramid"],
+        "angles": {
+            "metal1": {"angle": 84.77, "std": 1.1},
+            "ligand1": {"angle": 68.06, "std": 1.18},
+            "metal2": {"angle": 84.77, "std": 1.1},
+            "ligand2": {"angle": 68.06, "std": 1.18}
+        }
+    },
+    {
+        "elements": ["Fe", "S", "Fe", "S"],
+        "coordinations": [6, 6],
+        "classes": ["octahedral", "octahedral"],
+        "angles": {
+            "metal1": {"angle": 82.35, "std": 2.56},
+            "ligand1": {"angle": 95.47, "std": 3.25},
+            "metal2": {"angle": 82.35, "std": 2.56},
+            "ligand2": {"angle": 95.47, "std": 3.25}
+        }
+    }
+]

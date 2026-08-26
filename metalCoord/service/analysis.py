@@ -13,6 +13,7 @@ from metalCoord.analysis.classify import find_classes_pdb, find_classes_cif, rea
 
 from metalCoord.analysis.metal import MetalPairStatsService
 from metalCoord.analysis.models import PdbStats
+from metalCoord.analysis.rings import RING_ANGLE_STATS
 from metalCoord.config import Config
 from metalCoord.debug import DebugRecorder, resolve_debug_paths
 from metalCoord.debug_domain import DomainReportBuilder, render_domain_markdown
@@ -795,95 +796,163 @@ def update_angles_category(angles:Dict[str, Any], atoms: Dict[str, Any], bonds :
             angles[VALUE_ANGLE].append(str(round(angle.angle, 3)))
             angles[VALUE_ANGLE_ESD].append(str(round(angle.std, 3)))
 
-def update_tetragons(name: str, angles: Dict[str, Any], monomer, v: list) -> None:
-        """
-        Update angle information for tetragonal coordination cycles within a molecular structure.
+def _belongs_to_monomer(atom_code: tuple, monomer_code: tuple) -> bool:
+    """Return whether an atom code identifies an atom in the monomer."""
+    return (
+        len(atom_code) >= 5
+        and atom_code[2] == monomer_code[0]
+        and atom_code[3] == monomer_code[1]
+        and str(atom_code[4]) == str(monomer_code[2])
+    )
 
-        This function examines cycles (minimal rings) identified in a given vertex list ('v') and processes those
-        that form a tetragon (four-membered cycle). Depending on whether the first element in the cycle is a metal
-        (by checking gemmi.Element), the function assigns metal and ligand vertices accordingly. It then computes
-        the angles between the metal centers and the ligand atoms using the 'get_angle' method provided on the
-        'monomer' object. If both required angles are present, an adjusted angle value is calculated and either
-        updated in the provided 'angles' dictionary or appended as a new entry.
 
-        Parameters:
-            name (str): An identifier for the current coordination or computed geometry entry.
-            angles (Dict[str, Any]): A dictionary containing lists of atomic identifiers, angle values,
-                and standard deviations. Expected keys include COMP_ID, ATOM_ID_1, ATOM_ID_2, ATOM_ID_3,
-                VALUE_ANGLE, and VALUE_ANGLE_ESD.
-            monomer: An object representing a molecular fragment with the following properties:
-                - 'code': A string attribute used to match ligand identifiers.
-                - 'get_angle': A method that accepts metal and ligand identifiers to calculate the angular value
-                  between them.
-            v (list): A list of vertices (or nodes) representing atoms or groups within the molecular structure.
-                This list is used to identify minimal cycles in the structure.
+def _upsert_angle(
+    angles: Dict[str, Any],
+    component_name: str,
+    center: tuple,
+    neighbour1: tuple,
+    neighbour2: tuple,
+    value: float,
+    std: float,
+) -> None:
+    """Update an angle regardless of endpoint order, or append it if absent."""
+    for i, (atom1, existing_center, atom3) in enumerate(
+        zip(angles[ATOM_ID_1], angles[ATOM_ID_2], angles[ATOM_ID_3])
+    ):
+        same_endpoints = {atom1, atom3} == {neighbour1[0], neighbour2[0]}
+        if existing_center == center[0] and same_endpoints:
+            angles[VALUE_ANGLE][i] = str(round(value, 3))
+            angles[VALUE_ANGLE_ESD][i] = str(round(std, 3))
+            return
 
-        Returns:
-            None
+    angles[COMP_ID].append(component_name)
+    angles[ATOM_ID_1].append(neighbour1[0])
+    angles[ATOM_ID_2].append(center[0])
+    angles[ATOM_ID_3].append(neighbour2[0])
+    angles[VALUE_ANGLE].append(str(round(value, 3)))
+    angles[VALUE_ANGLE_ESD].append(str(round(std, 3)))
 
-        Notes:
-            - The function uses gemmi.Element to determine if a particular vertex represents a metal element.
-            - If an angle cannot be computed or is missing, a warning is logged using the Logger() mechanism.
-            - The standard deviation for the angle value is hardcoded to 5.0.
-        """
-        for cycle in find_minimal_cycles(v):
-            if len(cycle) == 4:
-                if gemmi.Element(cycle[0][1]).is_metal:
-                    metal1 = cycle[0]
-                    metal2 = cycle[2]
-                    ligand1 = cycle[1]
-                    ligand2 = cycle[3]
-                else:
-                    metal1 = cycle[1]
-                    metal2 = cycle[3]
-                    ligand1 = cycle[0]
-                    ligand2 = cycle[2]
 
-                angle1 = monomer.get_angle(metal1[0], ligand1, ligand2)
-                angle2 = monomer.get_angle(metal2[0], ligand1, ligand2)
+def update_tetragons(
+    name: str, angles: Dict[str, Any], monomer, vertices: list
+) -> None:
+    """Update four-membered, alternating metal-ligand rings in a monomer CIF.
 
-                if not angle1 or not angle2:
-                    if not angle1:
-                        Logger().warning(
-                            f"Angle {ligand1[0]}- {metal1[0]}-{ligand2[0]} not found in {monomer.code}"
-                        )
-                    if not angle2:
-                        Logger().warning(
-                            f"Angle {ligand1[0]}- {metal2[0]}-{ligand2[0]} not found in {monomer.code}"
-                        )
-                    continue
+    Exact ring statistics come from packaged reference data. When no exact
+    ring entry exists, metal-centred values come from selected COD
+    correspondence or ideal coordination class already stored on ``monomer``.
+    Ligand-centred values then close the ring geometrically. Cycles containing
+    atoms outside the component are ignored because a monomer CIF may only
+    reference atoms from its own ``_chem_comp_atom`` category.
+    """
+    for cycle in find_minimal_cycles(vertices):
+        if len(cycle) != 4:
+            continue
 
-                val = (360 - angle1.angle - angle2.angle) / 2
-                std = 5.0
+        metal_flags = [gemmi.Element(atom[1]).is_metal for atom in cycle]
+        if metal_flags == [True, False, True, False]:
+            metal1, ligand1, metal2, ligand2 = cycle
+        elif metal_flags == [False, True, False, True]:
+            ligand1, metal1, ligand2, metal2 = cycle
+        else:
+            continue
 
-                for ligand in [ligand1, ligand2]:
-                    if monomer.code == ligand[2:]:
-                        found = False
-                        for i, _atoms in enumerate(
-                            zip(angles[ATOM_ID_1], angles[ATOM_ID_2], angles[ATOM_ID_3])
-                        ):
-                            metal1_name, ligand_name, metal2_name = _atoms
-                            if (
-                                metal1_name == metal1[0]
-                                and ligand_name == ligand[0]
-                                and metal2_name == metal2[0]
-                            ) or (
-                                metal1_name == metal2[0]
-                                and ligand_name == ligand[0]
-                                and metal2_name == metal1[0]
-                            ):
-                                angles[VALUE_ANGLE][i] = str(round(val, 3))
-                                angles[VALUE_ANGLE_ESD][i] = str(round(std, 3))
-                                found = True
-                                break
-                        if not found:
-                            angles[COMP_ID].append(name)
-                            angles[ATOM_ID_1].append(metal1[0])
-                            angles[ATOM_ID_2].append(ligand[0])
-                            angles[ATOM_ID_3].append(metal2[0])
-                            angles[VALUE_ANGLE].append(str(round(val, 3)))
-                            angles[VALUE_ANGLE_ESD].append(str(round(std, 3)))
-            
+        if not all(
+            _belongs_to_monomer(atom, monomer.code)
+            for atom in (metal1, ligand1, metal2, ligand2)
+        ):
+            continue
+
+        metal1_class = monomer.get_best_class(metal1[0])
+        metal2_class = monomer.get_best_class(metal2[0])
+        ring_stats = None
+        if metal1_class and metal2_class:
+            ring_stats = RING_ANGLE_STATS.find(
+                elements=(metal1[1], ligand1[1], metal2[1], ligand2[1]),
+                coordinations=(
+                    metal1_class.coordination,
+                    metal2_class.coordination,
+                ),
+                classes=(metal1_class.clazz, metal2_class.clazz),
+            )
+
+        if ring_stats:
+            targets = (
+                (
+                    ligand1,
+                    metal1,
+                    metal2,
+                    ring_stats.ligand1.angle,
+                    ring_stats.ligand1.std,
+                ),
+                (
+                    ligand2,
+                    metal1,
+                    metal2,
+                    ring_stats.ligand2.angle,
+                    ring_stats.ligand2.std,
+                ),
+                (
+                    metal1,
+                    ligand1,
+                    ligand2,
+                    ring_stats.metal1.angle,
+                    ring_stats.metal1.std,
+                ),
+                (
+                    metal2,
+                    ligand1,
+                    ligand2,
+                    ring_stats.metal2.angle,
+                    ring_stats.metal2.std,
+                ),
+            )
+        else:
+            metal1_angle = monomer.get_angle(metal1[0], ligand1, ligand2)
+            metal2_angle = monomer.get_angle(metal2[0], ligand1, ligand2)
+            if not metal1_angle:
+                Logger().warning(
+                    f"Angle {ligand1[0]}-{metal1[0]}-{ligand2[0]} "
+                    f"not found in {monomer.code}"
+                )
+            if not metal2_angle:
+                Logger().warning(
+                    f"Angle {ligand1[0]}-{metal2[0]}-{ligand2[0]} "
+                    f"not found in {monomer.code}"
+                )
+            if not metal1_angle or not metal2_angle:
+                continue
+
+            ligand_angle = (360 - metal1_angle.angle - metal2_angle.angle) / 2
+            targets = (
+                (ligand1, metal1, metal2, ligand_angle, 5.0),
+                (ligand2, metal1, metal2, ligand_angle, 5.0),
+                (
+                    metal1,
+                    ligand1,
+                    ligand2,
+                    metal1_angle.angle,
+                    metal1_angle.std,
+                ),
+                (
+                    metal2,
+                    ligand1,
+                    ligand2,
+                    metal2_angle.angle,
+                    metal2_angle.std,
+                ),
+            )
+        for center, neighbour1, neighbour2, value, std in targets:
+            _upsert_angle(
+                angles,
+                name,
+                center,
+                neighbour1,
+                neighbour2,
+                value,
+                std,
+            )
+
 def update_cif(output_path, path, pdb, use_cif=False, clazz=None):
     """
     Update the CIF file with ligand information.
