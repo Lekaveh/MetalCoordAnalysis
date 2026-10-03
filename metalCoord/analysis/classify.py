@@ -189,6 +189,49 @@ strategies = [
 ]
 
 
+def _classify_site(classificator: Classificator, structure, clazz: str = None) -> list:
+    """All class candidates for one site (or grouped view); may raise ValueError."""
+    return list(
+        tqdm(
+            classificator.classify(structure, class_name=clazz),
+            desc="Coordination",
+            position=1,
+            leave=False,
+            disable=not Logger().progress_bars,
+        )
+    )
+
+
+def _classify_grouped(
+    classificator: Classificator, structure: Ligand, clazz: str, graph_cache: dict
+) -> list:
+    """
+    Grouped candidates for a site: its grouped view classified and each result
+    marked as grouped. Empty when the site has no group, or when a forced class
+    does not fit the grouped view's coordination.
+    """
+    grouped = create_grouped_view(structure, graph_cache=graph_cache)
+    if grouped is None:
+        return []
+    try:
+        grouped_results = _classify_site(classificator, grouped, clazz)
+    except ValueError:
+        return []
+    if grouped_results:
+        Logger().info(f"Class found via centroid grouping for {structure}")
+    return [
+        mark_grouped_candidate(class_result, grouped)
+        for class_result in grouped_results
+    ]
+
+
+def _candidate_origin(class_result, cleaned: bool) -> str:
+    """Cascade branch that produced a candidate, for the debug trace."""
+    if cleaned:
+        return "cleaned+grouped" if is_grouped_candidate(class_result) else "cleaned"
+    return "grouped" if is_grouped_candidate(class_result) else "direct"
+
+
 def find_classes_from_structures(
     structures: list[Ligand], bonds: dict, clazz: str = None
 ):
@@ -214,58 +257,45 @@ def find_classes_from_structures(
     classificator = Classificator()
 
     classes = {}
+    cleaned_sites = set()
+    graph_cache = {}
     for structure in tqdm(
         structures, desc="Structures", position=0, disable=not Logger().progress_bars
     ):
-        structure_classes = []
+        # D: direct classification. A forced-class ValueError is deferred until
+        # every other branch has failed, so the clean branch can still rescue it.
         direct_error = None
-
         try:
-            for class_result in tqdm(
-                classificator.classify(structure, class_name=clazz),
-                desc="Coordination",
-                position=1,
-                leave=False,
-                disable=not Logger().progress_bars,
-            ):
-                structure_classes.append(class_result)
+            structure_classes = _classify_site(classificator, structure, clazz)
         except ValueError as exc:
+            structure_classes = []
             direct_error = exc
 
+        # G: the grouped view is classified whatever D found.
+        structure_classes += _classify_grouped(
+            classificator, structure, clazz, graph_cache
+        )
+
         if not structure_classes:
-            grouped = create_grouped_view(structure)
-            if grouped is not None:
+            new_structure = structure.clean_the_farthest(len(bonds))
+            # an unchanged site would only repeat D and G
+            if new_structure.coordination() < structure.coordination():
+                # C, then G' whatever C found
                 try:
-                    grouped_results = list(
-                        classificator.classify(grouped, class_name=clazz)
+                    structure_classes = _classify_site(
+                        classificator, new_structure, clazz
                     )
                 except ValueError:
-                    grouped_results = []
-                if grouped_results:
-                    structure_classes = [
-                        mark_grouped_candidate(class_result, grouped)
-                        for class_result in grouped_results
-                    ]
-                    classes[structure] = structure_classes
-                    Logger().info(
-                        f"Class found via centroid grouping for {structure}"
-                    )
-                    continue
+                    structure_classes = []
+                structure_classes += _classify_grouped(
+                    classificator, new_structure, clazz, graph_cache
+                )
+                if structure_classes:
+                    structure = new_structure
+                    cleaned_sites.add(structure)
 
-            if direct_error is not None:
-                raise direct_error
-
-            new_structure = structure.clean_the_farthest(len(bonds))
-            for class_result in tqdm(
-                classificator.classify(new_structure, class_name=clazz),
-                desc="Coordination",
-                position=1,
-                leave=False,
-                disable=not Logger().progress_bars,
-            ):
-                structure_classes.append(class_result)
-            if structure_classes:
-                structure = new_structure
+        if not structure_classes and direct_error is not None:
+            raise direct_error
         classes[structure] = structure_classes
 
     for structure, structure_classes in classes.items():
@@ -325,6 +355,9 @@ def find_classes_from_structures(
                     "class": class_result.clazz,
                     "coordination": len(class_result.coord) - 1,
                     "procrustes": float(class_result.proc),
+                    "origin": _candidate_origin(
+                        class_result, structure in cleaned_sites
+                    ),
                 }
                 if grouped_view is not None:
                     candidate.update(

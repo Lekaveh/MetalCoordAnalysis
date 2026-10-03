@@ -136,9 +136,11 @@ Debug level controls detail:
 
 ### Grouped fallback for triangle-like coordination
 
-MetalCoord can automatically handle triangle-like cases such as metal-atom-atom-metal motifs as a classification fallback. If direct ideal-class matching fails, coordinated non-metal atoms that are connected through a non-metal bond path of up to three edges are temporarily collapsed to a centroid and the ideal class is fitted against the lower-coordination centroid view.
+MetalCoord can automatically handle triangle-like cases such as metal-atom-atom-metal motifs. Coordinated non-metal atoms that are connected through a non-metal bond path of up to three edges are collapsed to a centroid (`Q1`, `Q2`, …), and the ideal class is fitted against this lower-coordination centroid view.
 
-This does not add CLI flags and does not put virtual centroid atoms into the main JSON/CIF output. The reported `base`, `pdb`, `angles`, and `order` entries still name the original real atoms. For grouped fallback entries, `coordination` is the collapsed class coordination, `count` is `-1`, and `description` is `Grouped fallback (<n> groups collapsed)`. Distances are assigned to each original metal-ligand atom; ideal angles are expanded between real atoms in different collapsed groups, with no metal-centered angle emitted for atom pairs inside the same collapsed group.
+The centroid view is classified for every site, whether or not direct ideal-class matching succeeded. The farthest-contact cleanup runs only when both the direct and the centroid view find no class; the cleaned site is then classified both directly and as a centroid view. A forced class (`--cl`) that fits none of the observed views raises an error only when the cleaned site does not fit it either.
+
+The best class still prefers the highest coordination number, so when a direct class exists, centroid-view classes are extra entries in the JSON and do not change the CIF output. For grouped fallback entries, `coordination` is the collapsed class coordination, `count` is `-1`, and `description` is `Grouped fallback (<n> groups collapsed)`. A collapsed group is reported only through its centroid: a metal→centroid distance in `grouped_base` and centroid angles in `grouped_angles`, with the centroid object listing its member atoms. `base`, `pdb` and `angles` hold only atoms that were not collapsed. `order` and the descriptor show each group as `Q`. Centroid restraints are written to the JSON only, not to the CIF.
 
 ### Batch mode
 

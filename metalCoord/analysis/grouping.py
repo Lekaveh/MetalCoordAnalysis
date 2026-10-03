@@ -346,6 +346,25 @@ def _graph_from_model(structure: Ligand) -> tuple[nx.Graph, dict]:
     return graph, node_index
 
 
+def _cached_graph_from_model(
+    structure: Ligand, graph_cache: Optional[dict]
+) -> tuple[nx.Graph, dict]:
+    """`_graph_from_model`, memoised per gemmi.Structure in `graph_cache`.
+
+    The model graph does not depend on the site, so every site of one model can
+    share it. The cache keeps the Structure itself next to the graph: that pins
+    the object for the cache's lifetime, so its `id()` cannot be reused.
+    """
+    st = getattr(structure.metal, "structure", None)
+    if graph_cache is None or st is None:
+        return _graph_from_model(structure)
+    cached = graph_cache.get(id(st))
+    if cached is None or cached[0] is not st:
+        cached = (st, *_graph_from_model(structure))
+        graph_cache[id(st)] = cached
+    return cached[1], cached[2]
+
+
 def _ligand_graph_key(structure: Ligand, atom: IAtom):
     if structure.nonmetal_bonds:
         return atom.atom.name
@@ -371,10 +390,15 @@ def _materialise_bridges(bridge_keys, node_index, st) -> list[IAtom]:
 
 
 def create_grouped_view(
-    structure: Ligand, max_bridge_atoms: int = 2
+    structure: Ligand,
+    max_bridge_atoms: int = 2,
+    graph_cache: Optional[dict] = None,
 ) -> Optional[GroupedLigandView]:
     """
     Collapse coordinated non-metal atoms connected within the ligand graph.
+
+    `graph_cache` (optional) memoises the model graph per gemmi.Structure, so
+    callers grouping many sites of one model build it once.
     """
     ligands = list(structure.all_ligands)
     if len(ligands) < 2:
@@ -383,7 +407,7 @@ def create_grouped_view(
     if structure.nonmetal_bonds:
         graph, node_index = _graph_from_cif(structure)
     else:
-        graph, node_index = _graph_from_model(structure)
+        graph, node_index = _cached_graph_from_model(structure, graph_cache)
     st = getattr(structure.metal, "structure", None)
     max_edges = max_bridge_atoms + 1
 
